@@ -1,7 +1,10 @@
 import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
 import { swagger } from "@elysiajs/swagger";
-import "dotenv/config";
+import { config } from "dotenv";
+import { join } from "path";
+
+config({ path: join(process.cwd(), "../.env") });
 
 import { usersRoutes } from "./routes/users";
 import { postsRoutes } from "./routes/posts";
@@ -61,7 +64,7 @@ const app = new Elysia()
     message: "SEC Forum API",
     docs: "/docs",
   }))
-  .listen(3000, ({ hostname, port }) => {
+  .listen(Number(process.env.PORT) || 3000, ({ hostname, port }) => {
     logger.info(`Server running at http://${hostname}:${port}`);
   });
 

@@ -1,4 +1,8 @@
-import "dotenv/config";
+import { config } from "dotenv";
+import { join } from "path";
+
+config({ path: join(process.cwd(), "../.env") });
+
 import { db } from "./index";
 import { users, profiles, posts, tags, postTags } from "./schema";
 import { desc } from "drizzle-orm";
