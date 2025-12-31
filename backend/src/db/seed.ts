@@ -1,4 +1,8 @@
-import "dotenv/config";
+import { config } from "dotenv";
+import { join } from "path";
+
+config({ path: join(process.cwd(), "../.env") });
+
 import { db } from "./index";
 import { users, profiles } from "./schema";
 import { hashPassword } from "../utils/auth";
