@@ -1,126 +1,155 @@
-import { useState } from "react";
-import { Plus, Shield } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Plus, Shield, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header } from "./Header";
 import { CategorySidebar } from "./CategorySidebar";
 import { PostCard, type Post } from "./PostCard";
 import { ForumStatsSidebar } from "./ForumStatsSidebar";
 import { FilterDropdown, type SortOption } from "./FilterDropdown";
+import { useAuth } from "@/contexts/AuthContext";
 
-const mockPosts: Post[] = [
-  {
-    id: "1",
-    title: "Critical RCE vulnerability discovered in popular enterprise software",
-    excerpt:
-      "A new critical remote code execution vulnerability has been discovered affecting multiple enterprise applications. CVE-2024-XXXX allows unauthenticated attackers to execute arbitra...",
-    author: {
-      name: "admin",
-      isAdmin: true,
-    },
-    createdAt: "about 1 year ago",
-    isPinned: true,
-    tags: [
-      { id: "1", name: "Threat Intelligence" },
-      { id: "2", name: "CVE" },
-      { id: "3", name: "RCE" },
-    ],
-    replyCount: 47,
-    viewCount: 1245,
-  },
-  {
-    id: "2",
-    title: "Post-quantum cryptography: Preparing for the quantum threat",
-    excerpt:
-      "With quantum computing advances, current encryption standards face obsolescence. Let's discuss NIST's post-quantum standards and migration strategies that every security profession...",
-    author: {
-      name: "admin",
-      isAdmin: true,
-    },
-    createdAt: "about 1 year ago",
-    isPinned: true,
-    tags: [
-      { id: "4", name: "Cryptography" },
-      { id: "5", name: "Quantum" },
-      { id: "6", name: "PQC" },
-    ],
-    replyCount: 42,
-    viewCount: 987,
-  },
-  {
-    id: "3",
-    title: "Best practices for API security testing in 2025",
-    excerpt:
-      "With the rise of microservices architecture, API security has become more critical than ever. In this post, I'll share my methodology for comprehensive API security assessments tha...",
-    author: {
-      name: "user",
-    },
-    createdAt: "about 1 year ago",
-    isPinned: false,
-    tags: [
-      { id: "7", name: "API" },
-      { id: "8", name: "Testing" },
-      { id: "9", name: "Best Practices" },
-    ],
-    replyCount: 28,
-    viewCount: 654,
-  },
-  {
-    id: "4",
-    title: "Analyzing the latest Emotet botnet campaign",
-    excerpt:
-      "The Emotet botnet has resurfaced with new evasion techniques and delivery mechanisms. This analysis covers the technical details of the latest campaign and indicators of compromise...",
-    author: {
-      name: "MalwareHunter",
-    },
-    createdAt: "about 1 year ago",
-    isPinned: false,
-    tags: [
-      { id: "10", name: "Malware Analysis" },
-      { id: "11", name: "Emotet" },
-      { id: "12", name: "Botnet" },
-    ],
-    replyCount: 35,
-    viewCount: 892,
-  },
-  {
-    id: "5",
-    title: "OSCP vs OSEP: Which certification path should you choose?",
-    excerpt:
-      "Deciding between offensive security certifications can be challenging. Here's my breakdown of both certifications, the skills they test, and which one might be right for your career...",
-    author: {
-      name: "CertHunter",
-    },
-    createdAt: "about 1 year ago",
-    isPinned: false,
-    tags: [
-      { id: "13", name: "Career & Certifications" },
-      { id: "14", name: "OSCP" },
-      { id: "15", name: "OSEP" },
-    ],
-    replyCount: 56,
-    viewCount: 1432,
-  },
-];
+const API_BASE = "/api/v1";
 
-// Toggle this to test admin vs regular user view
-const currentUser = {
-  name: "admin",
-  role: "Admin",
-  isAdmin: true,
+// Map API sort options to backend expected values
+const sortMap: Record<SortOption, string> = {
+  recent: "recent",
+  popular: "popular",
+  "most-replies": "replies",
+  oldest: "oldest",
 };
 
 export function MainForum() {
+  const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(
     undefined
   );
   const [sortOption, setSortOption] = useState<SortOption>("recent");
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalPosts, setTotalPosts] = useState(0);
 
-  const isAdmin = currentUser.isAdmin;
+  const isAdmin = user?.role === "admin";
+
+  // Map auth user to header user format
+  const headerUser = user
+    ? {
+        name: user.name,
+        role: user.role.charAt(0).toUpperCase() + user.role.slice(1),
+        avatar: user.avatar,
+        isAdmin: user.role === "admin",
+      }
+    : undefined;
+
+  const fetchPosts = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const params = new URLSearchParams();
+      params.set("sort", sortMap[sortOption]);
+      if (selectedCategory) {
+        params.set("category", selectedCategory);
+      }
+
+      const response = await fetch(`${API_BASE}/posts?${params.toString()}`, {
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch posts");
+      }
+
+      const data = await response.json();
+
+      // Map API response to Post format
+      const mappedPosts: Post[] = (data.posts || data).map((post: any) => ({
+        id: post.id,
+        title: post.title,
+        excerpt: post.excerpt || post.content?.substring(0, 150) + "..." || "",
+        author: {
+          name: post.author?.username || post.author?.name || "Unknown",
+          avatar: post.author?.avatar,
+          isAdmin: post.author?.role === "admin",
+        },
+        createdAt: formatRelativeTime(post.createdAt),
+        isPinned: post.isPinned || post.pinned || false,
+        tags: (post.tags || []).map((tag: any) => ({
+          id: tag.id || tag,
+          name: tag.name || tag,
+        })),
+        replyCount: post.replyCount || post.commentCount || 0,
+        viewCount: post.viewCount || post.views || 0,
+      }));
+
+      setPosts(mappedPosts);
+      setTotalPosts(data.total || mappedPosts.length);
+    } catch (err) {
+      console.error("Failed to fetch posts:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch posts");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [sortOption, selectedCategory]);
+
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
+
+  // Handle post actions
+  const handlePinPost = async (postId: string) => {
+    try {
+      const response = await fetch(`${API_BASE}/posts/${postId}/pin`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        fetchPosts(); // Refresh posts
+      }
+    } catch (err) {
+      console.error("Failed to pin post:", err);
+    }
+  };
+
+  const handleLockPost = async (postId: string) => {
+    try {
+      const response = await fetch(`${API_BASE}/posts/${postId}/lock`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        fetchPosts(); // Refresh posts
+      }
+    } catch (err) {
+      console.error("Failed to lock post:", err);
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    if (!confirm("Are you sure you want to delete this post?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/posts/${postId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        fetchPosts(); // Refresh posts
+      }
+    } catch (err) {
+      console.error("Failed to delete post:", err);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <Header user={currentUser} notificationCount={3} />
+      <Header user={headerUser} />
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6">
@@ -148,7 +177,7 @@ export function MainForum() {
               <div>
                 <h1 className="text-2xl font-bold">All Discussions</h1>
                 <p className="text-sm text-muted-foreground">
-                  {mockPosts.length} posts
+                  {totalPosts} posts
                 </p>
               </div>
               <div className="flex items-center gap-3">
@@ -161,15 +190,39 @@ export function MainForum() {
             </div>
 
             {/* Posts List */}
-            <div className="space-y-4">
-              {mockPosts.map((post) => (
-                <PostCard 
-                  key={post.id} 
-                  post={post} 
-                  showAdminActions={isAdmin}
-                />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <p className="text-destructive">{error}</p>
+                <Button
+                  variant="outline"
+                  onClick={fetchPosts}
+                  className="mt-4"
+                >
+                  Try Again
+                </Button>
+              </div>
+            ) : posts.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No posts found</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {posts.map((post) => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    showAdminActions={isAdmin}
+                    onPin={() => handlePinPost(post.id)}
+                    onLock={() => handleLockPost(post.id)}
+                    onDelete={() => handleDeletePost(post.id)}
+                  />
+                ))}
+              </div>
+            )}
           </main>
 
           {/* Right Sidebar - Stats */}
@@ -178,4 +231,43 @@ export function MainForum() {
       </div>
     </div>
   );
+}
+
+// Helper function to format relative time
+function formatRelativeTime(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 60) {
+    return "just now";
+  }
+
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) {
+    return `${diffInMinutes}m ago`;
+  }
+
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) {
+    return `${diffInHours}h ago`;
+  }
+
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 7) {
+    return `${diffInDays}d ago`;
+  }
+
+  const diffInWeeks = Math.floor(diffInDays / 7);
+  if (diffInWeeks < 4) {
+    return `${diffInWeeks}w ago`;
+  }
+
+  const diffInMonths = Math.floor(diffInDays / 30);
+  if (diffInMonths < 12) {
+    return `about ${diffInMonths} month${diffInMonths > 1 ? "s" : ""} ago`;
+  }
+
+  const diffInYears = Math.floor(diffInDays / 365);
+  return `about ${diffInYears} year${diffInYears > 1 ? "s" : ""} ago`;
 }
