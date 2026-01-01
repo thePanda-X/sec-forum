@@ -1,114 +1,94 @@
-import { Elysia, t } from "elysia";
+import "reflect-metadata";
+import { Controller, Post, Get } from "elysia-decorators";
 import { db } from "../../db";
 import { users, profiles } from "../../db/schema";
 import { hashPassword, verifyPassword } from "../../utils/auth";
-import { authPlugin } from "../../middleware/auth";
 import { eq } from "drizzle-orm";
 
-const RegisterSchema = t.Object({
-  email: t.String({ format: "email" }),
-  password: t.String({ minLength: 6 }),
-  displayName: t.String({ minLength: 1, maxLength: 50 }),
-});
+@Controller("/users")
+export class UsersController {
+  @Post("/register")
+  async register({ body, set }: any) {
+    const existingUser = await db.query.users.findFirst({
+      where: eq(users.email, body.email),
+    });
 
-const LoginSchema = t.Object({
-  email: t.String({ format: "email" }),
-  password: t.String(),
-});
+    if (existingUser) {
+      set.status = 409;
+      return { error: "Email already registered" };
+    }
 
-export const usersRoutes = (app: Elysia) =>
-  app
-    .use(authPlugin)
-    .group("/users", (app) =>
-      app
-        .post(
-          "/register",
-          async ({ body, set }) => {
-            const existingUser = await db.query.users.findFirst({
-              where: eq(users.email, body.email),
-            });
+    const hashedPassword = await hashPassword(body.password);
 
-            if (existingUser) {
-              set.status = 409;
-              return { error: "Email already registered" };
-            }
+    const [user] = await db
+      .insert(users)
+      .values({
+        email: body.email,
+        password: hashedPassword,
+      })
+      .returning({ id: users.id, email: users.email });
 
-            const hashedPassword = await hashPassword(body.password);
+    await db.insert(profiles).values({
+      userId: user.id,
+      displayName: body.displayName,
+    });
 
-            const [user] = await db
-              .insert(users)
-              .values({
-                email: body.email,
-                password: hashedPassword,
-              })
-              .returning({ id: users.id, email: users.email });
+    set.status = 201;
+    return { message: "User created successfully", userId: user.id };
+  }
 
-            await db.insert(profiles).values({
-              userId: user.id,
-              displayName: body.displayName,
-            });
+  @Post("/login")
+  async login({ body, cookie, set, jwt }: any) {
+    const user = await db.query.users.findFirst({
+      where: eq(users.email, body.email),
+    });
 
-            set.status = 201;
-            return { message: "User created successfully", userId: user.id };
-          },
-          { body: RegisterSchema }
-        )
-        .post(
-          "/login",
-          async ({ body, cookie, set, jwt }) => {
-            const user = await db.query.users.findFirst({
-              where: eq(users.email, body.email),
-            });
+    if (!user) {
+      set.status = 401;
+      return { error: "Invalid credentials" };
+    }
 
-            if (!user) {
-              set.status = 401;
-              return { error: "Invalid credentials" };
-            }
+    const isValid = await verifyPassword(body.password, user.password);
+    if (!isValid) {
+      set.status = 401;
+      return { error: "Invalid credentials" };
+    }
 
-            const isValid = await verifyPassword(body.password, user.password);
-            if (!isValid) {
-              set.status = 401;
-              return { error: "Invalid credentials" };
-            }
+    const token = await jwt.sign({
+      sub: String(user.id),
+      email: user.email,
+      role: user.role,
+    });
 
-            const token = await jwt.sign({
-              sub: String(user.id),
-              email: user.email,
-              role: user.role,
-            });
+    cookie.auth_token.set({
+      value: token,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
+    });
 
-            cookie.auth_token.set({
-              value: token,
-              httpOnly: true,
-              secure: process.env.NODE_ENV === "production",
-              maxAge: 60 * 60 * 24 * 7,
-              path: "/",
-            });
+    return { message: "Login successful" };
+  }
 
-            return { message: "Login successful" };
-          },
-          { body: LoginSchema }
-        )
-        .get(
-          "/me",
-          async ({ user, set }) => {
-            const currentUser = await user;
-            if (!currentUser) {
-              set.status = 401;
-              return { error: "Not authenticated" };
-            }
+  @Get("/me")
+  async getMe({ user, set }: any) {
+    const currentUser = await user;
+    if (!currentUser) {
+      set.status = 401;
+      return { error: "Not authenticated" };
+    }
 
-            const profile = await db.query.profiles.findFirst({
-              where: eq(profiles.userId, currentUser.id),
-            });
+    const profile = await db.query.profiles.findFirst({
+      where: eq(profiles.userId, currentUser.id),
+    });
 
-            return {
-              id: currentUser.id,
-              email: currentUser.email,
-              role: currentUser.role,
-              displayName: profile?.displayName,
-              bio: profile?.bio,
-            };
-          }
-        )
-    );
+    return {
+      id: currentUser.id,
+      email: currentUser.email,
+      role: currentUser.role,
+      displayName: profile?.displayName,
+      bio: profile?.bio,
+    };
+  }
+}
