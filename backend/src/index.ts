@@ -1,14 +1,17 @@
+import "reflect-metadata";
+import "reflect-metadata";
 import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
 import { swagger } from "@elysiajs/swagger";
+import { decorators } from "elysia-decorators";
 import { config } from "dotenv";
 import { join } from "path";
 
 config({ path: join(process.cwd(), "../.env") });
 
-import { usersRoutes } from "./routes/users";
-import { postsRoutes } from "./routes/posts";
-import { tagsRoutes } from "./routes/tags";
+import { UsersController } from "./routes/users";
+import { PostsController } from "./routes/posts";
+import { TagsController } from "./routes/tags";
 import { authPlugin } from "./middleware/auth";
 import { logger } from "./utils/logger";
 
@@ -19,6 +22,12 @@ type RequestWithLog = Request & { _logStart?: number };
 const app = new Elysia()
   .use(cors())
   .use(swagger({ path: "/docs" }))
+  .use(authPlugin)
+  .use(
+    decorators({
+      controllers: [UsersController, PostsController, TagsController],
+    })
+  )
   .onStart((app) => {
     const request = (app as { request?: Request }).request;
     if (request) {
@@ -56,10 +65,6 @@ const app = new Elysia()
       });
     }
   })
-  .use(authPlugin)
-  .use(usersRoutes)
-  .use(postsRoutes)
-  .use(tagsRoutes)
   .get("/", () => ({
     message: "SEC Forum API",
     docs: "/docs",
