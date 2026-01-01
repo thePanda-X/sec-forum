@@ -29,9 +29,20 @@ interface Post {
 interface PostCardProps {
   post: Post;
   showAdminActions?: boolean;
+  onPin?: () => void;
+  onLock?: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
-export function PostCard({ post, showAdminActions = false }: PostCardProps) {
+export function PostCard({ 
+  post, 
+  showAdminActions = false,
+  onPin,
+  onLock,
+  onEdit,
+  onDelete,
+}: PostCardProps) {
   return (
     <article className="group relative bg-card border border-border rounded-lg p-4 hover:border-primary/30 transition-colors">
       <div className="flex items-start gap-4">
@@ -112,7 +123,12 @@ export function PostCard({ post, showAdminActions = false }: PostCardProps) {
           {/* Admin Actions */}
           {showAdminActions && (
             <div className="flex items-center gap-1 mt-4 pt-4 border-t border-border">
-              <Button variant="ghost" size="sm" className="h-8 text-xs gap-1.5 text-muted-foreground hover:text-foreground">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+                onClick={onPin}
+              >
                 {post.isPinned ? (
                   <>
                     <PinOff className="h-3.5 w-3.5" />
@@ -125,15 +141,30 @@ export function PostCard({ post, showAdminActions = false }: PostCardProps) {
                   </>
                 )}
               </Button>
-              <Button variant="ghost" size="sm" className="h-8 text-xs gap-1.5 text-muted-foreground hover:text-foreground">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+                onClick={onLock}
+              >
                 <Lock className="h-3.5 w-3.5" />
                 Lock
               </Button>
-              <Button variant="ghost" size="sm" className="h-8 text-xs gap-1.5 text-muted-foreground hover:text-foreground">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+                onClick={onEdit}
+              >
                 <Pencil className="h-3.5 w-3.5" />
                 Edit
               </Button>
-              <Button variant="ghost" size="sm" className="h-8 text-xs gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 text-xs gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={onDelete}
+              >
                 <Trash2 className="h-3.5 w-3.5" />
                 Delete
               </Button>
