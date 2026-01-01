@@ -42,6 +42,7 @@ async function seed() {
     await db.insert(profiles).values({
       userId: admin.id,
       displayName: "Administrator",
+      username: "admin",
       bio: "System administrator account",
     });
 

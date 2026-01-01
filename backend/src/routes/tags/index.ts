@@ -7,7 +7,16 @@ import { eq } from "drizzle-orm";
 
 @Controller("/tags")
 export class TagsController {
-  @Get("/")
+  @Get("/", {
+    detail: {
+      tags: ["Tags"],
+      summary: "List all tags",
+      description: "Retrieve a list of all tags",
+      responses: {
+        200: { description: "List of tags" },
+      },
+    },
+  } as any)
   async index() {
     const allTags = await db.query.tags.findMany({
       orderBy: [tags.name],
@@ -15,7 +24,32 @@ export class TagsController {
     return allTags;
   }
 
-  @Post("/")
+  @Post("/", {
+    detail: {
+      tags: ["Tags"],
+      summary: "Create tag",
+      description: "Create a new tag (admin only)",
+      requestBody: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+              },
+              required: ["name"],
+            },
+          },
+        },
+      },
+      responses: {
+        201: { description: "Tag created" },
+        401: { description: "Unauthorized" },
+        403: { description: "Admin access required" },
+        409: { description: "Tag already exists" },
+      },
+    },
+  } as any)
   async create({ body, user, set }: any) {
     const currentUser = await user;
     if (!currentUser) {

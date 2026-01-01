@@ -7,7 +7,33 @@ import { eq } from "drizzle-orm";
 
 @Controller("/users")
 export class UsersController {
-  @Post("/register")
+  @Post("/register", {
+    detail: {
+      tags: ["Auth"],
+      summary: "Register a new user",
+      description: "Create a new user account",
+      requestBody: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                email: { type: "string", format: "email" },
+                password: { type: "string", format: "password" },
+                displayName: { type: "string" },
+                username: { type: "string" },
+              },
+              required: ["email", "password", "displayName"],
+            },
+          },
+        },
+      },
+      responses: {
+        201: { description: "User created successfully" },
+        409: { description: "Email already registered" },
+      },
+    },
+  } as any)
   async register({ body, set }: any) {
     const existingUser = await db.query.users.findFirst({
       where: eq(users.email, body.email),
@@ -31,13 +57,38 @@ export class UsersController {
     await db.insert(profiles).values({
       userId: user.id,
       displayName: body.displayName,
+      username: body.username || body.email.split("@")[0],
     });
 
     set.status = 201;
     return { message: "User created successfully", userId: user.id };
   }
 
-  @Post("/login")
+  @Post("/login", {
+    detail: {
+      tags: ["Auth"],
+      summary: "Login user",
+      description: "Authenticate and login a user",
+      requestBody: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                email: { type: "string", format: "email" },
+                password: { type: "string", format: "password" },
+              },
+              required: ["email", "password"],
+            },
+          },
+        },
+      },
+      responses: {
+        200: { description: "Login successful" },
+        401: { description: "Invalid credentials" },
+      },
+    },
+  } as any)
   async login({ body, cookie, set, jwt }: any) {
     const user = await db.query.users.findFirst({
       where: eq(users.email, body.email),
@@ -71,7 +122,17 @@ export class UsersController {
     return { message: "Login successful" };
   }
 
-  @Get("/me")
+  @Get("/me", {
+    detail: {
+      tags: ["Auth"],
+      summary: "Get current user",
+      description: "Retrieve information about the currently authenticated user",
+      responses: {
+        200: { description: "User information" },
+        401: { description: "Not authenticated" },
+      },
+    },
+  } as any)
   async getMe({ user, set }: any) {
     const currentUser = await user;
     if (!currentUser) {
