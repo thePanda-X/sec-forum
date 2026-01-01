@@ -9,9 +9,21 @@ import { join } from "path";
 
 config({ path: join(process.cwd(), "../.env") });
 
+await import("./db/migrate");
+
+config({ path: join(process.cwd(), "../.env") });
+
 import { UsersController } from "./routes/users";
 import { PostsController } from "./routes/posts";
 import { TagsController } from "./routes/tags";
+import { AuthController } from "./routes/auth";
+import { CommentsController } from "./routes/comments";
+import { NotificationsController } from "./routes/notifications";
+import { SettingsController } from "./routes/settings";
+import { ReportsController } from "./routes/reports";
+import { AdminController } from "./routes/admin";
+import { CategoriesController, StatsController } from "./routes/categories";
+import { UsersController as ProfileController } from "./routes/users/profile";
 import { authPlugin } from "./middleware/auth";
 import { logger } from "./utils/logger";
 
@@ -25,7 +37,20 @@ const app = new Elysia()
   .use(authPlugin)
   .use(
     decorators({
-      controllers: [UsersController, PostsController, TagsController],
+      controllers: [
+        UsersController,
+        PostsController,
+        TagsController,
+        AuthController,
+        CommentsController,
+        NotificationsController,
+        SettingsController,
+        ReportsController,
+        AdminController,
+        CategoriesController,
+        StatsController,
+        ProfileController,
+      ],
     })
   )
   .onStart((app) => {
