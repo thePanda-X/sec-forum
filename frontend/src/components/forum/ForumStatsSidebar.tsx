@@ -51,7 +51,11 @@ interface ForumStatsResponse {
   trendingTags?: TrendingTag[];
 }
 
-export function ForumStatsSidebar() {
+interface ForumStatsSidebarProps {
+  className?: string;
+}
+
+export function ForumStatsSidebar({ className }: ForumStatsSidebarProps) {
   const [stats, setStats] = useState<ForumStats>({
     totalPosts: 0,
     members: 0,
@@ -76,7 +80,6 @@ export function ForumStatsSidebar() {
 
         const data: ForumStatsResponse = await response.json();
 
-        // Handle different response structures
         setStats({
           totalPosts: data.stats?.totalPosts ?? data.totalPosts ?? 0,
           members: data.stats?.members ?? data.members ?? data.memberCount ?? 0,
@@ -84,7 +87,6 @@ export function ForumStatsSidebar() {
           onlineNow: data.stats?.onlineNow ?? data.onlineNow ?? data.onlineCount ?? 0,
         });
 
-        // Map top contributors
         const contributors = (data.topContributors || []).map((c, index) => ({
           ...c,
           name: c.name || c.username || "Unknown",
@@ -94,7 +96,6 @@ export function ForumStatsSidebar() {
         }));
         setTopContributors(contributors);
 
-        // Map trending tags
         const tags = (data.trendingTags || []).map((tag) => ({
           id: tag.id || tag.name,
           name: tag.name.startsWith("#") ? tag.name : `#${tag.name}`,
@@ -113,7 +114,7 @@ export function ForumStatsSidebar() {
 
   if (isLoading) {
     return (
-      <aside className="w-72 shrink-0 space-y-6">
+      <aside className={className || "w-72 shrink-0 space-y-6"}>
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
@@ -123,7 +124,7 @@ export function ForumStatsSidebar() {
 
   if (error) {
     return (
-      <aside className="w-72 shrink-0 space-y-6">
+      <aside className={className || "w-72 shrink-0 space-y-6"}>
         <div className="rounded-lg border border-border bg-card p-4">
           <p className="text-sm text-destructive">{error}</p>
         </div>
@@ -132,7 +133,7 @@ export function ForumStatsSidebar() {
   }
 
   return (
-    <aside className="w-72 shrink-0 space-y-6">
+    <aside className={className || "w-72 shrink-0 space-y-6"}>
       {/* Forum Statistics */}
       <div className="rounded-lg border border-border bg-card p-4">
         <h3 className="flex items-center gap-2 font-semibold mb-4">

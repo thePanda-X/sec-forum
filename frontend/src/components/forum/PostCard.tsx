@@ -1,4 +1,4 @@
-import { Pin, PinOff, MessageSquare, Eye, ChevronRight, Lock, Pencil, Trash2 } from "lucide-react";
+import { Pin, PinOff, MessageSquare, Eye, Lock, Pencil, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,49 +32,50 @@ interface PostCardProps {
   onPin?: () => void;
   onLock?: () => void;
   onEdit?: () => void;
-  onDelete?: () => void;
+  onDeleteClick?: () => void;
 }
 
-export function PostCard({ 
-  post, 
+export function PostCard({
+  post,
   showAdminActions = false,
   onPin,
   onLock,
   onEdit,
-  onDelete,
+  onDeleteClick,
 }: PostCardProps) {
   return (
-    <article className="group relative bg-card border border-border rounded-lg p-4 hover:border-primary/30 transition-colors">
-      <div className="flex items-start gap-4">
-        {/* Author Avatar */}
-        <Avatar className="h-10 w-10 shrink-0">
+    <article className="group relative bg-card border border-border rounded-lg p-3 md:p-4 hover:border-primary/30 transition-colors">
+      <div className="flex gap-3">
+        <Avatar className="h-10 w-10 shrink-0 hidden sm:flex">
           <AvatarImage src={post.author.avatar} />
           <AvatarFallback className="bg-teal-600 text-white">
-            {post.author.name.charAt(0).toUpperCase()}
+            {post.author.name?.charAt(0).toUpperCase() || "?"}
           </AvatarFallback>
         </Avatar>
 
-        {/* Content */}
         <div className="flex-1 min-w-0">
-          {/* Header with Pinned badge */}
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             {post.isPinned && (
               <Badge variant="outline" className="text-xs gap-1 bg-secondary">
                 <Pin className="h-3 w-3" />
-                Pinned
+                <span className="hidden sm:inline">Pinned</span>
               </Badge>
             )}
           </div>
 
-          {/* Title */}
-          <h3 className="text-base font-medium text-foreground group-hover:text-primary transition-colors line-clamp-1">
+          <h3 className="text-base font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2">
             {post.title}
           </h3>
 
-          {/* Author & Date */}
-          <div className="flex items-center gap-2 mt-1 text-sm">
-            <span className="text-muted-foreground">
-              {post.author.name}
+          <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground flex-wrap">
+            <span className="flex items-center gap-1">
+              <Avatar className="h-5 w-5 sm:hidden">
+                <AvatarImage src={post.author.avatar} />
+                <AvatarFallback className="bg-teal-600 text-white text-xs">
+                  {post.author.name?.charAt(0).toUpperCase() || "?"}
+                </AvatarFallback>
+              </Avatar>
+              <span>{post.author.name}</span>
             </span>
             {post.author.isAdmin && (
               <Badge variant="secondary" className="text-xs bg-amber-500/20 text-amber-500 border-0">
@@ -83,20 +84,17 @@ export function PostCard({
                 </svg>
               </Badge>
             )}
-            <span className="text-muted-foreground">•</span>
-            <span className="text-muted-foreground">{post.createdAt}</span>
+            <span>•</span>
+            <span className="text-xs">{post.createdAt}</span>
           </div>
 
-          {/* Excerpt */}
-          <p className="text-sm text-muted-foreground mt-3 line-clamp-2">
+          <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
             {post.excerpt}
           </p>
 
-          {/* Footer */}
-          <div className="flex items-center justify-between mt-4">
-            {/* Tags */}
-            <div className="flex flex-wrap gap-2">
-              {post.tags.map((tag) => (
+          <div className="flex items-center justify-between mt-3 gap-2">
+            <div className="flex flex-wrap gap-1.5">
+              {post.tags.slice(0, 3).map((tag) => (
                 <Badge
                   key={tag.id}
                   variant="secondary"
@@ -105,75 +103,77 @@ export function PostCard({
                   {tag.name}
                 </Badge>
               ))}
+              {post.tags.length > 3 && (
+                <Badge variant="secondary" className="text-xs font-normal">
+                  +{post.tags.length - 3}
+                </Badge>
+              )}
             </div>
 
-            {/* Stats */}
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-3 text-sm text-muted-foreground shrink-0">
               <div className="flex items-center gap-1">
                 <MessageSquare className="h-4 w-4" />
-                <span>{post.replyCount}</span>
+                <span className="hidden sm:inline">{post.replyCount}</span>
+                <span className="sm:hidden">{post.replyCount}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Eye className="h-4 w-4" />
-                <span>{post.viewCount}</span>
+                <span className="hidden sm:inline">{post.viewCount}</span>
+                <span className="sm:hidden">{post.viewCount}</span>
               </div>
             </div>
           </div>
 
-          {/* Admin Actions */}
           {showAdminActions && (
-            <div className="flex items-center gap-1 mt-4 pt-4 border-t border-border">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-8 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+            <div className="flex items-center gap-1 mt-3 pt-3 border-t border-border overflow-x-auto">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground shrink-0"
                 onClick={onPin}
               >
                 {post.isPinned ? (
                   <>
                     <PinOff className="h-3.5 w-3.5" />
-                    Unpin
+                    <span className="hidden sm:inline">Unpin</span>
                   </>
                 ) : (
                   <>
                     <Pin className="h-3.5 w-3.5" />
-                    Pin
+                    <span className="hidden sm:inline">Pin</span>
                   </>
                 )}
               </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-8 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground shrink-0"
                 onClick={onLock}
               >
                 <Lock className="h-3.5 w-3.5" />
-                Lock
+                <span className="hidden sm:inline">Lock</span>
               </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-8 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground shrink-0"
                 onClick={onEdit}
               >
                 <Pencil className="h-3.5 w-3.5" />
-                Edit
+                <span className="hidden sm:inline">Edit</span>
               </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-8 text-xs gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10"
-                onClick={onDelete}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs gap-1 destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
+                onClick={onDeleteClick}
               >
                 <Trash2 className="h-3.5 w-3.5" />
-                Delete
+                <span className="hidden sm:inline">Delete</span>
               </Button>
             </div>
           )}
         </div>
-
-        {/* Arrow */}
-        <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 mt-2 opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
     </article>
   );
