@@ -6,6 +6,7 @@ import { RegisterPage } from "./components/auth/RegisterPage";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { CreatePostPage } from "./components/forum/CreatePostPage";
 import { PostView } from "./components/forum/PostView";
+import { UserSettings } from "./components/settings/UserSettings";
 
 export function App() {
   return (
@@ -33,6 +34,14 @@ export function App() {
         element={
           <ProtectedRoute>
             <PostView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <UserSettings />
           </ProtectedRoute>
         }
       />
