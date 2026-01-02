@@ -32,19 +32,17 @@ export function LoginPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo and Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-            <Shield className="w-8 h-8 text-primary" />
+        <div className="text-center mb-6 md:mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full bg-primary/10 mb-3 md:mb-4">
+            <Shield className="w-6 h-6 md:w-8 md:h-8 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">Welcome Back</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-xl md:text-2xl font-bold text-foreground">Welcome Back</h1>
+          <p className="text-sm text-muted-foreground mt-1 md:mt-2">
             Sign in to access the security forum
           </p>
         </div>
 
-        {/* Login Form */}
-        <div className="bg-card border border-border rounded-lg p-6 shadow-lg">
+        <div className="bg-card border border-border rounded-lg p-4 md:p-6 shadow-lg">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="bg-destructive/10 border border-destructive/20 text-destructive text-sm p-3 rounded-md">
@@ -105,7 +103,7 @@ export function LoginPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between text-sm flex-wrap gap-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -133,7 +131,7 @@ export function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-muted-foreground">
+          <div className="mt-4 md:mt-6 text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
             <Link to="/register" className="text-primary hover:underline">
               Create one
@@ -141,8 +139,7 @@ export function LoginPage() {
           </div>
         </div>
 
-        {/* Footer */}
-        <p className="text-center text-xs text-muted-foreground mt-6">
+        <p className="text-center text-xs text-muted-foreground mt-4 md:mt-6 px-2">
           By signing in, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>

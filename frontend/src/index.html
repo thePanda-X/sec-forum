@@ -10,5 +10,25 @@
   <body>
     <div id="root"></div>
     <script type="module" src="./frontend.tsx"></script>
+    <script>
+      function copyCodeBlock(button) {
+        const codeBlock = button.closest('.code-block');
+        const code = codeBlock.querySelector('code').textContent;
+        const copyText = button.querySelector('.copy-text');
+        const originalText = copyText.textContent;
+        
+        navigator.clipboard.writeText(code).then(() => {
+          button.classList.add('copied');
+          copyText.textContent = 'Copied!';
+          
+          setTimeout(() => {
+            button.classList.remove('copied');
+            copyText.textContent = originalText;
+          }, 2000);
+        }).catch(err => {
+          console.error('Failed to copy:', err);
+        });
+      }
+    </script>
   </body>
 </html>

@@ -1,6 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Shield, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Shield, Loader2, Trash2, Menu, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Header } from "./Header";
 import { CategorySidebar } from "./CategorySidebar";
 import { PostCard, type Post } from "./PostCard";
@@ -10,7 +19,6 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const API_BASE = "/api/v1";
 
-// Map API sort options to backend expected values
 const sortMap: Record<SortOption, string> = {
   recent: "recent",
   popular: "popular",
@@ -20,6 +28,7 @@ const sortMap: Record<SortOption, string> = {
 
 export function MainForum() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(
     undefined
   );
@@ -28,10 +37,15 @@ export function MainForum() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalPosts, setTotalPosts] = useState(0);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<Post | null>(null);
+  const [showCategories, setShowCategories] = useState(true);
+  const [showStats, setShowStats] = useState(true);
+  const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
+  const [mobileStatsOpen, setMobileStatsOpen] = useState(false);
 
   const isAdmin = user?.role === "admin";
 
-  // Map auth user to header user format
   const headerUser = user
     ? {
         name: user.name,
@@ -62,13 +76,12 @@ export function MainForum() {
 
       const data = await response.json();
 
-      // Map API response to Post format
       const mappedPosts: Post[] = (data.posts || data).map((post: any) => ({
         id: post.id,
         title: post.title,
-        excerpt: post.excerpt || post.content?.substring(0, 150) + "..." || "",
+        excerpt: post.excerpt || post.body?.substring(0, 150) + "..." || "",
         author: {
-          name: post.author?.username || post.author?.name || "Unknown",
+          name: post.author?.displayName || post.author?.name || post.author?.username || "Unknown",
           avatar: post.author?.avatar,
           isAdmin: post.author?.role === "admin",
         },
@@ -96,7 +109,6 @@ export function MainForum() {
     fetchPosts();
   }, [fetchPosts]);
 
-  // Handle post actions
   const handlePinPost = async (postId: string) => {
     try {
       const response = await fetch(`${API_BASE}/posts/${postId}/pin`, {
@@ -105,7 +117,7 @@ export function MainForum() {
       });
 
       if (response.ok) {
-        fetchPosts(); // Refresh posts
+        fetchPosts();
       }
     } catch (err) {
       console.error("Failed to pin post:", err);
@@ -120,7 +132,7 @@ export function MainForum() {
       });
 
       if (response.ok) {
-        fetchPosts(); // Refresh posts
+        fetchPosts();
       }
     } catch (err) {
       console.error("Failed to lock post:", err);
@@ -128,10 +140,6 @@ export function MainForum() {
   };
 
   const handleDeletePost = async (postId: string) => {
-    if (!confirm("Are you sure you want to delete this post?")) {
-      return;
-    }
-
     try {
       const response = await fetch(`${API_BASE}/posts/${postId}`, {
         method: "DELETE",
@@ -139,57 +147,84 @@ export function MainForum() {
       });
 
       if (response.ok) {
-        fetchPosts(); // Refresh posts
+        setDeleteModalOpen(false);
+        setPostToDelete(null);
+        fetchPosts();
       }
     } catch (err) {
       console.error("Failed to delete post:", err);
     }
   };
 
+  const openDeleteModal = (post: Post) => {
+    setPostToDelete(post);
+    setDeleteModalOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <Header user={headerUser} />
 
-      {/* Main Content */}
       <div className="container mx-auto px-4 py-6">
         <div className="flex gap-6">
-          {/* Left Sidebar - Categories */}
           <CategorySidebar
             selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
+            onSelectCategory={(category) => {
+              setSelectedCategory(category);
+              setMobileCategoriesOpen(false);
+            }}
+            className={`${showCategories ? "md:block" : "hidden"} hidden lg:block shrink-0`}
           />
 
-          {/* Main Content Area */}
           <main className="flex-1 min-w-0">
-            {/* Admin Mode Banner */}
+            <div className="flex items-center justify-between mb-4 md:hidden">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setMobileCategoriesOpen(true)}
+                className="gap-2"
+              >
+                <Menu className="h-4 w-4" />
+                Categories
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setMobileStatsOpen(true)}
+                className="gap-2"
+              >
+                Stats
+              </Button>
+            </div>
+
             {isAdmin && (
               <div className="flex items-center gap-2 mb-4 p-3 rounded-lg border border-border bg-card">
                 <Shield className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm text-muted-foreground hidden sm:inline">
                   Admin Mode Active — You can pin, lock, edit, and delete posts
+                </span>
+                <span className="text-sm text-muted-foreground sm:hidden">
+                  Admin Mode Active
                 </span>
               </div>
             )}
 
-            {/* Title and Actions */}
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-2xl font-bold">All Discussions</h1>
+                <h1 className="text-xl md:text-2xl font-bold">All Discussions</h1>
                 <p className="text-sm text-muted-foreground">
                   {totalPosts} posts
                 </p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <FilterDropdown value={sortOption} onChange={setSortOption} />
-                <Button className="gap-2">
+                <Button className="gap-2" onClick={() => navigate("/new-post")}>
                   <Plus className="h-4 w-4" />
-                  New Post
+                  <span className="hidden sm:inline">New Post</span>
                 </Button>
               </div>
             </div>
 
-            {/* Posts List */}
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -218,17 +253,78 @@ export function MainForum() {
                     showAdminActions={isAdmin}
                     onPin={() => handlePinPost(post.id)}
                     onLock={() => handleLockPost(post.id)}
-                    onDelete={() => handleDeletePost(post.id)}
+                    onDeleteClick={() => openDeleteModal(post)}
                   />
                 ))}
               </div>
             )}
           </main>
 
-          {/* Right Sidebar - Stats */}
-          <ForumStatsSidebar />
+          <ForumStatsSidebar className={`${showStats ? "md:block" : "hidden"} hidden lg:block shrink-0`} />
         </div>
       </div>
+
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="h-5 w-5" />
+              Delete Post
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this post? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          {postToDelete && (
+            <div className="py-4">
+              <div className="p-3 rounded-lg bg-muted">
+                <p className="font-medium">{postToDelete.title}</p>
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                  {postToDelete.excerpt}
+                </p>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="sm:justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => postToDelete && handleDeletePost(postToDelete.id)}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={mobileCategoriesOpen} onOpenChange={setMobileCategoriesOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Categories</DialogTitle>
+          </DialogHeader>
+          <CategorySidebar
+            selectedCategory={selectedCategory}
+            onSelectCategory={(category) => {
+              setSelectedCategory(category);
+              setMobileCategoriesOpen(false);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={mobileStatsOpen} onOpenChange={setMobileStatsOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Forum Stats</DialogTitle>
+          </DialogHeader>
+          <ForumStatsSidebar />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

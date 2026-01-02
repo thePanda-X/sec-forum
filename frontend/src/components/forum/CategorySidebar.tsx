@@ -41,11 +41,13 @@ function getCategoryIcon(category: Category): React.ReactNode {
 interface CategorySidebarProps {
   selectedCategory?: string;
   onSelectCategory?: (categoryId: string | undefined) => void;
+  className?: string;
 }
 
 export function CategorySidebar({
   selectedCategory,
   onSelectCategory,
+  className,
 }: CategorySidebarProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -63,7 +65,6 @@ export function CategorySidebar({
         }
 
         const data = await response.json();
-        // Handle both array response and { categories: [...] } response
         const categoryList = Array.isArray(data) ? data : data.categories || [];
         setCategories(categoryList);
       } catch (err) {
@@ -79,7 +80,7 @@ export function CategorySidebar({
 
   if (isLoading) {
     return (
-      <aside className="w-64 shrink-0">
+      <aside className={className || "w-64 shrink-0"}>
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
@@ -89,16 +90,15 @@ export function CategorySidebar({
 
   if (error) {
     return (
-      <aside className="w-64 shrink-0">
+      <aside className={className || "w-64 shrink-0"}>
         <p className="text-sm text-destructive p-3">{error}</p>
       </aside>
     );
   }
 
   return (
-    <aside className="w-64 shrink-0">
+    <aside className={className || "w-64 shrink-0"}>
       <nav className="space-y-1">
-        {/* All Categories */}
         <button
           onClick={() => onSelectCategory?.(undefined)}
           className={cn(
@@ -111,7 +111,6 @@ export function CategorySidebar({
           <span>All Categories</span>
         </button>
 
-        {/* Category List */}
         {categories.map((category) => (
           <button
             key={category.id}
