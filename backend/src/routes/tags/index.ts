@@ -57,11 +57,6 @@ export class TagsController {
       return { error: "Unauthorized" };
     }
 
-    if (!hasRole(currentUser.role, "ADMIN")) {
-      set.status = 403;
-      return { error: "Admin access required" };
-    }
-
     const existingTag = await db.query.tags.findFirst({
       where: eq(tags.name, body.name),
     });

@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import { Controller, Get, Post } from "elysia-decorators";
 import { db } from "../../db";
-import { categories, posts, postTags, tags } from "../../db/schema";
-import { eq, desc, count } from "drizzle-orm";
+import { categories, posts, postTags, tags, comments, users, profiles } from "../../db/schema";
+import { eq, desc, count, sql } from "drizzle-orm";
 
 @Controller("/categories")
 export class CategoriesController {
@@ -39,6 +39,8 @@ export class StatsController {
   } as any)
   async forumStats() {
     const [postsCount] = await db.select({ count: count() }).from(posts);
+    const [usersCount] = await db.select({ count: count() }).from(users);
+    const [commentsCount] = await db.select({ count: count() }).from(comments);
     const [tagsCount] = await db.select({ count: count() }).from(tags);
 
     const postCounts = await db
@@ -60,15 +62,43 @@ export class StatsController {
       .map((tag: any) => ({
         id: tag.id,
         name: tag.name,
-        postCount: postCountsArray.find((pc: any) => pc.tagId === tag.id)?.postCount || 0,
+        count: postCountsArray.find((pc: any) => pc.tagId === tag.id)?.postCount || 0,
       }))
-      .sort((a: any, b: any) => b.postCount - a.postCount)
+      .sort((a: any, b: any) => b.count - a.count)
       .slice(0, 10);
 
+    const topContributors = await db
+      .select({
+        id: users.id,
+        name: profiles.displayName,
+        username: profiles.username,
+        avatar: profiles.avatar,
+        postCount: count(posts.id),
+      })
+      .from(users)
+      .innerJoin(profiles, eq(users.id, profiles.userId))
+      .leftJoin(posts, eq(posts.authorId, users.id))
+      .groupBy(users.id, profiles.displayName, profiles.username, profiles.avatar)
+      .orderBy(desc(count(posts.id)))
+      .limit(5);
+
+    const enrichedContributors = topContributors.map((c: any, index: number) => ({
+      id: String(c.id),
+      name: c.name || c.username || "Unknown",
+      username: c.username,
+      avatar: c.avatar,
+      reputation: Math.floor(c.postCount * 10),
+      posts: c.postCount || 0,
+      rank: index + 1,
+    }));
+
     return {
-      postsCount: postsCount?.count || 0,
-      tagsCount: tagsCount?.count || 0,
+      totalPosts: postsCount?.count || 0,
+      members: usersCount?.count || 0,
+      totalReplies: commentsCount?.count || 0,
+      onlineNow: 0,
       trendingTags,
+      topContributors: enrichedContributors,
     };
   }
 }
