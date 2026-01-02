@@ -5,7 +5,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 type Theme = "light" | "dark";
 
 interface ThemeContextType {
-    theme: Them;
+    theme: Theme;
     setTheme: (theme: Theme) => void;
 }
 

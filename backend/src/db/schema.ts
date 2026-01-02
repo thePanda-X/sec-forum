@@ -29,6 +29,11 @@ export const profiles = sqliteTable("profiles", {
   username: text("username").notNull().unique(),
   avatar: text("avatar"),
   bio: text("bio"),
+  location: text("location"),
+  website: text("website"),
+  githubUsername: text("github_username"),
+  twitterHandle: text("twitter_handle"),
+  skills: text("skills"),
 });
 
 export const posts = sqliteTable("posts", {
@@ -108,7 +113,15 @@ export const userSettings = sqliteTable("user_settings", {
   pushNotifications: integer("push_notifications", { mode: "boolean" })
     .notNull()
     .default(true),
-  theme: text("theme").notNull().default("light"),
+  theme: text("theme", { enum: ["light", "dark"] })
+    .notNull()
+    .default("light"),
+  fontSize: text("font_size", { enum: ["small", "medium", "large"] })
+    .notNull()
+    .default("medium"),
+  compactMode: integer("compact_mode", { mode: "boolean" })
+    .notNull()
+    .default(false),
 });
 
 export const reports = sqliteTable("reports", {

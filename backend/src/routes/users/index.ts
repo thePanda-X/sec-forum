@@ -147,8 +147,9 @@ export class UsersController {
     return {
       id: currentUser.id,
       email: currentUser.email,
-      role: currentUser.role,
-      displayName: profile?.displayName,
+      role: currentUser.role.toLowerCase(),
+      name: profile?.displayName,
+      avatar: profile?.avatar,
       bio: profile?.bio,
     };
   }
