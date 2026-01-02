@@ -254,6 +254,7 @@ export function MainForum() {
                     onPin={() => handlePinPost(post.id)}
                     onLock={() => handleLockPost(post.id)}
                     onDeleteClick={() => openDeleteModal(post)}
+                    onPostClick={() => navigate(`/post/${post.id}`)}
                   />
                 ))}
               </div>

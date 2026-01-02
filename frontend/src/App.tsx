@@ -5,6 +5,7 @@ import { LoginPage } from "./components/auth/LoginPage";
 import { RegisterPage } from "./components/auth/RegisterPage";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { CreatePostPage } from "./components/forum/CreatePostPage";
+import { PostView } from "./components/forum/PostView";
 
 export function App() {
   return (
@@ -24,6 +25,14 @@ export function App() {
         element={
           <ProtectedRoute>
             <CreatePostPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/post/:postId"
+        element={
+          <ProtectedRoute>
+            <PostView />
           </ProtectedRoute>
         }
       />

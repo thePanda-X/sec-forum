@@ -33,6 +33,7 @@ interface PostCardProps {
   onLock?: () => void;
   onEdit?: () => void;
   onDeleteClick?: () => void;
+  onPostClick?: () => void;
 }
 
 export function PostCard({
@@ -42,9 +43,13 @@ export function PostCard({
   onLock,
   onEdit,
   onDeleteClick,
+  onPostClick,
 }: PostCardProps) {
   return (
-    <article className="group relative bg-card border border-border rounded-lg p-3 md:p-4 hover:border-primary/30 transition-colors">
+    <div
+      className={`group relative bg-card border border-border rounded-lg p-3 md:p-4 hover:border-primary/30 transition-colors ${onPostClick ? 'cursor-pointer' : ''}`}
+      onClick={onPostClick}
+    >
       <div className="flex gap-3">
         <Avatar className="h-10 w-10 shrink-0 hidden sm:flex">
           <AvatarImage src={post.author.avatar} />
@@ -130,7 +135,7 @@ export function PostCard({
                 variant="ghost"
                 size="sm"
                 className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground shrink-0"
-                onClick={onPin}
+                onClick={(e) => { e.stopPropagation(); onPin?.(); }}
               >
                 {post.isPinned ? (
                   <>
@@ -148,7 +153,7 @@ export function PostCard({
                 variant="ghost"
                 size="sm"
                 className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground shrink-0"
-                onClick={onLock}
+                onClick={(e) => { e.stopPropagation(); onLock?.(); }}
               >
                 <Lock className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Lock</span>
@@ -157,7 +162,7 @@ export function PostCard({
                 variant="ghost"
                 size="sm"
                 className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground shrink-0"
-                onClick={onEdit}
+                onClick={(e) => { e.stopPropagation(); onEdit?.(); }}
               >
                 <Pencil className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Edit</span>
@@ -166,7 +171,7 @@ export function PostCard({
                 variant="ghost"
                 size="sm"
                 className="h-7 text-xs gap-1 destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
-                onClick={onDeleteClick}
+                onClick={(e) => { e.stopPropagation(); onDeleteClick?.(); }}
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Delete</span>
@@ -175,7 +180,7 @@ export function PostCard({
           )}
         </div>
       </div>
-    </article>
+    </div>
   );
 }
 

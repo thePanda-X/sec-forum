@@ -8,3 +8,4 @@ export { MainForum } from "./MainForum";
 export { MarkdownEditor } from "./MarkdownEditor";
 export { MarkdownPreview } from "./MarkdownPreview";
 export { CreatePostPage } from "./CreatePostPage";
+export { PostView } from "./PostView";
