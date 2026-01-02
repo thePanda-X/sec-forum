@@ -10,15 +10,246 @@ export class SettingsController {
   @Get("/", {
     detail: {
       tags: ["Settings"],
-      summary: "Get user settings",
-      description: "Retrieve settings for the authenticated user",
+      summary: "Get all user settings",
+      description: "Retrieve profile and settings for the authenticated user",
       responses: {
-        200: { description: "User settings" },
+        200: { description: "User settings and profile" },
         401: { description: "Unauthorized" },
       },
     },
   } as any)
   async index({ user, set }: any) {
+    const currentUser = await user;
+    if (!currentUser) {
+      set.status = 401;
+      return { error: "Unauthorized" };
+    }
+
+    const profile = await db.query.profiles.findFirst({
+      where: eq(profiles.userId, currentUser.id),
+    });
+
+    const settings = await db.query.userSettings.findFirst({
+      where: eq(userSettings.userId, currentUser.id),
+    });
+
+    if (!settings) {
+      const [newSettings] = await db
+        .insert(userSettings)
+        .values({
+          userId: currentUser.id,
+          emailNotifications: true,
+          pushNotifications: true,
+          theme: "light",
+          fontSize: "medium",
+          compactMode: false,
+        })
+        .returning();
+      return {
+        profile: {
+          displayName: profile?.displayName,
+          username: profile?.username,
+          avatar: profile?.avatar,
+          bio: profile?.bio,
+          location: profile?.location,
+          website: profile?.website,
+          githubUsername: profile?.githubUsername,
+          twitterHandle: profile?.twitterHandle,
+          skills: profile?.skills,
+        },
+        settings: {
+          theme: newSettings.theme,
+          fontSize: newSettings.fontSize,
+          compactMode: newSettings.compactMode,
+          emailNotifications: newSettings.emailNotifications,
+          pushNotifications: newSettings.pushNotifications,
+        },
+      };
+    }
+
+    return {
+      profile: {
+        displayName: profile?.displayName,
+        username: profile?.username,
+        avatar: profile?.avatar,
+        bio: profile?.bio,
+        location: profile?.location,
+        website: profile?.website,
+        githubUsername: profile?.githubUsername,
+        twitterHandle: profile?.twitterHandle,
+        skills: profile?.skills,
+      },
+      settings: {
+        theme: settings.theme,
+        fontSize: settings.fontSize,
+        compactMode: settings.compactMode,
+        emailNotifications: settings.emailNotifications,
+        pushNotifications: settings.pushNotifications,
+      },
+    };
+  }
+
+  @Get("/profile", {
+    detail: {
+      tags: ["Settings"],
+      summary: "Get user profile",
+      description: "Retrieve the authenticated user's profile",
+      responses: {
+        200: { description: "User profile" },
+        401: { description: "Unauthorized" },
+      },
+    },
+  } as any)
+  async getProfile({ user, set }: any) {
+    const currentUser = await user;
+    if (!currentUser) {
+      set.status = 401;
+      return { error: "Unauthorized" };
+    }
+
+    const profile = await db.query.profiles.findFirst({
+      where: eq(profiles.userId, currentUser.id),
+    });
+
+    if (!profile) {
+      set.status = 404;
+      return { error: "Profile not found" };
+    }
+
+    return {
+      displayName: profile.displayName,
+      username: profile.username,
+      avatar: profile.avatar,
+      bio: profile.bio,
+      location: profile.location,
+      website: profile.website,
+      githubUsername: profile.githubUsername,
+      twitterHandle: profile.twitterHandle,
+      skills: profile.skills,
+    };
+  }
+
+  @Put("/profile", {
+    detail: {
+      tags: ["Settings"],
+      summary: "Update user profile",
+      description: "Update the authenticated user's profile",
+      requestBody: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                displayName: { type: "string" },
+                bio: { type: "string" },
+                location: { type: "string" },
+                website: { type: "string" },
+                githubUsername: { type: "string" },
+                twitterHandle: { type: "string" },
+                skills: { type: "string" },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        200: { description: "Profile updated" },
+        401: { description: "Unauthorized" },
+      },
+    },
+  } as any)
+  async updateProfile({ body, user, set }: any) {
+    const currentUser = await user;
+    if (!currentUser) {
+      set.status = 401;
+      return { error: "Unauthorized" };
+    }
+
+    const profile = await db.query.profiles.findFirst({
+      where: eq(profiles.userId, currentUser.id),
+    });
+
+    if (!profile) {
+      set.status = 404;
+      return { error: "Profile not found" };
+    }
+
+    await db
+      .update(profiles)
+      .set({
+        ...(body.displayName !== undefined && { displayName: body.displayName }),
+        ...(body.bio !== undefined && { bio: body.bio }),
+        ...(body.location !== undefined && { location: body.location }),
+        ...(body.website !== undefined && { website: body.website }),
+        ...(body.githubUsername !== undefined && { githubUsername: body.githubUsername }),
+        ...(body.twitterHandle !== undefined && { twitterHandle: body.twitterHandle }),
+        ...(body.skills !== undefined && { skills: body.skills }),
+      })
+      .where(eq(profiles.id, profile.id));
+
+    return { message: "Profile updated successfully" };
+  }
+
+  @Put("/avatar", {
+    detail: {
+      tags: ["Settings"],
+      summary: "Update avatar",
+      description: "Update the authenticated user's avatar",
+      requestBody: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                avatar: { type: "string" },
+              },
+              required: ["avatar"],
+            },
+          },
+        },
+      },
+      responses: {
+        200: { description: "Avatar updated" },
+        401: { description: "Unauthorized" },
+      },
+    },
+  } as any)
+  async updateAvatar({ body, user, set }: any) {
+    const currentUser = await user;
+    if (!currentUser) {
+      set.status = 401;
+      return { error: "Unauthorized" };
+    }
+
+    const profile = await db.query.profiles.findFirst({
+      where: eq(profiles.userId, currentUser.id),
+    });
+
+    if (!profile) {
+      set.status = 404;
+      return { error: "Profile not found" };
+    }
+
+    await db
+      .update(profiles)
+      .set({ avatar: body.avatar })
+      .where(eq(profiles.id, profile.id));
+
+    return { message: "Avatar updated successfully" };
+  }
+
+  @Get("/appearance", {
+    detail: {
+      tags: ["Settings"],
+      summary: "Get appearance settings",
+      description: "Retrieve the authenticated user's appearance settings",
+      responses: {
+        200: { description: "Appearance settings" },
+        401: { description: "Unauthorized" },
+      },
+    },
+  } as any)
+  async getAppearance({ user, set }: any) {
     const currentUser = await user;
     if (!currentUser) {
       set.status = 401;
@@ -34,43 +265,51 @@ export class SettingsController {
         .insert(userSettings)
         .values({
           userId: currentUser.id,
-          emailNotifications: true,
-          pushNotifications: true,
           theme: "light",
+          fontSize: "medium",
+          compactMode: false,
         })
         .returning();
-      return newSettings;
+      return {
+        theme: newSettings.theme,
+        fontSize: newSettings.fontSize,
+        compactMode: newSettings.compactMode,
+      };
     }
 
-    return settings;
+    return {
+      theme: settings.theme,
+      fontSize: settings.fontSize,
+      compactMode: settings.compactMode,
+    };
   }
 
-  @Put("/", {
+  @Put("/appearance", {
     detail: {
       tags: ["Settings"],
-      summary: "Update user settings",
-      description: "Update settings for the authenticated user",
+      summary: "Update appearance settings",
+      description: "Update the authenticated user's appearance settings",
       requestBody: {
         content: {
           "application/json": {
             schema: {
               type: "object",
               properties: {
-                emailNotifications: { type: "boolean" },
-                pushNotifications: { type: "boolean" },
-                theme: { type: "string" },
+                theme: { type: "string", enum: ["light", "dark"] },
+                fontSize: { type: "string", enum: ["small", "medium", "large"] },
+                compactMode: { type: "boolean" },
               },
             },
           },
         },
       },
       responses: {
-        200: { description: "Settings updated" },
+        200: { description: "Appearance settings updated" },
         401: { description: "Unauthorized" },
       },
     },
   } as any)
-  async update({ body, user, set }: any) {
+  async updateAppearance({ body, user, set }: any) {
     const currentUser = await user;
     if (!currentUser) {
       set.status = 401;
@@ -84,22 +323,45 @@ export class SettingsController {
     if (!settings) {
       await db.insert(userSettings).values({
         userId: currentUser.id,
-        emailNotifications: body.emailNotifications ?? true,
-        pushNotifications: body.pushNotifications ?? true,
         theme: body.theme ?? "light",
+        fontSize: body.fontSize ?? "medium",
+        compactMode: body.compactMode ?? false,
       });
     } else {
       await db
         .update(userSettings)
         .set({
-          ...(body.emailNotifications !== undefined && { emailNotifications: body.emailNotifications }),
-          ...(body.pushNotifications !== undefined && { pushNotifications: body.pushNotifications }),
           ...(body.theme && { theme: body.theme }),
+          ...(body.fontSize && { fontSize: body.fontSize }),
+          ...(body.compactMode !== undefined && { compactMode: body.compactMode }),
         })
         .where(eq(userSettings.id, settings.id));
     }
 
-    return { message: "Settings updated" };
+    return { message: "Appearance settings updated successfully" };
+  }
+
+  @Get("/security", {
+    detail: {
+      tags: ["Settings"],
+      summary: "Get security settings",
+      description: "Retrieve the authenticated user's security settings",
+      responses: {
+        200: { description: "Security settings" },
+        401: { description: "Unauthorized" },
+      },
+    },
+  } as any)
+  async getSecurity({ user, set }: any) {
+    const currentUser = await user;
+    if (!currentUser) {
+      set.status = 401;
+      return { error: "Unauthorized" };
+    }
+
+    return {
+      twoFactorEnabled: false,
+    };
   }
 
   @Post("/password", {
@@ -185,7 +447,7 @@ export class SettingsController {
       },
     },
   } as any)
-  async deleteAccount({ body, user, set }: any) {
+  async deleteAccount({ body, user, set, cookie, jwt }: any) {
     const currentUser = await user;
     if (!currentUser) {
       set.status = 401;
@@ -208,7 +470,10 @@ export class SettingsController {
     }
 
     await db.delete(profiles).where(eq(profiles.userId, currentUser.id));
+    await db.delete(userSettings).where(eq(userSettings.userId, currentUser.id));
     await db.delete(users).where(eq(users.id, currentUser.id));
+
+    cookie.auth_token.delete();
 
     return { message: "Account deleted successfully" };
   }

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/components/theme-provider';
 import { Header } from '@/components/forum/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,12 +11,16 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { User, Bell, Palette, Shield, Upload } from 'lucide-react';
+import { User, Bell, Palette, Shield, Upload, Loader2, ArrowLeft, Save } from 'lucide-react';
 
+const API_BASE = '/api/v1';
 
 type SettingsTab = 'profile' | 'notifications' | 'appearance' | 'security';
 
 interface UserProfile {
+    displayName: string;
+    username: string;
+    avatar: string;
     bio: string;
     location: string;
     website: string;
@@ -25,10 +30,11 @@ interface UserProfile {
 }
 
 interface NotificationSettings {
+    emailNotifications: boolean;
+    pushNotifications: boolean;
     emailForReplies: boolean;
     emailForMentions: boolean;
     weeklyDigest: boolean;
-    pushNotifications: boolean;
 }
 
 interface AppearanceSettings {
@@ -39,40 +45,43 @@ interface AppearanceSettings {
 
 export function UserSettings() {
     const { user } = useAuth();
+    const { theme, setTheme } = useTheme();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
     const [savedMessage, setSavedMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
 
-    // Profile state
     const [profile, setProfile] = useState<UserProfile>({
-        bio: 'Forum administrator and senior security researcher. 10+ years of experience in offensive security and malware analysis.',
-        location: 'Austin, TX',
-        website: 'https://secureforum.dev',
-        githubUsername: 'secureforum-admin',
-        twitterHandle: 'secureforum',
-        skills: 'Penetration Testing, Malware Analysis, Reverse Engineering, Red Team, Cloud Security'
+        displayName: '',
+        username: '',
+        avatar: '',
+        bio: '',
+        location: '',
+        website: '',
+        githubUsername: '',
+        twitterHandle: '',
+        skills: '',
     });
 
-    // Notification state
     const [notifications, setNotifications] = useState<NotificationSettings>({
+        emailNotifications: true,
+        pushNotifications: true,
         emailForReplies: true,
         emailForMentions: true,
         weeklyDigest: false,
-        pushNotifications: true
     });
 
-    // Appearance state
     const [appearance, setAppearance] = useState<AppearanceSettings>({
         theme: 'dark',
         fontSize: 'medium',
-        compactMode: false
+        compactMode: false,
     });
 
-    // Security state
     const [passwords, setPasswords] = useState({
         current: '',
         new: '',
-        confirm: ''
+        confirm: '',
     });
 
     const tabs = [
@@ -82,18 +91,232 @@ export function UserSettings() {
         { id: 'security' as const, label: 'Security', icon: Shield },
     ];
 
-    const handleSave = (section: string) => {
-        setSavedMessage(`${section} settings saved!`);
+    useEffect(() => {
+        fetchSettings();
+    }, []);
+
+    const fetchSettings = async () => {
+        try {
+            const response = await fetch(`${API_BASE}/settings`, {
+                credentials: 'include',
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.profile) {
+                    setProfile(prev => ({
+                        ...prev,
+                        displayName: data.profile.displayName || '',
+                        username: data.profile.username || '',
+                        avatar: data.profile.avatar || '',
+                        bio: data.profile.bio || '',
+                        location: data.profile.location || '',
+                        website: data.profile.website || '',
+                        githubUsername: data.profile.githubUsername || '',
+                        twitterHandle: data.profile.twitterHandle || '',
+                        skills: data.profile.skills || '',
+                    }));
+                }
+                if (data.settings) {
+                    setAppearance(prev => ({
+                        ...prev,
+                        theme: data.settings.theme || 'dark',
+                        fontSize: data.settings.fontSize || 'medium',
+                        compactMode: data.settings.compactMode || false,
+                    }));
+                    setNotifications(prev => ({
+                        ...prev,
+                        emailNotifications: data.settings.emailNotifications ?? true,
+                        pushNotifications: data.settings.pushNotifications ?? true,
+                    }));
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch settings:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const showSavedMessage = (message: string) => {
+        setSavedMessage(message);
         setTimeout(() => setSavedMessage(''), 3000);
     };
 
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            // Handle file upload logic here
-            console.log('Uploading file:', file.name);
+    const showErrorMessage = (message: string) => {
+        setErrorMessage(message);
+        setTimeout(() => setErrorMessage(''), 5000);
+    };
+
+    const handleSaveProfile = async () => {
+        try {
+            const response = await fetch(`${API_BASE}/settings/profile`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    bio: profile.bio,
+                    location: profile.location,
+                    website: profile.website,
+                    githubUsername: profile.githubUsername,
+                    twitterHandle: profile.twitterHandle,
+                    skills: profile.skills,
+                }),
+            });
+
+            if (response.ok) {
+                showSavedMessage('Profile settings saved!');
+            } else {
+                const error = await response.json();
+                showErrorMessage(error.error || 'Failed to save profile');
+            }
+        } catch (error) {
+            showErrorMessage('Failed to save profile');
         }
     };
+
+    const handleSaveAppearance = async () => {
+        try {
+            const response = await fetch(`${API_BASE}/settings/appearance`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    theme: appearance.theme,
+                    fontSize: appearance.fontSize,
+                    compactMode: appearance.compactMode,
+                }),
+            });
+
+            if (response.ok) {
+                setTheme(appearance.theme);
+                showSavedMessage('Appearance settings saved!');
+            } else {
+                const error = await response.json();
+                showErrorMessage(error.error || 'Failed to save appearance settings');
+            }
+        } catch (error) {
+            showErrorMessage('Failed to save appearance settings');
+        }
+    };
+
+    const handleSaveNotifications = async () => {
+        try {
+            const response = await fetch(`${API_BASE}/settings`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    emailNotifications: notifications.emailNotifications,
+                    pushNotifications: notifications.pushNotifications,
+                }),
+            });
+
+            if (response.ok) {
+                showSavedMessage('Notification settings saved!');
+            } else {
+                const error = await response.json();
+                showErrorMessage(error.error || 'Failed to save notification settings');
+            }
+        } catch (error) {
+            showErrorMessage('Failed to save notification settings');
+        }
+    };
+
+    const handleChangePassword = async () => {
+        if (passwords.new !== passwords.confirm) {
+            showErrorMessage('New passwords do not match');
+            return;
+        }
+
+        if (passwords.new.length < 8) {
+            showErrorMessage('Password must be at least 8 characters');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE}/settings/password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    currentPassword: passwords.current,
+                    newPassword: passwords.new,
+                }),
+            });
+
+            if (response.ok) {
+                showSavedMessage('Password changed successfully!');
+                setPasswords({ current: '', new: '', confirm: '' });
+            } else {
+                const error = await response.json();
+                showErrorMessage(error.error || 'Failed to change password');
+            }
+        } catch (error) {
+            showErrorMessage('Failed to change password');
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        const password = prompt('Please enter your password to confirm account deletion:');
+        if (!password) return;
+
+        if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE}/settings/account`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ password }),
+            });
+
+            if (response.ok) {
+                navigate('/');
+            } else {
+                const error = await response.json();
+                showErrorMessage(error.error || 'Failed to delete account');
+            }
+        } catch (error) {
+            showErrorMessage('Failed to delete account');
+        }
+    };
+
+    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('avatar', file);
+
+        try {
+            const response = await fetch(`${API_BASE}/settings/avatar`, {
+                method: 'PUT',
+                credentials: 'include',
+                body: formData,
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setProfile(prev => ({ ...prev, avatar: data.avatar }));
+                showSavedMessage('Avatar uploaded successfully!');
+            } else {
+                showErrorMessage('Failed to upload avatar');
+            }
+        } catch (error) {
+            showErrorMessage('Failed to upload avatar');
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-background text-foreground">
@@ -101,20 +324,26 @@ export function UserSettings() {
                 name: user.name || 'User',
                 role: user.role || 'Member',
                 avatar: user.avatar,
-                isAdmin: user.isAdmin || false
+                isAdmin: user.role === 'admin',
             } : undefined} />
 
             <div className="container mx-auto px-4 py-8">
                 <div className="max-w-4xl mx-auto">
+                    <button
+                        onClick={() => navigate('/')}
+                        className="flex items-center text-muted-foreground hover:text-foreground mb-4 transition-colors"
+                    >
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Back to Forum
+                    </button>
                     <h1 className="text-2xl font-bold mb-8">Settings</h1>
 
-                    {savedMessage && (
-                        <div className="mb-4 text-green-500 text-sm">
-                            {savedMessage}
+                    {(savedMessage || errorMessage) && (
+                        <div className={`mb-4 text-sm ${errorMessage ? 'text-red-500' : 'text-green-500'}`}>
+                            {savedMessage || errorMessage}
                         </div>
                     )}
 
-                    {/* Tab Navigation */}
                     <div className="flex space-x-1 mb-8 bg-muted p-1 rounded-lg">
                         {tabs.map((tab) => {
                             const Icon = tab.icon;
@@ -134,13 +363,12 @@ export function UserSettings() {
                         })}
                     </div>
 
-                    {/* Tab Content */}
                     <div className="space-y-6">
                         {activeTab === 'profile' && (
                             <ProfileTab
                                 profile={profile}
                                 setProfile={setProfile}
-                                onSave={() => handleSave('Profile')}
+                                onSave={handleSaveProfile}
                                 onFileUpload={handleFileUpload}
                             />
                         )}
@@ -149,7 +377,7 @@ export function UserSettings() {
                             <NotificationsTab
                                 notifications={notifications}
                                 setNotifications={setNotifications}
-                                onSave={() => handleSave('Notification')}
+                                onSave={handleSaveNotifications}
                             />
                         )}
 
@@ -157,7 +385,9 @@ export function UserSettings() {
                             <AppearanceTab
                                 appearance={appearance}
                                 setAppearance={setAppearance}
-                                onSave={() => handleSave('Appearance')}
+                                theme={theme}
+                                setTheme={setTheme}
+                                onSave={handleSaveAppearance}
                             />
                         )}
 
@@ -165,7 +395,8 @@ export function UserSettings() {
                             <SecurityTab
                                 passwords={passwords}
                                 setPasswords={setPasswords}
-                                onSave={() => handleSave('Security')}
+                                onSave={handleChangePassword}
+                                onDelete={handleDeleteAccount}
                             />
                         )}
                     </div>
@@ -175,24 +406,26 @@ export function UserSettings() {
     );
 }
 
-// Profile Tab Component
 function ProfileTab({ profile, setProfile, onSave, onFileUpload }: {
     profile: UserProfile;
     setProfile: React.Dispatch<React.SetStateAction<UserProfile>>;
     onSave: () => void;
     onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
+    const initials = profile.displayName
+        ? profile.displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+        : profile.username?.slice(0, 2).toUpperCase() || 'U';
+
     return (
         <>
-            {/* Profile Picture Section */}
             <div className="bg-card rounded-lg p-6">
                 <h2 className="text-lg font-semibold mb-2">Profile Picture</h2>
                 <p className="text-muted-foreground text-sm mb-4">Update your profile photo</p>
 
                 <div className="flex items-center space-x-4">
                     <Avatar className="h-16 w-16">
-                        <AvatarImage src="/api/placeholder/64/64" />
-                        <AvatarFallback>AD</AvatarFallback>
+                        <AvatarImage src={profile.avatar} />
+                        <AvatarFallback>{initials}</AvatarFallback>
                     </Avatar>
                     <div>
                         <input
@@ -214,12 +447,21 @@ function ProfileTab({ profile, setProfile, onSave, onFileUpload }: {
                 </div>
             </div>
 
-            {/* Profile Information Section */}
             <div className="bg-card rounded-lg p-6">
                 <h2 className="text-lg font-semibold mb-2">Profile Information</h2>
                 <p className="text-muted-foreground text-sm mb-4">Update your public profile details</p>
 
                 <div className="space-y-4">
+                    <div>
+                        <Label htmlFor="displayName">Display Name</Label>
+                        <Input
+                            id="displayName"
+                            value={profile.displayName}
+                            onChange={(e) => setProfile(prev => ({ ...prev, displayName: e.target.value }))}
+                            className="mt-1"
+                        />
+                    </div>
+
                     <div>
                         <Label htmlFor="bio">Bio</Label>
                         <Textarea
@@ -283,7 +525,8 @@ function ProfileTab({ profile, setProfile, onSave, onFileUpload }: {
                         />
                     </div>
 
-                    <Button onClick={onSave} className="bg-green-600 hover:bg-green-700">
+                    <Button onClick={onSave} className="bg-green-600 hover:bg-green-700 text-white">
+                        <Save className="h-4 w-4 mr-2" />
                         Save Profile
                     </Button>
                 </div>
@@ -292,7 +535,6 @@ function ProfileTab({ profile, setProfile, onSave, onFileUpload }: {
     );
 }
 
-// Notifications Tab Component
 function NotificationsTab({ notifications, setNotifications, onSave }: {
     notifications: NotificationSettings;
     setNotifications: React.Dispatch<React.SetStateAction<NotificationSettings>>;
@@ -306,12 +548,47 @@ function NotificationsTab({ notifications, setNotifications, onSave }: {
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
+                        <h3 className="font-medium">Email Notifications</h3>
+                        <p className="text-sm text-muted-foreground">Receive email notifications</p>
+                    </div>
+                    <Switch
+                        checked={notifications.emailNotifications}
+                        onCheckedChange={(checked) => {
+                            setNotifications(prev => ({ ...prev, emailNotifications: checked }));
+                            onSave();
+                        }}
+                    />
+                </div>
+
+                <Separator />
+
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="font-medium">Push Notifications</h3>
+                        <p className="text-sm text-muted-foreground">Receive browser push notifications</p>
+                    </div>
+                    <Switch
+                        checked={notifications.pushNotifications}
+                        onCheckedChange={(checked) => {
+                            setNotifications(prev => ({ ...prev, pushNotifications: checked }));
+                            onSave();
+                        }}
+                    />
+                </div>
+
+                <Separator />
+
+                <div className="flex items-center justify-between">
+                    <div>
                         <h3 className="font-medium">Email for Replies</h3>
                         <p className="text-sm text-muted-foreground">Get notified when someone replies to your posts</p>
                     </div>
                     <Switch
                         checked={notifications.emailForReplies}
-                        onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, emailForReplies: checked }))}
+                        onCheckedChange={(checked) => {
+                            setNotifications(prev => ({ ...prev, emailForReplies: checked }));
+                            onSave();
+                        }}
                     />
                 </div>
 
@@ -324,7 +601,10 @@ function NotificationsTab({ notifications, setNotifications, onSave }: {
                     </div>
                     <Switch
                         checked={notifications.emailForMentions}
-                        onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, emailForMentions: checked }))}
+                        onCheckedChange={(checked) => {
+                            setNotifications(prev => ({ ...prev, emailForMentions: checked }));
+                            onSave();
+                        }}
                     />
                 </div>
 
@@ -337,20 +617,10 @@ function NotificationsTab({ notifications, setNotifications, onSave }: {
                     </div>
                     <Switch
                         checked={notifications.weeklyDigest}
-                        onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, weeklyDigest: checked }))}
-                    />
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h3 className="font-medium">Push Notifications</h3>
-                        <p className="text-sm text-muted-foreground">Enable browser push notifications</p>
-                    </div>
-                    <Switch
-                        checked={notifications.pushNotifications}
-                        onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, pushNotifications: checked }))}
+                        onCheckedChange={(checked) => {
+                            setNotifications(prev => ({ ...prev, weeklyDigest: checked }));
+                            onSave();
+                        }}
                     />
                 </div>
             </div>
@@ -358,10 +628,11 @@ function NotificationsTab({ notifications, setNotifications, onSave }: {
     );
 }
 
-// Appearance Tab Component
-function AppearanceTab({ appearance, setAppearance, onSave }: {
+function AppearanceTab({ appearance, setAppearance, theme, setTheme, onSave }: {
     appearance: AppearanceSettings;
     setAppearance: React.Dispatch<React.SetStateAction<AppearanceSettings>>;
+    theme: 'light' | 'dark';
+    setTheme: (theme: 'light' | 'dark') => void;
     onSave: () => void;
 }) {
     return (
@@ -373,8 +644,11 @@ function AppearanceTab({ appearance, setAppearance, onSave }: {
                 <div>
                     <Label htmlFor="theme">Theme</Label>
                     <Select
-                        value={appearance.theme}
-                        onValueChange={(value: 'light' | 'dark') => setAppearance(prev => ({ ...prev, theme: value }))}
+                        value={theme}
+                        onValueChange={(value: 'light' | 'dark') => {
+                            setTheme(value);
+                            setAppearance(prev => ({ ...prev, theme: value }));
+                        }}
                     >
                         <SelectTrigger className="w-48 mt-1">
                             <SelectValue />
@@ -390,7 +664,10 @@ function AppearanceTab({ appearance, setAppearance, onSave }: {
                     <Label htmlFor="fontSize">Font Size</Label>
                     <Select
                         value={appearance.fontSize}
-                        onValueChange={(value: 'small' | 'medium' | 'large') => setAppearance(prev => ({ ...prev, fontSize: value }))}
+                        onValueChange={(value: 'small' | 'medium' | 'large') => {
+                            setAppearance(prev => ({ ...prev, fontSize: value }));
+                            onSave();
+                        }}
                     >
                         <SelectTrigger className="w-48 mt-1">
                             <SelectValue />
@@ -410,7 +687,10 @@ function AppearanceTab({ appearance, setAppearance, onSave }: {
                     </div>
                     <Switch
                         checked={appearance.compactMode}
-                        onCheckedChange={(checked) => setAppearance(prev => ({ ...prev, compactMode: checked }))}
+                        onCheckedChange={(checked) => {
+                            setAppearance(prev => ({ ...prev, compactMode: checked }));
+                            onSave();
+                        }}
                     />
                 </div>
             </div>
@@ -418,31 +698,14 @@ function AppearanceTab({ appearance, setAppearance, onSave }: {
     );
 }
 
-// Security Tab Component
-function SecurityTab({ passwords, setPasswords, onSave }: {
+function SecurityTab({ passwords, setPasswords, onSave, onDelete }: {
     passwords: { current: string; new: string; confirm: string };
     setPasswords: React.Dispatch<React.SetStateAction<{ current: string; new: string; confirm: string }>>;
     onSave: () => void;
+    onDelete: () => void;
 }) {
-    const handlePasswordUpdate = () => {
-        if (passwords.new !== passwords.confirm) {
-            alert('New passwords do not match');
-            return;
-        }
-        onSave();
-        setPasswords({ current: '', new: '', confirm: '' });
-    };
-
-    const handleDeleteAccount = () => {
-        if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-            // Handle account deletion
-            console.log('Deleting account...');
-        }
-    };
-
     return (
         <>
-            {/* Change Password Section */}
             <div className="bg-card rounded-lg p-6">
                 <h2 className="text-lg font-semibold mb-2">Change Password</h2>
                 <p className="text-muted-foreground text-sm mb-4">Update your account password</p>
@@ -481,13 +744,13 @@ function SecurityTab({ passwords, setPasswords, onSave }: {
                         />
                     </div>
 
-                    <Button onClick={handlePasswordUpdate} className="bg-green-600 hover:bg-green-700">
+                    <Button onClick={onSave} className="bg-green-600 hover:bg-green-700 text-white">
+                        <Save className="h-4 w-4 mr-2" />
                         Update Password
                     </Button>
                 </div>
             </div>
 
-            {/* Danger Zone */}
             <div className="bg-card border-destructive rounded-lg p-6">
                 <div className="flex items-center space-x-2 mb-2">
                     <Shield className="h-5 w-5 text-destructive" />
@@ -497,7 +760,7 @@ function SecurityTab({ passwords, setPasswords, onSave }: {
 
                 <Button
                     variant="destructive"
-                    onClick={handleDeleteAccount}
+                    onClick={onDelete}
                     className="bg-destructive hover:bg-destructive/90"
                 >
                     Delete Account

@@ -12,6 +12,7 @@ export interface User {
     name: string;
     role: "user" | "moderator" | "admin";
     avatar?: string;
+    bio?: string;
 }
 
 interface AuthContextType {
@@ -44,7 +45,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             if (response.ok) {
                 const data = await response.json();
-                setUser(data.user);
+                setUser({
+                    id: String(data.id),
+                    email: data.email,
+                    name: data.name || data.email.split('@')[0],
+                    role: (data.role?.toLowerCase() as "user" | "moderator" | "admin") || "user",
+                    avatar: data.avatar,
+                    bio: data.bio,
+                });
             } else {
                 // Not authenticated - this is expected, not an error
                 setUser(null);
