@@ -11,7 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { User, Bell, Palette, Shield, Upload, Loader2, ArrowLeft, Save } from 'lucide-react';
+import { User, Bell, Palette, Shield, Upload, Loader2, ArrowLeft, Save, ChevronDown, Trash2, AlertTriangle } from 'lucide-react';
 
 const API_BASE = '/api/v1';
 
@@ -327,7 +327,7 @@ export function UserSettings() {
                 isAdmin: user.role === 'admin',
             } : undefined} />
 
-            <div className="container mx-auto px-4 py-8">
+            <div className="container mx-auto px-3 md:px-4 py-6 md:py-8">
                 <div className="max-w-4xl mx-auto">
                     <button
                         onClick={() => navigate('/')}
@@ -336,7 +336,7 @@ export function UserSettings() {
                         <ArrowLeft className="h-4 w-4 mr-2" />
                         Back to Forum
                     </button>
-                    <h1 className="text-2xl font-bold mb-8">Settings</h1>
+                    <h1 className="text-2xl font-bold mb-8 text-center">Settings</h1>
 
                     {(savedMessage || errorMessage) && (
                         <div className={`mb-4 text-sm ${errorMessage ? 'text-red-500' : 'text-green-500'}`}>
@@ -344,61 +344,85 @@ export function UserSettings() {
                         </div>
                     )}
 
-                    <div className="flex space-x-1 mb-8 bg-muted p-1 rounded-lg">
-                        {tabs.map((tab) => {
-                            const Icon = tab.icon;
-                            return (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === tab.id
+                    <div className="mb-8">
+                        <div className="hidden md:flex max-w-2xl mx-auto bg-card p-1 rounded-lg border">
+                            {tabs.map((tab) => {
+                                const Icon = tab.icon;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTab(tab.id)}
+                                        className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === tab.id
                                             ? 'bg-background text-foreground shadow-sm'
                                             : 'text-muted-foreground hover:text-foreground'
-                                        }`}
-                                >
-                                    <Icon className="h-4 w-4" />
-                                    <span>{tab.label}</span>
-                                </button>
-                            );
-                        })}
+                                            }`}
+                                    >
+                                        <Icon className="h-4 w-4" />
+                                        <span>{tab.label}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <div className="md:hidden">
+                            <Select value={activeTab} onValueChange={(value) => setActiveTab(value as SettingsTab)}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select tab" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {tabs.map((tab) => {
+                                        const Icon = tab.icon;
+                                        return (
+                                            <SelectItem key={tab.id} value={tab.id}>
+                                                <div className="flex items-center space-x-2">
+                                                    <Icon className="h-4 w-4" />
+                                                    <span>{tab.label}</span>
+                                                </div>
+                                            </SelectItem>
+                                        );
+                                    })}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
 
                     <div className="space-y-6">
-                        {activeTab === 'profile' && (
-                            <ProfileTab
-                                profile={profile}
-                                setProfile={setProfile}
-                                onSave={handleSaveProfile}
-                                onFileUpload={handleFileUpload}
-                            />
-                        )}
+                        <div className="max-w-2xl mx-auto">
+                            {activeTab === 'profile' && (
+                                <ProfileTab
+                                    profile={profile}
+                                    setProfile={setProfile}
+                                    onSave={handleSaveProfile}
+                                    onFileUpload={handleFileUpload}
+                                />
+                            )}
 
-                        {activeTab === 'notifications' && (
-                            <NotificationsTab
-                                notifications={notifications}
-                                setNotifications={setNotifications}
-                                onSave={handleSaveNotifications}
-                            />
-                        )}
+                            {activeTab === 'notifications' && (
+                                <NotificationsTab
+                                    notifications={notifications}
+                                    setNotifications={setNotifications}
+                                    onSave={handleSaveNotifications}
+                                />
+                            )}
 
-                        {activeTab === 'appearance' && (
-                            <AppearanceTab
-                                appearance={appearance}
-                                setAppearance={setAppearance}
-                                theme={theme}
-                                setTheme={setTheme}
-                                onSave={handleSaveAppearance}
-                            />
-                        )}
+                            {activeTab === 'appearance' && (
+                                <AppearanceTab
+                                    appearance={appearance}
+                                    setAppearance={setAppearance}
+                                    theme={theme}
+                                    setTheme={setTheme}
+                                    onSave={handleSaveAppearance}
+                                />
+                            )}
 
-                        {activeTab === 'security' && (
-                            <SecurityTab
-                                passwords={passwords}
-                                setPasswords={setPasswords}
-                                onSave={handleChangePassword}
-                                onDelete={handleDeleteAccount}
-                            />
-                        )}
+                            {activeTab === 'security' && (
+                                <SecurityTab
+                                    passwords={passwords}
+                                    setPasswords={setPasswords}
+                                    onSave={handleChangePassword}
+                                    onDelete={handleDeleteAccount}
+                                />
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -418,7 +442,7 @@ function ProfileTab({ profile, setProfile, onSave, onFileUpload }: {
 
     return (
         <>
-            <div className="bg-card rounded-lg p-6">
+            <div className="bg-card mb-2 rounded-lg p-4 md:p-6 border">
                 <h2 className="text-lg font-semibold mb-2">Profile Picture</h2>
                 <p className="text-muted-foreground text-sm mb-4">Update your profile photo</p>
 
@@ -447,7 +471,7 @@ function ProfileTab({ profile, setProfile, onSave, onFileUpload }: {
                 </div>
             </div>
 
-            <div className="bg-card rounded-lg p-6">
+            <div className="bg-card rounded-lg p-4 md:p-6 border">
                 <h2 className="text-lg font-semibold mb-2">Profile Information</h2>
                 <p className="text-muted-foreground text-sm mb-4">Update your public profile details</p>
 
@@ -473,7 +497,7 @@ function ProfileTab({ profile, setProfile, onSave, onFileUpload }: {
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <Label htmlFor="location">Location</Label>
                             <Input
@@ -494,7 +518,7 @@ function ProfileTab({ profile, setProfile, onSave, onFileUpload }: {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <Label htmlFor="github">GitHub Username</Label>
                             <Input
@@ -541,8 +565,8 @@ function NotificationsTab({ notifications, setNotifications, onSave }: {
     onSave: () => void;
 }) {
     return (
-        <div className="bg-card rounded-lg p-6">
-            <h2 className="text-lg font-semibold mb-2">Notification Preferences</h2>
+        <div className="bg-card rounded-lg p-4 md:p-6 border">
+            < h2 className="text-lg font-semibold mb-2" > Notification Preferences</h2 >
             <p className="text-muted-foreground text-sm mb-6">Control how you receive notifications</p>
 
             <div className="space-y-6">
@@ -624,7 +648,7 @@ function NotificationsTab({ notifications, setNotifications, onSave }: {
                     />
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 
@@ -636,7 +660,7 @@ function AppearanceTab({ appearance, setAppearance, theme, setTheme, onSave }: {
     onSave: () => void;
 }) {
     return (
-        <div className="bg-card rounded-lg p-6">
+        <div className="bg-card rounded-lg p-4 md:p-6 border">
             <h2 className="text-lg font-semibold mb-2">Appearance Settings</h2>
             <p className="text-muted-foreground text-sm mb-6">Customize how the forum looks</p>
 
@@ -650,7 +674,7 @@ function AppearanceTab({ appearance, setAppearance, theme, setTheme, onSave }: {
                             setAppearance(prev => ({ ...prev, theme: value }));
                         }}
                     >
-                        <SelectTrigger className="w-48 mt-1">
+                        <SelectTrigger className="w-full md:w-48 mt-1">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -669,7 +693,7 @@ function AppearanceTab({ appearance, setAppearance, theme, setTheme, onSave }: {
                             onSave();
                         }}
                     >
-                        <SelectTrigger className="w-48 mt-1">
+                        <SelectTrigger className="w-full md:w-48 mt-1">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -706,11 +730,11 @@ function SecurityTab({ passwords, setPasswords, onSave, onDelete }: {
 }) {
     return (
         <>
-            <div className="bg-card rounded-lg p-6">
+            <div className="bg-card mb-2 rounded-lg p-4 md:p-6 border">
                 <h2 className="text-lg font-semibold mb-2">Change Password</h2>
                 <p className="text-muted-foreground text-sm mb-4">Update your account password</p>
 
-                <div className="space-y-4 max-w-md">
+                <div className="space-y-4 max-w-full md:max-w-md">
                     <div>
                         <Label htmlFor="currentPassword">Current Password</Label>
                         <Input
@@ -745,16 +769,16 @@ function SecurityTab({ passwords, setPasswords, onSave, onDelete }: {
                     </div>
 
                     <Button onClick={onSave} className="bg-green-600 hover:bg-green-700 text-white">
-                        <Save className="h-4 w-4 mr-2" />
+                        <Shield className="h-4 w-4 mr-2" />
                         Update Password
                     </Button>
                 </div>
             </div>
 
-            <div className="bg-card border-destructive rounded-lg p-6">
+            <div className="bg-card border-destructive rounded-lg p-4 md:p-6 border">
                 <div className="flex items-center space-x-2 mb-2">
-                    <Shield className="h-5 w-5 text-destructive" />
-                    <h2 className="text-lg font-semibold text-destructive">Danger Zone</h2>
+                    <AlertTriangle className="h-5 w-5 text-destructive" />
+                    <h2 className="font-semibold text-destructive flex items-center gap-2 text-base sm:text-lg">Danger Zone</h2>
                 </div>
                 <p className="text-muted-foreground text-sm mb-4">Irreversible actions</p>
 
@@ -763,6 +787,7 @@ function SecurityTab({ passwords, setPasswords, onSave, onDelete }: {
                     onClick={onDelete}
                     className="bg-destructive hover:bg-destructive/90"
                 >
+                    <Trash2 className="h-4 w-4 mr-2" />
                     Delete Account
                 </Button>
             </div>
