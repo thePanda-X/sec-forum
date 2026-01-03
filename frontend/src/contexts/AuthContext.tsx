@@ -44,14 +44,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             });
 
             if (response.ok) {
-                const data = await response.json();
+                const { user: userData } = await response.json();
                 setUser({
-                    id: String(data.id),
-                    email: data.email,
-                    name: data.name || data.email.split('@')[0],
-                    role: (data.role?.toLowerCase() as "user" | "moderator" | "admin") || "user",
-                    avatar: data.avatar,
-                    bio: data.bio,
+                    id: String(userData.id),
+                    email: userData.email,
+                    name: userData.name || userData.email?.split('@')[0],
+                    role: (userData.role?.toLowerCase() as "user" | "moderator" | "admin") || "user",
+                    avatar: userData.avatar,
+                    bio: userData.bio,
                 });
             } else {
                 // Not authenticated - this is expected, not an error
