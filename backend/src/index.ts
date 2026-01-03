@@ -27,7 +27,7 @@ import { UsersController as ProfileController } from "./routes/users/profile";
 import { authPlugin } from "./middleware/auth";
 import { logger } from "./utils/logger";
 
-logger.info("Starting SEC Forum API...", { level: process.env.LOG_LEVEL || "INFO" });
+logger.info("Starting SEC Forum API...", { level: process.env.LOG_LEVEL || "DEBUG" });
 
 type RequestWithLog = Request & { _logStart?: number };
 
