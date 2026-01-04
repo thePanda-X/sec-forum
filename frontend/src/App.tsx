@@ -7,6 +7,7 @@ import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { CreatePostPage } from "./components/forum/CreatePostPage";
 import { PostView } from "./components/forum/PostView";
 import { UserSettings } from "./components/settings/UserSettings";
+import { UserProfile } from "./components/profile/UserProfile";
 
 export function App() {
   return (
@@ -42,6 +43,14 @@ export function App() {
         element={
           <ProtectedRoute>
             <UserSettings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile/:username"
+        element={
+          <ProtectedRoute>
+            <UserProfile />
           </ProtectedRoute>
         }
       />

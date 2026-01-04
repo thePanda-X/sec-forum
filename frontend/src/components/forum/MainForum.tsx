@@ -52,6 +52,7 @@ export function MainForum() {
             role: user.role.charAt(0).toUpperCase() + user.role.slice(1),
             avatar: user.avatar,
             isAdmin: user.role === "admin",
+            username: user.username,
         }
         : undefined;
 
@@ -81,8 +82,10 @@ export function MainForum() {
                 title: post.title,
                 excerpt: post.excerpt || post.body?.substring(0, 150) + "..." || "",
                 author: {
+                    id: post.author?.id,
                     name: post.author?.displayName || post.author?.name || post.author?.username || "Unknown",
                     avatar: post.author?.avatar,
+                    username: post.author?.username,
                     isAdmin: post.author?.role === "admin",
                 },
                 createdAt: formatRelativeTime(post.createdAt),

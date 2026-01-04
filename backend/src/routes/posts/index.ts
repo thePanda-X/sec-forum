@@ -27,6 +27,7 @@ export class PostsController {
             profile: {
               columns: {
                 displayName: true,
+                username: true,
               },
             },
           },
@@ -55,6 +56,7 @@ export class PostsController {
         id: post.author.id,
         email: post.author.email,
         displayName: post.author.profile?.displayName,
+        username: post.author.profile?.username,
       },
       tags: post.postTags.map((pt: any) => ({
         id: pt.tag.id,
@@ -151,6 +153,7 @@ export class PostsController {
             profile: {
               columns: {
                 displayName: true,
+                username: true,
               },
             },
           },
@@ -184,6 +187,7 @@ export class PostsController {
         id: author.id,
         email: author.email,
         displayName: author.profile?.displayName,
+        username: author.profile?.username,
       },
       tags: post.postTags.map((pt: any) => ({
         id: pt.tag.id,

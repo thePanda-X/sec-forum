@@ -10,6 +10,7 @@ export interface User {
     id: string;
     email: string;
     name: string;
+    username?: string;
     role: "user" | "moderator" | "admin";
     avatar?: string;
     bio?: string;
@@ -49,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     id: String(userData.id),
                     email: userData.email,
                     name: userData.name || userData.email?.split('@')[0],
+                    username: userData.username,
                     role: (userData.role?.toLowerCase() as "user" | "moderator" | "admin") || "user",
                     avatar: userData.avatar,
                     bio: userData.bio,

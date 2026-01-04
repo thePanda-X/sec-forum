@@ -325,6 +325,7 @@ export function UserSettings() {
                 role: user.role || 'Member',
                 avatar: user.avatar,
                 isAdmin: user.role === 'admin',
+                username: user.username,
             } : undefined} />
 
             <div className="container mx-auto px-3 md:px-4 py-6 md:py-8">
