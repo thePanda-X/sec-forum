@@ -44,6 +44,7 @@ export function CreatePostPage() {
         role: user.role.charAt(0).toUpperCase() + user.role.slice(1),
         avatar: user.avatar,
         isAdmin: user.role === "admin",
+        username: user.username,
       }
     : undefined;
 

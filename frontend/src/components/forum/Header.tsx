@@ -29,6 +29,7 @@ interface HeaderProps {
     role: string;
     avatar?: string;
     isAdmin?: boolean;
+    username?: string;
   };
 }
 
@@ -171,7 +172,10 @@ export function Header({ user }: HeaderProps) {
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem 
+                  className="cursor-pointer"
+                  onClick={() => user.username && navigate(`/profile/${user.username}`)}
+                >
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>

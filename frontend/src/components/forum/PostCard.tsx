@@ -2,6 +2,7 @@ import { Pin, PinOff, MessageSquare, Eye, Lock, Pencil, Trash2 } from "lucide-re
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface PostTag {
   id: string;
@@ -9,8 +10,10 @@ interface PostTag {
 }
 
 interface PostAuthor {
+  id?: string;
   name: string;
   avatar?: string;
+  username?: string;
   isAdmin?: boolean;
 }
 
@@ -45,18 +48,35 @@ export function PostCard({
   onDeleteClick,
   onPostClick,
 }: PostCardProps) {
+  const navigate = useNavigate();
+
+  const handleAuthorClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Author click - username:", post.author.username);
+    if (post.author.username) {
+      console.log("Navigating to:", `/profile/${post.author.username}`);
+      window.location.href = `/profile/${post.author.username}`;
+    }
+  };
+
   return (
     <div
       className={`group relative bg-card border border-border rounded-lg p-3 md:p-4 hover:border-primary/30 transition-colors ${onPostClick ? 'cursor-pointer' : ''}`}
       onClick={onPostClick}
     >
       <div className="flex gap-3">
-        <Avatar className="h-10 w-10 shrink-0 hidden sm:flex">
-          <AvatarImage src={post.author.avatar} />
-          <AvatarFallback className="bg-teal-600 text-white">
-            {post.author.name?.charAt(0).toUpperCase() || "?"}
-          </AvatarFallback>
-        </Avatar>
+        <div
+          onClick={handleAuthorClick}
+          className="shrink-0 hidden sm:block cursor-pointer"
+        >
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={post.author.avatar} />
+            <AvatarFallback className="bg-teal-600 text-white">
+              {post.author.name?.charAt(0).toUpperCase() || "?"}
+            </AvatarFallback>
+          </Avatar>
+        </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -74,13 +94,23 @@ export function PostCard({
 
           <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground flex-wrap">
             <span className="flex items-center gap-1">
-              <Avatar className="h-5 w-5 sm:hidden">
-                <AvatarImage src={post.author.avatar} />
-                <AvatarFallback className="bg-teal-600 text-white text-xs">
-                  {post.author.name?.charAt(0).toUpperCase() || "?"}
-                </AvatarFallback>
-              </Avatar>
-              <span>{post.author.name}</span>
+              <div
+                onClick={handleAuthorClick}
+                className="sm:hidden cursor-pointer"
+              >
+                <Avatar className="h-5 w-5">
+                  <AvatarImage src={post.author.avatar} />
+                  <AvatarFallback className="bg-teal-600 text-white text-xs">
+                    {post.author.name?.charAt(0).toUpperCase() || "?"}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+              <button
+                onClick={handleAuthorClick}
+                className="hover:text-primary transition-colors"
+              >
+                {post.author.name}
+              </button>
             </span>
             {post.author.isAdmin && (
               <Badge variant="secondary" className="text-xs bg-amber-500/20 text-amber-500 border-0">

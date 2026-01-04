@@ -115,6 +115,7 @@ export class UsersController {
             profile: {
               columns: {
                 displayName: true,
+                username: true,
               },
             },
           },
@@ -142,6 +143,7 @@ export class UsersController {
         id: post.author.id,
         email: post.author.email,
         displayName: post.author.profile?.displayName,
+        username: post.author.profile?.username,
       },
       tags: post.postTags.map((pt: any) => ({
         id: pt.tag.id,

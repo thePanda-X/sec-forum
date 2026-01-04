@@ -68,6 +68,7 @@ export class AuthController {
         id: user.id.toString(),
         email: user.email,
         name: user.profile?.displayName || user.profile?.username || user.email.split("@")[0],
+        username: user.profile?.username,
         role: user.role.toLowerCase(),
         avatar: user.profile?.avatar || undefined,
       },
@@ -109,6 +110,7 @@ export class AuthController {
         id: fullUser.id.toString(),
         email: fullUser.email,
         name: fullUser.profile?.displayName || fullUser.profile?.username || fullUser.email.split("@")[0],
+        username: fullUser.profile?.username,
         role: fullUser.role.toLowerCase(),
         avatar: fullUser.profile?.avatar || undefined,
       },
@@ -210,6 +212,7 @@ export class AuthController {
         id: newUser.id.toString(),
         email: newUser.email,
         name: name || username,
+        username: `${username}_${newUser.id}`,
         role: "user",
       },
     };
