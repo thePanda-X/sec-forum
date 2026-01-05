@@ -62,7 +62,11 @@ export function PostCard({
 
   return (
     <div
-      className={`group relative bg-card border border-border rounded-lg p-3 md:p-4 hover:border-primary/30 transition-colors ${onPostClick ? 'cursor-pointer' : ''}`}
+      className={`group relative bg-card rounded-lg p-3 md:p-4 transition-all ${
+        post.isPinned
+          ? "border-white border-2 shadow-lg shadow-white/10"
+          : "border border-border hover:border-primary/30"
+      } ${onPostClick ? 'cursor-pointer' : ''}`}
       onClick={onPostClick}
     >
       <div className="flex gap-3">

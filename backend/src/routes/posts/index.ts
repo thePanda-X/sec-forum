@@ -1,10 +1,10 @@
 import "reflect-metadata";
 import { Controller, Get, Post, Put, Delete } from "elysia-decorators";
 import { db } from "../../db";
-import { posts, postTags, comments } from "../../db/schema";
+import { posts, postTags, comments, notifications, users } from "../../db/schema";
 import { hasRole } from "../../utils/auth";
 import type { UserRoleType } from "../../db/schema";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, asc, and, not } from "drizzle-orm";
 
 @Controller("/posts")
 export class PostsController {
@@ -43,13 +43,16 @@ export class PostsController {
           },
         },
       },
-      orderBy: [desc(posts.createdAt)],
+      orderBy: [desc(posts.pinned), desc(posts.createdAt)],
     });
 
     return allPosts.map((post: any) => ({
       id: post.id,
       title: post.title,
       body: post.body,
+      pinned: post.pinned,
+      locked: post.locked,
+      views: post.views,
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
       author: {
@@ -391,12 +394,30 @@ export class PostsController {
       return { error: "Post not found" };
     }
 
+    const newPinnedStatus = !post.pinned;
+
     await db
       .update(posts)
-      .set({ pinned: !post.pinned })
+      .set({ pinned: newPinnedStatus })
       .where(eq(posts.id, Number(params.id)));
 
-    return { message: post.pinned ? "Post unpinned" : "Post pinned" };
+    if (newPinnedStatus) {
+      const allUsers = await db.select({ id: users.id }).from(users);
+      const authorName = post.title;
+
+      await db.insert(notifications).values(
+        allUsers.map((u) => ({
+          userId: u.id,
+          type: "post_pinned",
+          title: "Post Pinned",
+          body: `A new post has been pinned: "${authorName}"`,
+          read: false,
+          createdAt: new Date(),
+        }))
+      );
+    }
+
+    return { message: newPinnedStatus ? "Post pinned" : "Post unpinned", pinned: newPinnedStatus };
   }
 
   @Post("/:id/lock", {
