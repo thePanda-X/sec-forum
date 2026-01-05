@@ -98,7 +98,13 @@ export function MainForum() {
                 viewCount: post.viewCount || post.views || 0,
             }));
 
-            setPosts(mappedPosts);
+            const sortedPosts = [...mappedPosts].sort((a, b) => {
+                if (a.isPinned && !b.isPinned) return -1;
+                if (!a.isPinned && b.isPinned) return 1;
+                return 0;
+            });
+
+            setPosts(sortedPosts);
             setTotalPosts(data.total || mappedPosts.length);
         } catch (err) {
             console.error("Failed to fetch posts:", err);
