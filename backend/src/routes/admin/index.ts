@@ -33,10 +33,108 @@ export class AdminController {
       .from(reports)
       .where(eq(reports.status, "PENDING"));
 
+    const recentLogs = await db.query.auditLogs.findMany({
+      orderBy: [desc(auditLogs.createdAt)],
+      limit: 10,
+      with: {
+        user: {
+          columns: {
+            id: true,
+            email: true,
+          },
+          with: {
+            profile: {
+              columns: {
+                displayName: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
     return {
       usersCount: usersCount?.count || 0,
       postsCount: postsCount?.count || 0,
       pendingReports: reportsCount?.count || 0,
+      recentActivity: recentLogs.map((log: any) => ({
+        id: log.id,
+        action: log.action,
+        entityType: log.entityType,
+        entityId: log.entityId,
+        details: log.details,
+        createdAt: log.createdAt,
+        adminUsername: log.user.profile?.displayName || log.user.email,
+        targetName: log.entityType?.toLowerCase(),
+        targetId: log.entityId,
+      })),
+    };
+  }
+
+  @Get("/stats", {
+    detail: {
+      tags: ["Admin"],
+      summary: "Admin stats",
+      description: "Get admin stats (admin only)",
+      responses: {
+        200: { description: "Stats" },
+        403: { description: "Admin access required" },
+      },
+    },
+  } as any)
+  async stats({ user, set }: any) {
+    const currentUser = await user;
+    if (!currentUser || !hasRole(currentUser.role as UserRoleType, "ADMIN")) {
+      set.status = 403;
+      return { error: "Admin access required" };
+    }
+
+    const [usersCount] = await db.select({ count: count() }).from(users);
+    const [postsCount] = await db.select({ count: count() }).from(posts);
+    const [categoriesCount] = await db.select({ count: count() }).from(categories);
+    const [reportsCount] = await db
+      .select({ count: count() })
+      .from(reports)
+      .where(eq(reports.status, "PENDING"));
+
+    const recentLogs = await db.query.auditLogs.findMany({
+      orderBy: [desc(auditLogs.createdAt)],
+      limit: 10,
+      with: {
+        user: {
+          columns: {
+            id: true,
+            email: true,
+          },
+          with: {
+            profile: {
+              columns: {
+                displayName: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return {
+      stats: {
+        usersCount: usersCount?.count || 0,
+        postsCount: postsCount?.count || 0,
+        categoriesCount: categoriesCount?.count || 0,
+        pendingReports: reportsCount?.count || 0,
+      },
+      recentActivity: recentLogs.map((log: any) => ({
+        id: log.id,
+        action: log.action,
+        entityType: log.entityType,
+        entityId: log.entityId,
+        details: log.details,
+        createdAt: log.createdAt,
+        adminUsername: log.user.profile?.displayName || log.user.email,
+        targetName: log.entityType?.toLowerCase(),
+        targetId: log.entityId,
+      })),
     };
   }
 
@@ -71,11 +169,14 @@ export class AdminController {
     });
 
     return allUsers.map((u: any) => ({
-      id: u.id,
+      id: String(u.id),
       email: u.email,
-      role: u.role,
-      displayName: u.profile?.displayName,
+      role: u.role?.toLowerCase() as 'user' | 'moderator' | 'admin',
+      name: u.profile?.displayName,
       username: u.profile?.username,
+      reputation: 0,
+      avatar: u.profile?.avatar,
+      isBanned: u.isBanned || false,
       createdAt: u.createdAt,
     }));
   }
@@ -138,6 +239,127 @@ export class AdminController {
     return { message: "User role updated" };
   }
 
+  @Post("/users/:id/promote", {
+    detail: {
+      tags: ["Admin"],
+      summary: "Promote user",
+      description: "Promote a user to moderator (admin only)",
+      parameters: [
+        {
+          name: "id",
+          in: "path",
+          required: true,
+          schema: { type: "number" },
+          description: "User ID",
+        },
+      ],
+      responses: {
+        200: { description: "User promoted" },
+        403: { description: "Admin access required" },
+        404: { description: "User not found" },
+      },
+    },
+  } as any)
+  async promoteUser({ params, user, set }: any) {
+    const currentUser = await user;
+    if (!currentUser || !hasRole(currentUser.role as UserRoleType, "ADMIN")) {
+      set.status = 403;
+      return { error: "Admin access required" };
+    }
+
+    const targetUser = await db.query.users.findFirst({
+      where: eq(users.id, Number(params.id)),
+    });
+
+    if (!targetUser) {
+      set.status = 404;
+      return { error: "User not found" };
+    }
+
+    if (targetUser.role === "MODERATOR" || targetUser.role === "ADMIN") {
+      set.status = 400;
+      return { error: "User is already a moderator or admin" };
+    }
+
+    await db
+      .update(users)
+      .set({ role: "MODERATOR" })
+      .where(eq(users.id, Number(params.id)));
+
+    await db.insert(auditLogs).values({
+      userId: currentUser.id,
+      action: "PROMOTE_USER",
+      entityType: "USER",
+      entityId: Number(params.id),
+      details: `User ${targetUser.email} was promoted to moderator`,
+    });
+
+    return { message: "User promoted to moderator" };
+  }
+
+  @Post("/users/:id/demote", {
+    detail: {
+      tags: ["Admin"],
+      summary: "Demote user",
+      description: "Demote a moderator to user (admin only)",
+      parameters: [
+        {
+          name: "id",
+          in: "path",
+          required: true,
+          schema: { type: "number" },
+          description: "User ID",
+        },
+      ],
+      responses: {
+        200: { description: "User demoted" },
+        403: { description: "Admin access required" },
+        404: { description: "User not found" },
+      },
+    },
+  } as any)
+  async demoteUser({ params, user, set }: any) {
+    const currentUser = await user;
+    if (!currentUser || !hasRole(currentUser.role as UserRoleType, "ADMIN")) {
+      set.status = 403;
+      return { error: "Admin access required" };
+    }
+
+    const targetUser = await db.query.users.findFirst({
+      where: eq(users.id, Number(params.id)),
+    });
+
+    if (!targetUser) {
+      set.status = 404;
+      return { error: "User not found" };
+    }
+
+    if (targetUser.role === "ADMIN") {
+      set.status = 400;
+      return { error: "Cannot demote admin users" };
+    }
+
+    if (targetUser.role === "USER") {
+      set.status = 400;
+      return { error: "User is already a regular user" };
+    }
+
+    await db
+      .update(users)
+      .set({ role: "USER" })
+      .where(eq(users.id, Number(params.id)));
+
+    await db.insert(auditLogs).values({
+      userId: currentUser.id,
+      action: "DEMOTE_USER",
+      entityType: "USER",
+      entityId: Number(params.id),
+      details: `User ${targetUser.email} was demoted to user`,
+    });
+
+    return { message: "User demoted to user" };
+  }
+
   @Post("/users/:id/ban", {
     detail: {
       tags: ["Admin"],
@@ -177,7 +399,10 @@ export class AdminController {
 
     await db
       .update(users)
-      .set({ role: "USER" as any })
+      .set({ 
+        role: "USER" as any,
+        isBanned: true
+      })
       .where(eq(users.id, Number(params.id)));
 
     await db.insert(auditLogs).values({
@@ -189,6 +414,59 @@ export class AdminController {
     });
 
     return { message: "User banned" };
+  }
+
+  @Post("/users/:id/unban", {
+    detail: {
+      tags: ["Admin"],
+      summary: "Unban user",
+      description: "Unban a user (admin only)",
+      parameters: [
+        {
+          name: "id",
+          in: "path",
+          required: true,
+          schema: { type: "number" },
+          description: "User ID",
+        },
+      ],
+      responses: {
+        200: { description: "User unbanned" },
+        403: { description: "Admin access required" },
+        404: { description: "User not found" },
+      },
+    },
+  } as any)
+  async unbanUser({ params, user, set }: any) {
+    const currentUser = await user;
+    if (!currentUser || !hasRole(currentUser.role as UserRoleType, "ADMIN")) {
+      set.status = 403;
+      return { error: "Admin access required" };
+    }
+
+    const targetUser = await db.query.users.findFirst({
+      where: eq(users.id, Number(params.id)),
+    });
+
+    if (!targetUser) {
+      set.status = 404;
+      return { error: "User not found" };
+    }
+
+    await db
+      .update(users)
+      .set({ isBanned: false })
+      .where(eq(users.id, Number(params.id)));
+
+    await db.insert(auditLogs).values({
+      userId: currentUser.id,
+      action: "UNBAN_USER",
+      entityType: "USER",
+      entityId: Number(params.id),
+      details: `User ${targetUser.email} was unbanned`,
+    });
+
+    return { message: "User unbanned" };
   }
 
   @Get("/reports", {
@@ -369,6 +647,339 @@ export class AdminController {
     }));
   }
 
+  @Get("/audit-log", {
+    detail: {
+      tags: ["Admin"],
+      summary: "Get audit log",
+      description: "Retrieve system audit log (admin only)",
+      responses: {
+        200: { description: "Audit log" },
+        403: { description: "Admin access required" },
+      },
+    },
+  } as any)
+  async auditLog({ user, set }: any) {
+    const currentUser = await user;
+    if (!currentUser || !hasRole(currentUser.role as UserRoleType, "ADMIN")) {
+      set.status = 403;
+      return { error: "Admin access required" };
+    }
+
+    const logs = await db.query.auditLogs.findMany({
+      orderBy: [desc(auditLogs.createdAt)],
+      with: {
+        user: {
+          columns: {
+            id: true,
+            email: true,
+          },
+          with: {
+            profile: {
+              columns: {
+                displayName: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return {
+      logs: logs.map((log: any) => ({
+        id: log.id,
+        action: log.action,
+        entityType: log.entityType,
+        entityId: log.entityId,
+        details: log.details,
+        createdAt: log.createdAt,
+        adminUsername: log.user.profile?.displayName || log.user.email,
+        targetName: log.entityType?.toLowerCase(),
+        targetId: log.entityId,
+      })),
+    };
+  }
+
+  @Get("/posts", {
+    detail: {
+      tags: ["Admin"],
+      summary: "List all posts",
+      description: "Get list of all posts (admin only)",
+      responses: {
+        200: { description: "List of posts" },
+        403: { description: "Admin access required" },
+      },
+    },
+  } as any)
+  async adminPosts({ user, set }: any) {
+    const currentUser = await user;
+    if (!currentUser || !hasRole(currentUser.role as UserRoleType, "ADMIN")) {
+      set.status = 403;
+      return { error: "Admin access required" };
+    }
+
+    const allPosts = await db.query.posts.findMany({
+      orderBy: [desc(posts.createdAt)],
+      with: {
+        author: {
+          columns: {
+            id: true,
+            email: true,
+          },
+          with: {
+            profile: {
+              columns: {
+                displayName: true,
+                username: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return {
+      posts: allPosts.map((p: any) => ({
+        id: p.id,
+        title: p.title,
+        slug: p.slug,
+        body: p.body,
+        pinned: p.pinned,
+        locked: p.locked,
+        views: p.views,
+        createdAt: p.createdAt,
+        author: {
+          id: p.author.id,
+          email: p.author.email,
+          displayName: p.author.profile?.displayName,
+          username: p.author.profile?.username,
+          avatar: p.author.profile?.avatar,
+        },
+      })),
+    };
+  }
+
+  @Post("/posts/:id/pin", {
+    detail: {
+      tags: ["Admin"],
+      summary: "Pin a post",
+      description: "Pin a post (admin only)",
+      parameters: [
+        {
+          name: "id",
+          in: "path",
+          required: true,
+          schema: { type: "number" },
+          description: "Post ID",
+        },
+      ],
+      responses: {
+        200: { description: "Post pinned" },
+        403: { description: "Admin access required" },
+        404: { description: "Post not found" },
+      },
+    },
+  } as any)
+  async pinPost({ params, user, set }: any) {
+    const currentUser = await user;
+    if (!currentUser || !hasRole(currentUser.role as UserRoleType, "ADMIN")) {
+      set.status = 403;
+      return { error: "Admin access required" };
+    }
+
+    const post = await db.query.posts.findFirst({
+      where: eq(posts.id, Number(params.id)),
+    });
+
+    if (!post) {
+      set.status = 404;
+      return { error: "Post not found" };
+    }
+
+    await db
+      .update(posts)
+      .set({ pinned: true })
+      .where(eq(posts.id, Number(params.id)));
+
+    return { message: "Post pinned" };
+  }
+
+  @Post("/posts/:id/unpin", {
+    detail: {
+      tags: ["Admin"],
+      summary: "Unpin a post",
+      description: "Unpin a post (admin only)",
+      parameters: [
+        {
+          name: "id",
+          in: "path",
+          required: true,
+          schema: { type: "number" },
+          description: "Post ID",
+        },
+      ],
+      responses: {
+        200: { description: "Post unpinned" },
+        403: { description: "Admin access required" },
+        404: { description: "Post not found" },
+      },
+    },
+  } as any)
+  async unpinPost({ params, user, set }: any) {
+    const currentUser = await user;
+    if (!currentUser || !hasRole(currentUser.role as UserRoleType, "ADMIN")) {
+      set.status = 403;
+      return { error: "Admin access required" };
+    }
+
+    const post = await db.query.posts.findFirst({
+      where: eq(posts.id, Number(params.id)),
+    });
+
+    if (!post) {
+      set.status = 404;
+      return { error: "Post not found" };
+    }
+
+    await db
+      .update(posts)
+      .set({ pinned: false })
+      .where(eq(posts.id, Number(params.id)));
+
+    return { message: "Post unpinned" };
+  }
+
+  @Post("/posts/:id/lock", {
+    detail: {
+      tags: ["Admin"],
+      summary: "Lock a post",
+      description: "Lock a post to prevent new comments (admin only)",
+      parameters: [
+        {
+          name: "id",
+          in: "path",
+          required: true,
+          schema: { type: "number" },
+          description: "Post ID",
+        },
+      ],
+      responses: {
+        200: { description: "Post locked" },
+        403: { description: "Admin access required" },
+        404: { description: "Post not found" },
+      },
+    },
+  } as any)
+  async lockPost({ params, user, set }: any) {
+    const currentUser = await user;
+    if (!currentUser || !hasRole(currentUser.role as UserRoleType, "ADMIN")) {
+      set.status = 403;
+      return { error: "Admin access required" };
+    }
+
+    const post = await db.query.posts.findFirst({
+      where: eq(posts.id, Number(params.id)),
+    });
+
+    if (!post) {
+      set.status = 404;
+      return { error: "Post not found" };
+    }
+
+    await db
+      .update(posts)
+      .set({ locked: true })
+      .where(eq(posts.id, Number(params.id)));
+
+    return { message: "Post locked" };
+  }
+
+  @Post("/posts/:id/unlock", {
+    detail: {
+      tags: ["Admin"],
+      summary: "Unlock a post",
+      description: "Unlock a post to allow new comments (admin only)",
+      parameters: [
+        {
+          name: "id",
+          in: "path",
+          required: true,
+          schema: { type: "number" },
+          description: "Post ID",
+        },
+      ],
+      responses: {
+        200: { description: "Post unlocked" },
+        403: { description: "Admin access required" },
+        404: { description: "Post not found" },
+      },
+    },
+  } as any)
+  async unlockPost({ params, user, set }: any) {
+    const currentUser = await user;
+    if (!currentUser || !hasRole(currentUser.role as UserRoleType, "ADMIN")) {
+      set.status = 403;
+      return { error: "Admin access required" };
+    }
+
+    const post = await db.query.posts.findFirst({
+      where: eq(posts.id, Number(params.id)),
+    });
+
+    if (!post) {
+      set.status = 404;
+      return { error: "Post not found" };
+    }
+
+    await db
+      .update(posts)
+      .set({ locked: false })
+      .where(eq(posts.id, Number(params.id)));
+
+    return { message: "Post unlocked" };
+  }
+
+  @Post("/posts/:id/delete", {
+    detail: {
+      tags: ["Admin"],
+      summary: "Delete a post",
+      description: "Delete a post (admin only)",
+      parameters: [
+        {
+          name: "id",
+          in: "path",
+          required: true,
+          schema: { type: "number" },
+          description: "Post ID",
+        },
+      ],
+      responses: {
+        200: { description: "Post deleted" },
+        403: { description: "Admin access required" },
+        404: { description: "Post not found" },
+      },
+    },
+  } as any)
+  async deletePost({ params, user, set }: any) {
+    const currentUser = await user;
+    if (!currentUser || !hasRole(currentUser.role as UserRoleType, "ADMIN")) {
+      set.status = 403;
+      return { error: "Admin access required" };
+    }
+
+    const post = await db.query.posts.findFirst({
+      where: eq(posts.id, Number(params.id)),
+    });
+
+    if (!post) {
+      set.status = 404;
+      return { error: "Post not found" };
+    }
+
+    await db.delete(posts).where(eq(posts.id, Number(params.id)));
+
+    return { message: "Post deleted" };
+  }
+
   @Post("/categories", {
     detail: {
       tags: ["Admin", "Categories"],
@@ -383,6 +994,8 @@ export class AdminController {
                 name: { type: "string" },
                 slug: { type: "string" },
                 description: { type: "string" },
+                color: { type: "string" },
+                icon: { type: "string" },
               },
               required: ["name", "slug"],
             },
@@ -408,6 +1021,8 @@ export class AdminController {
         name: body.name,
         slug: body.slug,
         description: body.description,
+        color: body.color || "#10b981",
+        icon: body.icon || "FolderTree",
       })
       .returning();
 
@@ -438,6 +1053,8 @@ export class AdminController {
                 name: { type: "string" },
                 slug: { type: "string" },
                 description: { type: "string" },
+                color: { type: "string" },
+                icon: { type: "string" },
               },
             },
           },
@@ -472,6 +1089,8 @@ export class AdminController {
         ...(body.name && { name: body.name }),
         ...(body.slug && { slug: body.slug }),
         ...(body.description !== undefined && { description: body.description }),
+        ...(body.color && { color: body.color }),
+        ...(body.icon && { icon: body.icon }),
         updatedAt: new Date(),
       })
       .where(eq(categories.id, Number(params.id)));

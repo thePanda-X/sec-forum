@@ -52,6 +52,7 @@ export function MainForum() {
             role: user.role.charAt(0).toUpperCase() + user.role.slice(1),
             avatar: user.avatar,
             isAdmin: user.role === "admin",
+            isModerator: user.role === "moderator",
             username: user.username,
         }
         : undefined;
@@ -90,6 +91,7 @@ export function MainForum() {
                 },
                 createdAt: formatRelativeTime(post.createdAt),
                 isPinned: post.isPinned || post.pinned || false,
+                isLocked: post.isLocked || post.locked || false,
                 tags: (post.tags || []).map((tag: any) => ({
                     id: tag.id || tag,
                     name: tag.name || tag,
@@ -104,7 +106,9 @@ export function MainForum() {
                 return 0;
             });
 
-            setPosts(sortedPosts);
+            const visiblePosts = sortedPosts.filter(post => !post.isLocked);
+
+            setPosts(visiblePosts);
             setTotalPosts(data.total || mappedPosts.length);
         } catch (err) {
             console.error("Failed to fetch posts:", err);

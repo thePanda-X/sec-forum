@@ -16,6 +16,7 @@ export const users = sqliteTable("users", {
   role: text("role", { enum: ["ADMIN", "MODERATOR", "USER"] })
     .notNull()
     .default("USER"),
+  isBanned: integer("is_banned", { mode: "boolean" }).notNull().default(false),
   createdAt: integer("created_at", { mode: "timestamp" })
     .$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" })
@@ -146,6 +147,8 @@ export const categories = sqliteTable("categories", {
   name: text("name").notNull().unique(),
   slug: text("slug").notNull().unique(),
   description: text("description"),
+  color: text("color").notNull().default("#10b981"),
+  icon: text("icon").notNull().default("FolderTree"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" })

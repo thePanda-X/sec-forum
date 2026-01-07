@@ -4,7 +4,7 @@ import { join } from "path";
 config({ path: join(process.cwd(), "../.env") });
 
 import { db } from "./index";
-import { users, profiles } from "./schema";
+import { users, profiles, categories } from "./schema";
 import { hashPassword } from "../utils/auth";
 import { eq } from "drizzle-orm";
 
@@ -46,7 +46,31 @@ async function seed() {
       bio: "System administrator account",
     });
 
-    console.log(`Admin user created with ID: ${admin.id}`);
+  console.log(`Admin user created with ID: ${admin.id}`);
+  }
+
+  console.log("\n🌿 Seeding categories...");
+
+  const defaultCategories = [
+    { name: "Threat Intelligence", slug: "threat-intelligence", description: "Discuss threat actors, IOCs, and threat analysis", color: "#ef4444" },
+    { name: "Penetration Testing", slug: "penetration-testing", description: "Pen testing methodologies, tools, and write-ups", color: "#f97316" },
+    { name: "Malware Analysis", slug: "malware-analysis", description: "Reverse engineering and malware analysis techniques", color: "#eab308" },
+    { name: "Network Security", slug: "network-security", description: "Network defense, monitoring, and segmentation", color: "#22c55e" },
+    { name: "Cryptography", slug: "cryptography", description: "Encryption, hashing, and cryptographic protocols", color: "#06b6d4" },
+    { name: "Phishing", slug: "phishing", description: "Phishing techniques, prevention, and analysis", color: "#8b5cf6" },
+  ];
+
+  for (const category of defaultCategories) {
+    const existing = await db.query.categories.findFirst({
+      where: (categories, { eq }) => eq(categories.slug, category.slug),
+    });
+
+    if (existing) {
+      console.log(`  ✓ Category "${category.name}" already exists`);
+    } else {
+      await db.insert(categories).values(category);
+      console.log(`  → Added category: ${category.name}`);
+    }
   }
 
   console.log("\n✅ Seeding complete!");

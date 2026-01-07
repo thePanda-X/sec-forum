@@ -24,6 +24,7 @@ interface Post {
   author: PostAuthor;
   createdAt: string;
   isPinned?: boolean;
+  isLocked?: boolean;
   tags: PostTag[];
   replyCount: number;
   viewCount: number;

@@ -33,12 +33,18 @@ export const authPlugin = (app: Elysia) =>
         try {
           const payload = await jwt.verify(token);
           if (payload && typeof payload !== "boolean") {
-            const role = isValidRole(payload.role) ? payload.role : "USER";
-            user = {
-              id: Number(payload.sub),
-              email: String(payload.email ?? ""),
-              role,
-            };
+            const dbUser = await db.query.users.findFirst({
+              where: eq(users.id, Number(payload.sub)),
+            });
+
+            if (dbUser && !dbUser.isBanned) {
+              const role = isValidRole(dbUser.role) ? dbUser.role : "USER";
+              user = {
+                id: dbUser.id,
+                email: dbUser.email,
+                role,
+              };
+            }
           }
         } catch {
           user = null;
