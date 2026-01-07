@@ -6,19 +6,58 @@ import { cn } from "@/lib/utils"
 const ScrollArea = React.forwardRef<
   React.ElementRef<typeof ScrollAreaPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root>
->(({ className, children, ...props }, ref) => (
-  <ScrollAreaPrimitive.Root
-    ref={ref}
-    className={cn("relative overflow-hidden", className)}
-    {...props}
-  >
-    <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit]">
-      {children}
-    </ScrollAreaPrimitive.Viewport>
-    <ScrollBar />
-    <ScrollAreaPrimitive.Corner />
-  </ScrollAreaPrimitive.Root>
-))
+>(({ className, children, ...props }, ref) => {
+  const viewportRef = React.useRef<HTMLDivElement>(null)
+
+  const handleWheel = React.useCallback((e: WheelEvent) => {
+    if (viewportRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = viewportRef.current
+      const isScrollable = scrollHeight > clientHeight
+      const isAtTop = e.deltaY < 0 && scrollTop <= 0
+      const isAtBottom = e.deltaY > 0 && scrollTop + clientHeight >= scrollHeight
+
+      if (isScrollable && !isAtTop && !isAtBottom) {
+        e.stopPropagation()
+      }
+    }
+  }, [])
+
+  React.useEffect(() => {
+    const viewport = viewportRef.current
+    if (viewport) {
+      viewport.addEventListener('wheel', handleWheel, { passive: false })
+      return () => viewport.removeEventListener('wheel', handleWheel)
+    }
+  }, [handleWheel])
+
+  return (
+    <ScrollAreaPrimitive.Root
+      ref={ref}
+      className={cn("relative overflow-hidden", className)}
+      {...props}
+    >
+      <ScrollAreaPrimitive.Viewport
+        ref={viewportRef}
+        className="h-full w-full rounded-[inherit]"
+        onWheel={(e: React.WheelEvent) => {
+          const target = e.currentTarget
+          const { scrollTop, scrollHeight, clientHeight } = target
+          const isScrollable = scrollHeight > clientHeight
+          const isAtTop = e.deltaY < 0 && scrollTop <= 0
+          const isAtBottom = e.deltaY > 0 && scrollTop + clientHeight >= scrollHeight
+
+          if (isScrollable && !isAtTop && !isAtBottom) {
+            e.stopPropagation()
+          }
+        }}
+      >
+        {children}
+      </ScrollAreaPrimitive.Viewport>
+      <ScrollBar />
+      <ScrollAreaPrimitive.Corner />
+    </ScrollAreaPrimitive.Root>
+  )
+})
 ScrollArea.displayName = ScrollAreaPrimitive.Root.displayName
 
 const ScrollBar = React.forwardRef<

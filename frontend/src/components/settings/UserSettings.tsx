@@ -325,6 +325,7 @@ export function UserSettings() {
                 role: user.role || 'Member',
                 avatar: user.avatar,
                 isAdmin: user.role === 'admin',
+                isModerator: user.role === 'moderator',
                 username: user.username,
             } : undefined} />
 

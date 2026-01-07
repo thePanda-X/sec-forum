@@ -8,6 +8,7 @@ import { CreatePostPage } from "./components/forum/CreatePostPage";
 import { PostView } from "./components/forum/PostView";
 import { UserSettings } from "./components/settings/UserSettings";
 import { UserProfile } from "./components/profile/UserProfile";
+import { AdminPanel } from "./components/admin/AdminPanel";
 
 export function App() {
   return (
@@ -51,6 +52,14 @@ export function App() {
         element={
           <ProtectedRoute>
             <UserProfile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute requireAdmin>
+            <AdminPanel />
           </ProtectedRoute>
         }
       />

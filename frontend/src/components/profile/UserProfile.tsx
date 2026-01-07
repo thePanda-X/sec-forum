@@ -272,6 +272,7 @@ export function UserProfile() {
                     role: currentUser.role || 'Member',
                     avatar: currentUser.avatar,
                     isAdmin: currentUser.role === 'admin',
+                    isModerator: currentUser.role === 'moderator',
                     username: currentUser.username,
                 } : undefined} />
                 <div className="flex items-center justify-center py-20">
@@ -289,6 +290,7 @@ export function UserProfile() {
                     role: currentUser.role || 'Member',
                     avatar: currentUser.avatar,
                     isAdmin: currentUser.role === 'admin',
+                    isModerator: currentUser.role === 'moderator',
                     username: currentUser.username,
                 } : undefined} />
                 <div className="container mx-auto px-4 py-8">
@@ -315,6 +317,7 @@ export function UserProfile() {
                 role: currentUser.role || 'Member',
                 avatar: currentUser.avatar,
                 isAdmin: currentUser.role === 'admin',
+                isModerator: currentUser.role === 'moderator',
                 username: currentUser.username,
             } : undefined} />
 

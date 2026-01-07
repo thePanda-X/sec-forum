@@ -27,8 +27,8 @@ export function ProtectedRoute({
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (requireAdmin && user?.role !== "admin") {
-    // Redirect non-admins to home
+  if (requireAdmin && user?.role !== "admin" && user?.role !== "moderator") {
+    // Redirect non-admins/non-moderators to home
     return <Navigate to="/" replace />;
   }
 

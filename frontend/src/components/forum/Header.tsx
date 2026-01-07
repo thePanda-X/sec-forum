@@ -29,6 +29,7 @@ interface HeaderProps {
     role: string;
     avatar?: string;
     isAdmin?: boolean;
+    isModerator?: boolean;
     username?: string;
   };
 }
@@ -186,8 +187,11 @@ export function Header({ user }: HeaderProps) {
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
                 </DropdownMenuItem>
-                {user.isAdmin && (
-                  <DropdownMenuItem className="cursor-pointer text-primary focus:text-primary">
+                {(user.isAdmin || user.isModerator) && (
+                  <DropdownMenuItem 
+                    className="cursor-pointer text-primary focus:text-primary"
+                    onClick={() => navigate("/admin")}
+                  >
                     <Shield className="mr-2 h-4 w-4" />
                     Admin Panel
                   </DropdownMenuItem>
