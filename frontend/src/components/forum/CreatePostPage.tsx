@@ -1,18 +1,35 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2, Plus } from "lucide-react";
+import { ArrowLeft, Loader2, Plus, Sparkles, X, Tag as TagIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MarkdownEditor } from "@/components/forum/MarkdownEditor";
 import { Header } from "@/components/forum/Header";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const API_BASE = "/api/v1";
 
 interface Tag {
   id: number;
   name: string;
+}
+
+interface Category {
+  id: string | number;
+  name: string;
+  slug: string;
+  description: string;
+  color: string;
+  icon: string;
+  postCount: number;
 }
 
 export function CreatePostPage() {
@@ -22,11 +39,15 @@ export function CreatePostPage() {
   const [body, setBody] = useState("");
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isFetchingTags, setIsFetchingTags] = useState(true);
+  const [isFetchingCategories, setIsFetchingCategories] = useState(true);
   const [tagSearch, setTagSearch] = useState("");
   const [isCreatingTag, setIsCreatingTag] = useState(false);
+  const [isTagSectionExpanded, setIsTagSectionExpanded] = useState(false);
 
   const filteredTags = tags.filter((tag) =>
     tag.name.toLowerCase().includes(tagSearch.toLowerCase())
@@ -36,7 +57,34 @@ export function CreatePostPage() {
 
   useEffect(() => {
     fetchTags();
+    fetchCategories();
   }, []);
+
+  const fetchCategories = async () => {
+    setIsFetchingCategories(true);
+    try {
+      const response = await fetch(`${API_BASE}/categories`, {
+        credentials: "include",
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const categoryList = Array.isArray(data) ? data : data.categories || [];
+        const categoriesWithIds = categoryList.map((cat: any) => ({
+          ...cat,
+          id: String(cat.id)
+        }));
+        setCategories(categoriesWithIds);
+      }
+    } catch (err) {
+      console.error("Failed to fetch categories:", err);
+    } finally {
+      setIsFetchingCategories(false);
+    }
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategoryId(value);
+  };
 
   const headerUser = user
     ? {
@@ -120,6 +168,7 @@ export function CreatePostPage() {
           title: title.trim(),
           body: body.trim(),
           tagIds: selectedTags,
+          categoryId: selectedCategoryId,
         }),
       });
 
@@ -146,138 +195,251 @@ export function CreatePostPage() {
 
   const isTagSelected = (tagId: number) => selectedTags.includes(tagId);
 
+  const selectedTagsList = tags.filter(tag => selectedTags.includes(tag.id));
+
+  const removeTag = (tagId: number) => {
+    setSelectedTags(prev => prev.filter(id => id !== tagId));
+  };
+
+  const clearAllTags = () => {
+    setSelectedTags([]);
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
       <Header user={headerUser} />
 
-      <div className="container mx-auto px-4 py-6">
-        <div className="max-w-full mx-auto">
-          <Button
-            variant="ghost"
-            className="mb-4 md:mb-6 gap-2"
-            onClick={() => navigate("/")}
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
+      <div className="container mx-auto px-4 py-6 max-w-4xl">
+        <button
+          onClick={() => navigate("/")}
+          className="group flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
+        >
+          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+          <span className="text-sm font-medium">Back to forum</span>
+        </button>
 
-          <div className="bg-card border rounded-lg p-4 md:p-6">
-            <h1 className="text-xl md:text-2xl font-bold mb-2">Create New Post</h1>
-            <p className="text-sm text-muted-foreground mb-4 md:mb-6">
-              Share your thoughts with the community. You can use markdown for formatting.
-            </p>
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Sparkles className="h-5 w-5 text-primary" />
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold">Create a new post</h1>
+          </div>
+          <p className="text-muted-foreground ml-11">
+            Start a conversation with the community
+          </p>
+        </div>
 
-            <form onSubmit={handleSubmit}>
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Enter a descriptive title"
+        <div className="bg-card border shadow-sm rounded-2xl overflow-hidden">
+          <div className="p-6 md:p-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="title" className="text-sm font-semibold">Title</Label>
+                <Input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="What's on your mind?"
+                  disabled={isLoading}
+                  maxLength={200}
+                  className="text-base h-12"
+                />
+                <p className="text-xs text-muted-foreground text-right">
+                  {title.length}/200
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="category" className="text-sm font-semibold">Category</Label>
+                <Select 
+                  value={selectedCategoryId} 
+                  onValueChange={handleCategoryChange} 
+                  disabled={isLoading || isFetchingCategories}
+                >
+                  <SelectTrigger id="category">
+                    <SelectValue placeholder={isFetchingCategories ? "Loading categories..." : "Select a category"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.length === 0 ? (
+                      <div className="py-2 px-3 text-sm text-muted-foreground">No categories available</div>
+                    ) : (
+                      categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                {selectedCategoryId && (
+                  <p className="text-xs text-muted-foreground">
+                    Selected: {categories.find(c => c.id === selectedCategoryId)?.name || selectedCategoryId}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Content</Label>
+                <MarkdownEditor
+                  value={body}
+                  onChange={setBody}
+                  placeholder="Share your thoughts, questions, or ideas..."
+                  minHeight="300px"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <div 
+                  className="flex items-center justify-between cursor-pointer"
+                  onClick={() => setIsTagSectionExpanded(!isTagSectionExpanded)}
+                >
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm font-semibold cursor-pointer flex items-center gap-2">
+                      <TagIcon className="h-4 w-4" />
+                      Tags
+                      {selectedTags.length > 0 && (
+                        <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                          {selectedTags.length}
+                        </span>
+                      )}
+                    </Label>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
                     disabled={isLoading}
-                    maxLength={200}
-                  />
+                  >
+                    {isTagSectionExpanded ? (
+                      <X className="h-4 w-4" />
+                    ) : (
+                      <svg className="h-4 w-4 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    )}
+                  </Button>
                 </div>
 
-                <div className="grid gap-2">
-                  <Label>Content</Label>
-                  <MarkdownEditor
-                    value={body}
-                    onChange={setBody}
-                    placeholder="Write your post content here..."
-                    minHeight="200px"
-                  />
-                </div>
+                {isTagSectionExpanded && (
+                  <div className="space-y-3 pt-2">
+                    {selectedTagsList.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {selectedTagsList.map((tag) => (
+                          <div
+                            key={tag.id}
+                            className="group flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full bg-primary/10 text-primary border border-primary/20"
+                          >
+                            {tag.name}
+                            <button
+                              type="button"
+                              onClick={() => removeTag(tag.id)}
+                              className="opacity-60 group-hover:opacity-100 transition-opacity hover:bg-primary/20 rounded-full p-0.5"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                        {selectedTagsList.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={clearAllTags}
+                            className="text-xs text-muted-foreground hover:text-destructive transition-colors px-2 py-1.5"
+                          >
+                            Clear all
+                          </button>
+                        )}
+                      </div>
+                    )}
 
-                <div className="grid gap-2">
-                  <Label>Tags</Label>
-                  {isFetchingTags ? (
-                    <p className="text-sm text-muted-foreground">
-                      Loading tags...
-                    </p>
-                  ) : (
-                    <>
-                      <Input
-                        value={tagSearch}
-                        onChange={(e) => setTagSearch(e.target.value)}
-                        placeholder="Search or create tags..."
-                        maxLength={50}
-                        className="mb-2"
-                      />
-                      <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
+                    <Input
+                      value={tagSearch}
+                      onChange={(e) => setTagSearch(e.target.value)}
+                      placeholder={selectedTagsList.length === 0 ? "Search or create tags..." : "Add more tags..."}
+                      maxLength={50}
+                      disabled={isCreatingTag}
+                    />
+
+                    {isFetchingTags ? (
+                      <div className="flex items-center justify-center py-8 text-muted-foreground">
+                        <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                        Loading tags...
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
+                        {filteredTags.length === 0 && !showCreateOption && tagSearch && (
+                          <p className="text-sm text-muted-foreground py-2">No matching tags</p>
+                        )}
                         {filteredTags.map((tag) => (
                           <button
                             key={tag.id}
                             type="button"
                             onClick={() => toggleTag(tag.id)}
-                            className={`px-2.5 py-1 text-xs md:text-sm rounded-full border transition-colors ${
+                            className={`px-3 py-1.5 text-sm rounded-full border transition-all ${
                               isTagSelected(tag.id)
-                                ? "bg-primary text-primary-foreground border-primary"
-                                : "bg-background hover:bg-muted"
+                                ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                                : "bg-background hover:bg-muted/80 border-border"
                             }`}
                           >
                             {tag.name}
                           </button>
                         ))}
-                        {filteredTags.length === 0 && !showCreateOption && (
-                          <p className="text-sm text-muted-foreground">No matching tags</p>
-                        )}
                         {showCreateOption && (
                           <button
                             type="button"
                             onClick={createTag}
                             disabled={isCreatingTag}
-                            className="px-2.5 py-1 text-xs md:text-sm rounded-full border border-dashed border-primary bg-primary/10 text-primary hover:bg-primary/20 transition-colors flex items-center gap-1"
+                            className="px-3 py-1.5 text-sm rounded-full border-2 border-dashed border-primary bg-primary/5 text-primary hover:bg-primary/10 transition-all flex items-center gap-1.5 font-medium"
                           >
                             {isCreatingTag ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
+                              <>
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                Creating...
+                              </>
                             ) : (
                               <>
-                                <Plus className="h-3 w-3" />
+                                <Plus className="h-3.5 w-3.5" />
                                 Create "{tagSearch}"
                               </>
                             )}
                           </button>
                         )}
                       </div>
-                      {tags.length === 0 && filteredTags.length === 0 && !showCreateOption && (
-                        <p className="text-sm text-muted-foreground">
-                          No tags available
-                        </p>
-                      )}
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {error && (
+                <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-lg text-sm flex items-start gap-2">
+                  <X className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-3 pt-4 border-t">
+                <Button type="submit" disabled={isLoading || !title.trim() || !body.trim()} size="lg" className="flex-1 sm:flex-none">
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Publishing...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Publish post
                     </>
                   )}
-                </div>
-
-                {error && (
-                  <p className="text-sm text-destructive" role="alert">
-                    {error}
-                  </p>
-                )}
-
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4">
-                  <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Creating...
-                      </>
-                    ) : (
-                      "Create Post"
-                    )}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => navigate("/")}
-                    disabled={isLoading}
-                    className="w-full sm:w-auto"
-                  >
-                    Cancel
-                  </Button>
-                </div>
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate("/")}
+                  disabled={isLoading}
+                  size="lg"
+                >
+                  Cancel
+                </Button>
               </div>
             </form>
           </div>
