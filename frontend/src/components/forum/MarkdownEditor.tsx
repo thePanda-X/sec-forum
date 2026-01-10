@@ -19,6 +19,7 @@ import {
   Code2,
   Table,
   CheckSquare,
+  MoreHorizontal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { parseMarkdown } from "@/lib/markdown";
@@ -45,6 +46,7 @@ export function MarkdownEditor({
   const [viewMode, setViewMode] = useState<ViewMode>("split");
   const [previewHtml, setPreviewHtml] = useState("");
   const [isRendering, setIsRendering] = useState(false);
+  const [showMoreTools, setShowMoreTools] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const renderTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -194,38 +196,47 @@ export function MarkdownEditor({
     e.stopPropagation();
   }, []);
 
-  const toolbarButtons = [
-    { icon: Bold, label: "Bold (Ctrl+B)", action: () => insertMarkdown("**", "**", "bold text") },
-    { icon: Italic, label: "Italic (Ctrl+I)", action: () => insertMarkdown("_", "_", "italic text") },
-    { icon: Strikethrough, label: "Strikethrough", action: () => insertMarkdown("~~", "~~", "strikethrough") },
-    { icon: Code2, label: "Inline Code (Ctrl+E)", action: () => insertMarkdown("`", "`", "code") },
-    { icon: List, label: "Bulleted List", action: () => insertMarkdown("- ") },
-    { icon: ListOrdered, label: "Numbered List", action: () => insertMarkdown("1. ") },
-    { icon: CheckSquare, label: "Task List", action: () => insertMarkdown("- [ ] ") },
-    { icon: Heading1, label: "Heading 1", action: () => insertMarkdown("# ") },
-    { icon: Heading2, label: "Heading 2", action: () => insertMarkdown("## ") },
-    { icon: Heading3, label: "Heading 3", action: () => insertMarkdown("### ") },
-    { icon: Link, label: "Link (Ctrl+K)", action: () => insertMarkdown("[", "](url)", "link text") },
-    { icon: Image, label: "Image", action: () => insertMarkdown("![", "](url)", "image alt text") },
-    { icon: Quote, label: "Quote", action: () => insertMarkdown("> ") },
-    { icon: Code, label: "Code Block", action: () => insertMarkdown("```\n", "\n```", "code") },
-    { icon: Table, label: "Table", action: () => insertMarkdown("| Header | Header |\n|--------|--------|\n| Cell   | Cell   |") },
-    { icon: Minus, label: "Horizontal Rule", action: () => insertMarkdown("\n---\n") },
-  ];
+  const formatGroups = {
+    text: [
+      { icon: Bold, label: "Bold (Ctrl+B)", action: () => insertMarkdown("**", "**", "bold text") },
+      { icon: Italic, label: "Italic (Ctrl+I)", action: () => insertMarkdown("_", "_", "italic text") },
+      { icon: Strikethrough, label: "Strikethrough", action: () => insertMarkdown("~~", "~~", "strikethrough") },
+      { icon: Code2, label: "Inline Code (Ctrl+E)", action: () => insertMarkdown("`", "`", "code") },
+    ],
+    structure: [
+      { icon: Heading1, label: "Heading 1", action: () => insertMarkdown("# ") },
+      { icon: Heading2, label: "Heading 2", action: () => insertMarkdown("## ") },
+      { icon: Heading3, label: "Heading 3", action: () => insertMarkdown("### ") },
+      { icon: Quote, label: "Quote", action: () => insertMarkdown("> ") },
+    ],
+    lists: [
+      { icon: List, label: "Bulleted List", action: () => insertMarkdown("- ") },
+      { icon: ListOrdered, label: "Numbered List", action: () => insertMarkdown("1. ") },
+      { icon: CheckSquare, label: "Task List", action: () => insertMarkdown("- [ ] ") },
+    ],
+    insert: [
+      { icon: Link, label: "Link (Ctrl+K)", action: () => insertMarkdown("[", "](url)", "link text") },
+      { icon: Image, label: "Image", action: () => insertMarkdown("![", "](url)", "image alt text") },
+      { icon: Code, label: "Code Block", action: () => insertMarkdown("```\n", "\n```", "code") },
+      { icon: Table, label: "Table", action: () => insertMarkdown("| Header | Header |\n|--------|--------|\n| Cell   | Cell   |") },
+      { icon: Minus, label: "Horizontal Rule", action: () => insertMarkdown("\n---\n") },
+    ],
+  };
 
-  const mainToolbarButtons = toolbarButtons.slice(0, 6);
-  const secondaryToolbarButtons = toolbarButtons.slice(6);
+  const visibleButtons = showMoreTools 
+    ? [...formatGroups.text, ...formatGroups.structure, ...formatGroups.lists, ...formatGroups.insert]
+    : formatGroups.text;
 
   return (
-    <div className={cn("border rounded-lg overflow-hidden bg-card", className)}>
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between border-b px-2 py-1.5 bg-muted/50 gap-2">
-        <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-hide flex-wrap">
-          {mainToolbarButtons.map((button) => (
+    <div className={cn("border rounded-xl overflow-hidden bg-card shadow-sm", className)}>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-3 py-2 border-b bg-muted/30">
+        <div className="flex items-center gap-1 flex-wrap">
+          {visibleButtons.map((button, idx) => (
             <Button
               key={button.label}
               variant="ghost"
               size="sm"
-              className="h-7 w-7 p-0 shrink-0"
+              className="h-8 w-8 p-0 rounded-md hover:bg-accent"
               onClick={button.action}
               title={button.label}
               type="button"
@@ -233,46 +244,42 @@ export function MarkdownEditor({
               <button.icon className="h-4 w-4" />
             </Button>
           ))}
-          <div className="hidden sm:block w-px h-4 bg-border mx-1" />
-          {secondaryToolbarButtons.map((button) => (
-            <Button
-              key={button.label}
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 p-0 shrink-0 hidden md:flex"
-              onClick={button.action}
-              title={button.label}
-              type="button"
-            >
-              <button.icon className="h-4 w-4" />
-            </Button>
-          ))}
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn("h-8 w-8 p-0 rounded-md hover:bg-accent", showMoreTools && "bg-accent")}
+            onClick={() => setShowMoreTools(!showMoreTools)}
+            title="More formatting"
+            type="button"
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
         </div>
-        <div className="flex items-center border rounded-md overflow-hidden shrink-0">
+        <div className="flex items-center bg-muted rounded-lg p-1 border">
           <button
             type="button"
             onClick={() => setViewMode("write")}
             className={cn(
-              "px-2.5 py-1 text-xs font-medium flex items-center gap-1.5 transition-colors",
+              "px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 rounded-md transition-all",
               viewMode === "write"
-                ? "bg-background text-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground hover:bg-background/50"
             )}
           >
-            <Edit3 className="h-3 w-3" />
+            <Edit3 className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Write</span>
           </button>
           <button
             type="button"
             onClick={() => setViewMode("split")}
             className={cn(
-              "px-2.5 py-1 text-xs font-medium flex items-center gap-1.5 transition-colors",
+              "px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 rounded-md transition-all",
               viewMode === "split"
-                ? "bg-background text-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground hover:bg-background/50"
             )}
           >
-            <svg className="h-3 w-3" viewBox="0 0 16 16" fill="currentColor">
+            <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="currentColor">
               <path d="M0 3.75C0 2.784.784 2 1.75 2h12.5c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0 1 14.25 14H1.75A1.75 1.75 0 0 1 0 12.25v-8.5Zm1.75-.25a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25v-8.5a.25.25 0 0 0-.25-.25H1.75ZM3.5 6.25a.75.75 0 0 1 .75-.75h7a.75.75 0 0 1 0 1.5h-7a.75.75 0 0 1-.75-.75Zm.75 2.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 0-1.5h-4Z" />
             </svg>
             <span className="hidden sm:inline">Split</span>
@@ -281,21 +288,24 @@ export function MarkdownEditor({
             type="button"
             onClick={() => setViewMode("preview")}
             className={cn(
-              "px-2.5 py-1 text-xs font-medium flex items-center gap-1.5 transition-colors",
+              "px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 rounded-md transition-all",
               viewMode === "preview"
-                ? "bg-background text-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground hover:bg-background/50"
             )}
           >
-            <Eye className="h-3 w-3" />
+            <Eye className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Preview</span>
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2" style={{ minHeight }}>
+      <div 
+        className="grid grid-cols-1 lg:grid-cols-2" 
+        style={{ minHeight }}
+      >
         {(viewMode === "write" || viewMode === "split") && (
           <div className={cn(
-            "relative border-r-0 lg:border-r",
+            "relative border-r border-border",
             viewMode === "write" && "border-r-0"
           )}>
             <textarea
@@ -308,45 +318,57 @@ export function MarkdownEditor({
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               placeholder={placeholder}
-              className="w-full h-full px-3 py-2 bg-transparent resize-none focus:outline-none text-sm font-mono"
+              className="w-full h-full px-4 py-3 bg-transparent resize-none focus:outline-none text-sm font-mono leading-relaxed"
               style={{ minHeight }}
               spellCheck={false}
             />
           </div>
         )}
         {(viewMode === "preview" || viewMode === "split") && (
-          <div className={cn(
-            "relative overflow-auto",
-            viewMode === "split" && "border-l"
-          )}>
+          <div className="relative overflow-auto bg-muted/20">
             {viewMode === "split" && isRendering && (
-              <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10">
+              <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-10">
                 <div className="flex items-center gap-2 text-muted-foreground text-sm">
                   <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Rendering...
+                  Rendering preview...
                 </div>
               </div>
             )}
             <div
-              className="markdown-preview px-3 py-2"
+              className="markdown-preview px-4 py-3"
               style={{ minHeight }}
               dangerouslySetInnerHTML={{ __html: previewHtml }}
             />
           </div>
         )}
       </div>
-      <div className="border-t px-3 py-1.5 bg-muted/30 hidden sm:block">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-          <span>Styling with <strong>#</strong> headings, <strong>**bold**</strong>, <strong>_italic_</strong>, <strong>`code`</strong>, <strong>```code```</strong>, <strong>&gt;</strong> quotes</span>
-          <span className="hidden lg:inline">•</span>
-          <span className="hidden lg:inline">Link with <strong>[text](url)</strong></span>
-          <span className="hidden lg:inline">•</span>
-          <span className="hidden lg:inline">Drag & drop or paste images</span>
-          <span className="hidden lg:inline">•</span>
-          <span className="hidden lg:inline">Ctrl+B/I/K/E for formatting</span>
+      <div className="border-t px-4 py-2 bg-muted/30">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <kbd className="px-1.5 py-0.5 rounded bg-background border font-mono text-[10px]">Ctrl</kbd>
+              <kbd className="px-1.5 py-0.5 rounded bg-background border font-mono text-[10px]">B</kbd>
+              <span>Bold</span>
+            </span>
+            <span className="hidden sm:inline">•</span>
+            <span className="hidden sm:inline flex items-center gap-1.5">
+              <kbd className="px-1.5 py-0.5 rounded bg-background border font-mono text-[10px]">Ctrl</kbd>
+              <kbd className="px-1.5 py-0.5 rounded bg-background border font-mono text-[10px]">I</kbd>
+              <span>Italic</span>
+            </span>
+            <span className="hidden sm:inline">•</span>
+            <span className="hidden sm:inline flex items-center gap-1.5">
+              <kbd className="px-1.5 py-0.5 rounded bg-background border font-mono text-[10px]">Ctrl</kbd>
+              <kbd className="px-1.5 py-0.5 rounded bg-background border font-mono text-[10px]">K</kbd>
+              <span>Link</span>
+            </span>
+          </div>
+          <span className="text-xs text-muted-foreground hidden sm:inline">
+            {value.length} {value.length === 1 ? 'character' : 'characters'}
+          </span>
         </div>
       </div>
     </div>
