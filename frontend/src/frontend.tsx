@@ -8,9 +8,31 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { Toaster } from "sonner";
 import { AuthProvider } from "./contexts/AuthContext";
-import { ThemeProvider } from "./components/theme-provider";
+import { ThemeProvider, useTheme } from "./components/theme-provider";
 import { App } from "./App";
+
+function AppWithToaster() {
+    const { theme } = useTheme();
+    return (
+        <>
+            <App />
+            <Toaster 
+                theme={theme}
+                richColors 
+                closeButton
+                position="bottom-right" 
+                toastOptions={{
+                    duration: 4000,
+                    classNames: {
+                        toast: 'group toast-with-progress',
+                    },
+                }}
+            />
+        </>
+    );
+}
 
 const elem = document.getElementById("root");
 const app = (
@@ -18,7 +40,7 @@ const app = (
         <BrowserRouter>
             <ThemeProvider defaultTheme="dark">
                 <AuthProvider>
-                    <App />
+                    <AppWithToaster />
                 </AuthProvider>
             </ThemeProvider>
         </BrowserRouter>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,7 +14,6 @@ export function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const passwordRequirements = [
@@ -25,15 +25,18 @@ export function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      toast.error("Passwords do not match", {
+        description: "Please make sure both passwords are the same.",
+      });
       return;
     }
 
     if (password.length < 8) {
-      setError("Password must be at least 8 characters");
+      toast.error("Password too short", {
+        description: "Password must be at least 8 characters long.",
+      });
       return;
     }
 
@@ -41,9 +44,14 @@ export function RegisterPage() {
 
     try {
       await register(email, password, name);
+      toast.success("Account created!", {
+        description: "Welcome to the security forum community.",
+      });
       navigate("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed");
+      toast.error("Registration failed", {
+        description: err instanceof Error ? err.message : "Could not create account",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -64,12 +72,6 @@ export function RegisterPage() {
 
         <div className="bg-card border border-border rounded-lg p-4 md:p-6 shadow-lg">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="bg-destructive/10 border border-destructive/20 text-destructive text-sm p-3 rounded-md">
-                {error}
-              </div>
-            )}
-
             <div className="space-y-2">
               <label
                 htmlFor="name"

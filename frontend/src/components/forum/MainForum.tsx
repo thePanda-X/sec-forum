@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { Plus, Shield, Loader2, Trash2, Menu, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -130,10 +131,22 @@ export function MainForum() {
             });
 
             if (response.ok) {
+                const post = posts.find(p => p.id === postId);
+                const isPinned = post?.isPinned;
+                toast.success(isPinned ? "Post unpinned" : "Post pinned", {
+                    description: isPinned ? "The post has been unpinned." : "The post will now appear at the top.",
+                });
                 fetchPosts();
+            } else {
+                toast.error("Failed to update post", {
+                    description: "Could not change pin status.",
+                });
             }
         } catch (err) {
             console.error("Failed to pin post:", err);
+            toast.error("Failed to update post", {
+                description: "An error occurred while pinning the post.",
+            });
         }
     };
 
@@ -145,10 +158,22 @@ export function MainForum() {
             });
 
             if (response.ok) {
+                const post = posts.find(p => p.id === postId);
+                const isLocked = post?.isLocked;
+                toast.success(isLocked ? "Post unlocked" : "Post locked", {
+                    description: isLocked ? "Users can now comment on this post." : "Comments have been disabled.",
+                });
                 fetchPosts();
+            } else {
+                toast.error("Failed to update post", {
+                    description: "Could not change lock status.",
+                });
             }
         } catch (err) {
             console.error("Failed to lock post:", err);
+            toast.error("Failed to update post", {
+                description: "An error occurred while locking the post.",
+            });
         }
     };
 
@@ -162,10 +187,20 @@ export function MainForum() {
             if (response.ok) {
                 setDeleteModalOpen(false);
                 setPostToDelete(null);
+                toast.success("Post deleted", {
+                    description: "The post has been permanently removed.",
+                });
                 fetchPosts();
+            } else {
+                toast.error("Failed to delete post", {
+                    description: "Could not delete the post.",
+                });
             }
         } catch (err) {
             console.error("Failed to delete post:", err);
+            toast.error("Failed to delete post", {
+                description: "An error occurred while deleting the post.",
+            });
         }
     };
 
