@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/forum/Header';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -192,9 +193,19 @@ export function UserProfile() {
                     ...prev,
                     followersCount: prev.followersCount + 1
                 } : null);
+                toast.success(`Following ${profile.displayName || profile.username}`, {
+                    description: "You'll see their posts in your feed.",
+                });
+            } else {
+                toast.error('Failed to follow user', {
+                    description: 'Could not follow this user.',
+                });
             }
         } catch (err) {
             console.error('Failed to follow user:', err);
+            toast.error('Failed to follow user', {
+                description: 'An error occurred.',
+            });
         } finally {
             setFollowLoading(false);
         }
@@ -216,9 +227,19 @@ export function UserProfile() {
                     ...prev,
                     followersCount: Math.max(0, prev.followersCount - 1)
                 } : null);
+                toast.success(`Unfollowed ${profile.displayName || profile.username}`, {
+                    description: "You won't see their posts in your feed anymore.",
+                });
+            } else {
+                toast.error('Failed to unfollow user', {
+                    description: 'Could not unfollow this user.',
+                });
             }
         } catch (err) {
             console.error('Failed to unfollow user:', err);
+            toast.error('Failed to unfollow user', {
+                description: 'An error occurred.',
+            });
         } finally {
             setFollowLoading(false);
         }

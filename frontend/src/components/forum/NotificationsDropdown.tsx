@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import {
   MessageSquare,
   AtSign,
@@ -123,9 +124,13 @@ export function NotificationsDropdown() {
 
       if (response.ok) {
         setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+        toast.success("All notifications marked as read");
+      } else {
+        toast.error("Failed to mark notifications as read");
       }
     } catch (err) {
       console.error("Failed to mark all as read:", err);
+      toast.error("Failed to mark notifications as read");
     }
   };
 
@@ -138,9 +143,13 @@ export function NotificationsDropdown() {
 
       if (response.ok) {
         setNotifications([]);
+        toast.success("All notifications cleared");
+      } else {
+        toast.error("Failed to clear notifications");
       }
     } catch (err) {
       console.error("Failed to clear notifications:", err);
+      toast.error("Failed to clear notifications");
     }
   };
 

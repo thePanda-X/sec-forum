@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,19 +12,22 @@ export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
     setIsLoading(true);
 
     try {
       await login(email, password);
+      toast.success("Welcome back!", {
+        description: "You have successfully signed in.",
+      });
       navigate("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      toast.error("Login failed", {
+        description: err instanceof Error ? err.message : "Invalid credentials",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -44,12 +48,6 @@ export function LoginPage() {
 
         <div className="bg-card border border-border rounded-lg p-4 md:p-6 shadow-lg">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="bg-destructive/10 border border-destructive/20 text-destructive text-sm p-3 rounded-md">
-                {error}
-              </div>
-            )}
-
             <div className="space-y-2">
               <label
                 htmlFor="email"

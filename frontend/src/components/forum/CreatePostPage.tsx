@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { ArrowLeft, Loader2, Plus, Sparkles, X, Tag as TagIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,7 +43,6 @@ export function CreatePostPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isFetchingTags, setIsFetchingTags] = useState(true);
   const [isFetchingCategories, setIsFetchingCategories] = useState(true);
   const [tagSearch, setTagSearch] = useState("");
@@ -131,13 +131,20 @@ export function CreatePostPage() {
         setTags((prev) => [...prev, data.tag]);
         setSelectedTags((prev) => [...prev, data.tag.id]);
         setTagSearch("");
+        toast.success("Tag created", {
+          description: `"${tagName}" has been added to your post.`,
+        });
       } else {
         const data = await response.json();
-        setError(data.error || "Failed to create tag");
+        toast.error("Failed to create tag", {
+          description: data.error || "Could not create the tag.",
+        });
       }
     } catch (err) {
       console.error("Failed to create tag:", err);
-      setError("Failed to create tag");
+      toast.error("Failed to create tag", {
+        description: "An error occurred while creating the tag.",
+      });
     } finally {
       setIsCreatingTag(false);
     }
@@ -145,15 +152,18 @@ export function CreatePostPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
 
     if (!title.trim()) {
-      setError("Title is required");
+      toast.error("Title is required", {
+        description: "Please enter a title for your post.",
+      });
       return;
     }
 
     if (!body.trim()) {
-      setError("Post content is required");
+      toast.error("Content is required", {
+        description: "Please add some content to your post.",
+      });
       return;
     }
 
@@ -177,9 +187,14 @@ export function CreatePostPage() {
         throw new Error(data.message || "Failed to create post");
       }
 
+      toast.success("Post published!", {
+        description: "Your post has been shared with the community.",
+      });
       navigate("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create post");
+      toast.error("Failed to create post", {
+        description: err instanceof Error ? err.message : "An error occurred.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -409,13 +424,6 @@ export function CreatePostPage() {
                   </div>
                 )}
               </div>
-
-              {error && (
-                <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-lg text-sm flex items-start gap-2">
-                  <X className="h-5 w-5 flex-shrink-0 mt-0.5" />
-                  <span>{error}</span>
-                </div>
-              )}
 
               <div className="flex items-center gap-3 pt-4 border-t">
                 <Button type="submit" disabled={isLoading || !title.trim() || !body.trim()} size="lg" className="flex-1 sm:flex-none">

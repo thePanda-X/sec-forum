@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -52,7 +53,6 @@ export function CreatePostDialog({
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isFetchingTags, setIsFetchingTags] = useState(true);
   const [isFetchingCategories, setIsFetchingCategories] = useState(true);
   const [tagSearch, setTagSearch] = useState("");
@@ -132,13 +132,14 @@ export function CreatePostDialog({
         setTags((prev) => [...prev, data.tag]);
         setSelectedTags((prev) => [...prev, data.tag.id]);
         setTagSearch("");
+        toast.success("Tag created", { description: `Tag "${tagName}" has been created and added` });
       } else {
         const data = await response.json();
-        setError(data.error || "Failed to create tag");
+        toast.error("Failed to create tag", { description: data.error || "An error occurred while creating the tag" });
       }
     } catch (err) {
       console.error("Failed to create tag:", err);
-      setError("Failed to create tag");
+      toast.error("Failed to create tag", { description: "An unexpected error occurred" });
     } finally {
       setIsCreatingTag(false);
     }
@@ -146,15 +147,14 @@ export function CreatePostDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
 
     if (!title.trim()) {
-      setError("Title is required");
+      toast.error("Validation error", { description: "Title is required" });
       return;
     }
 
     if (!body.trim()) {
-      setError("Post content is required");
+      toast.error("Validation error", { description: "Post content is required" });
       return;
     }
 
@@ -178,6 +178,7 @@ export function CreatePostDialog({
         throw new Error(data.message || "Failed to create post");
       }
 
+      toast.success("Post published", { description: "Your post has been published successfully" });
       setTitle("");
       setBody("");
       setSelectedTags([]);
@@ -185,7 +186,7 @@ export function CreatePostDialog({
       onOpenChange(false);
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create post");
+      toast.error("Failed to create post", { description: err instanceof Error ? err.message : "An unexpected error occurred" });
     } finally {
       setIsLoading(false);
     }
@@ -402,13 +403,6 @@ export function CreatePostDialog({
                 </div>
               )}
             </div>
-
-            {error && (
-              <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-lg text-sm flex items-start gap-2">
-                <X className="h-5 w-5 flex-shrink-0 mt-0.5" />
-                <span>{error}</span>
-              </div>
-            )}
           </form>
         </div>
 

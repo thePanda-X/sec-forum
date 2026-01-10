@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Bold,
@@ -152,6 +153,7 @@ export function MarkdownEditor({
             }
           } catch (error) {
             console.error("Failed to upload image:", error);
+            toast.error("Image upload failed", { description: "Failed to upload the pasted image" });
           }
         }
       }
@@ -185,6 +187,7 @@ export function MarkdownEditor({
           }
         } catch (error) {
           console.error("Failed to upload image:", error);
+          toast.error("Image upload failed", { description: "Failed to upload the dropped image" });
         }
       }
     },

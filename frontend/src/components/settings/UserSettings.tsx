@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/components/theme-provider';
 import { Header } from '@/components/forum/Header';
@@ -48,8 +49,6 @@ export function UserSettings() {
     const { theme, setTheme } = useTheme();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
-    const [savedMessage, setSavedMessage] = useState('');
-    const [errorMessage, setErrorMessage] = useState('');
     const [isLoading, setIsLoading] = useState(true);
 
     const [profile, setProfile] = useState<UserProfile>({
@@ -138,16 +137,6 @@ export function UserSettings() {
         }
     };
 
-    const showSavedMessage = (message: string) => {
-        setSavedMessage(message);
-        setTimeout(() => setSavedMessage(''), 3000);
-    };
-
-    const showErrorMessage = (message: string) => {
-        setErrorMessage(message);
-        setTimeout(() => setErrorMessage(''), 5000);
-    };
-
     const handleSaveProfile = async () => {
         try {
             const response = await fetch(`${API_BASE}/settings/profile`, {
@@ -165,13 +154,19 @@ export function UserSettings() {
             });
 
             if (response.ok) {
-                showSavedMessage('Profile settings saved!');
+                toast.success('Profile updated', {
+                    description: 'Your profile settings have been saved.',
+                });
             } else {
                 const error = await response.json();
-                showErrorMessage(error.error || 'Failed to save profile');
+                toast.error('Failed to save profile', {
+                    description: error.error || 'Could not update profile settings.',
+                });
             }
         } catch (error) {
-            showErrorMessage('Failed to save profile');
+            toast.error('Failed to save profile', {
+                description: 'An error occurred while saving.',
+            });
         }
     };
 
@@ -190,13 +185,19 @@ export function UserSettings() {
 
             if (response.ok) {
                 setTheme(appearance.theme);
-                showSavedMessage('Appearance settings saved!');
+                toast.success('Appearance updated', {
+                    description: 'Your appearance settings have been saved.',
+                });
             } else {
                 const error = await response.json();
-                showErrorMessage(error.error || 'Failed to save appearance settings');
+                toast.error('Failed to save appearance', {
+                    description: error.error || 'Could not update appearance settings.',
+                });
             }
         } catch (error) {
-            showErrorMessage('Failed to save appearance settings');
+            toast.error('Failed to save appearance', {
+                description: 'An error occurred while saving.',
+            });
         }
     };
 
@@ -213,24 +214,34 @@ export function UserSettings() {
             });
 
             if (response.ok) {
-                showSavedMessage('Notification settings saved!');
+                toast.success('Notifications updated', {
+                    description: 'Your notification preferences have been saved.',
+                });
             } else {
                 const error = await response.json();
-                showErrorMessage(error.error || 'Failed to save notification settings');
+                toast.error('Failed to save notifications', {
+                    description: error.error || 'Could not update notification settings.',
+                });
             }
         } catch (error) {
-            showErrorMessage('Failed to save notification settings');
+            toast.error('Failed to save notifications', {
+                description: 'An error occurred while saving.',
+            });
         }
     };
 
     const handleChangePassword = async () => {
         if (passwords.new !== passwords.confirm) {
-            showErrorMessage('New passwords do not match');
+            toast.error('Passwords do not match', {
+                description: 'Please make sure both passwords are the same.',
+            });
             return;
         }
 
         if (passwords.new.length < 8) {
-            showErrorMessage('Password must be at least 8 characters');
+            toast.error('Password too short', {
+                description: 'Password must be at least 8 characters.',
+            });
             return;
         }
 
@@ -246,14 +257,20 @@ export function UserSettings() {
             });
 
             if (response.ok) {
-                showSavedMessage('Password changed successfully!');
+                toast.success('Password changed', {
+                    description: 'Your password has been updated successfully.',
+                });
                 setPasswords({ current: '', new: '', confirm: '' });
             } else {
                 const error = await response.json();
-                showErrorMessage(error.error || 'Failed to change password');
+                toast.error('Failed to change password', {
+                    description: error.error || 'Could not update password.',
+                });
             }
         } catch (error) {
-            showErrorMessage('Failed to change password');
+            toast.error('Failed to change password', {
+                description: 'An error occurred while updating password.',
+            });
         }
     };
 
@@ -274,13 +291,20 @@ export function UserSettings() {
             });
 
             if (response.ok) {
+                toast.success('Account deleted', {
+                    description: 'Your account has been permanently deleted.',
+                });
                 navigate('/');
             } else {
                 const error = await response.json();
-                showErrorMessage(error.error || 'Failed to delete account');
+                toast.error('Failed to delete account', {
+                    description: error.error || 'Could not delete account.',
+                });
             }
         } catch (error) {
-            showErrorMessage('Failed to delete account');
+            toast.error('Failed to delete account', {
+                description: 'An error occurred while deleting account.',
+            });
         }
     };
 
@@ -301,12 +325,18 @@ export function UserSettings() {
             if (response.ok) {
                 const data = await response.json();
                 setProfile(prev => ({ ...prev, avatar: data.avatar }));
-                showSavedMessage('Avatar uploaded successfully!');
+                toast.success('Avatar updated', {
+                    description: 'Your profile picture has been changed.',
+                });
             } else {
-                showErrorMessage('Failed to upload avatar');
+                toast.error('Failed to upload avatar', {
+                    description: 'Could not update profile picture.',
+                });
             }
         } catch (error) {
-            showErrorMessage('Failed to upload avatar');
+            toast.error('Failed to upload avatar', {
+                description: 'An error occurred while uploading.',
+            });
         }
     };
 
@@ -339,12 +369,6 @@ export function UserSettings() {
                         Back to Forum
                     </button>
                     <h1 className="text-2xl font-bold mb-8 text-center">Settings</h1>
-
-                    {(savedMessage || errorMessage) && (
-                        <div className={`mb-4 text-sm ${errorMessage ? 'text-red-500' : 'text-green-500'}`}>
-                            {savedMessage || errorMessage}
-                        </div>
-                    )}
 
                     <div className="mb-8">
                         <div className="hidden md:flex max-w-2xl mx-auto bg-card p-1 rounded-lg border">

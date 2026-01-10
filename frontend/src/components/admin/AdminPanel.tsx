@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/forum/Header';
 import { Button } from '@/components/ui/button';
@@ -577,13 +578,29 @@ export function AdminPanel() {
 
             if (response.ok) {
                 setUserActionModalOpen(false);
+                const actionMessages: Record<string, { title: string; description: string }> = {
+                    ban: { title: 'User banned', description: `${userToActOn.name || userToActOn.username} has been banned from the forum.` },
+                    unban: { title: 'User unbanned', description: `${userToActOn.name || userToActOn.username} can now access the forum.` },
+                    promote: { title: 'User promoted', description: `${userToActOn.name || userToActOn.username} is now a moderator.` },
+                    demote: { title: 'User demoted', description: `${userToActOn.name || userToActOn.username} is now a regular user.` },
+                };
+                toast.success(actionMessages[userAction].title, {
+                    description: actionMessages[userAction].description,
+                });
                 setUserToActOn(null);
                 setUserAction(null);
                 fetchUsers();
                 fetchAdminData();
+            } else {
+                toast.error(`Failed to ${userAction} user`, {
+                    description: 'The action could not be completed.',
+                });
             }
         } catch (error) {
             console.error(`Failed to ${userAction} user:`, error);
+            toast.error(`Failed to ${userAction} user`, {
+                description: 'An error occurred.',
+            });
         }
     };
 
@@ -605,11 +622,27 @@ export function AdminPanel() {
             });
 
             if (response.ok) {
+                const actionMessages: Record<string, { title: string; description: string }> = {
+                    pin: { title: 'Post pinned', description: 'The post will appear at the top of the forum.' },
+                    unpin: { title: 'Post unpinned', description: 'The post has been unpinned.' },
+                    lock: { title: 'Post locked', description: 'Comments have been disabled on this post.' },
+                    unlock: { title: 'Post unlocked', description: 'Comments are now enabled on this post.' },
+                };
+                toast.success(actionMessages[action].title, {
+                    description: actionMessages[action].description,
+                });
                 fetchPosts();
                 fetchAdminData();
+            } else {
+                toast.error(`Failed to ${action} post`, {
+                    description: 'The action could not be completed.',
+                });
             }
         } catch (error) {
             console.error(`Failed to ${action} post:`, error);
+            toast.error(`Failed to ${action} post`, {
+                description: 'An error occurred.',
+            });
         }
     };
 
@@ -623,11 +656,21 @@ export function AdminPanel() {
             if (response.ok) {
                 setDeletePostModalOpen(false);
                 setPostToDelete(null);
+                toast.success('Post deleted', {
+                    description: 'The post has been permanently removed.',
+                });
                 fetchPosts();
                 fetchAdminData();
+            } else {
+                toast.error('Failed to delete post', {
+                    description: 'The post could not be deleted.',
+                });
             }
         } catch (error) {
             console.error('Failed to delete post:', error);
+            toast.error('Failed to delete post', {
+                description: 'An error occurred.',
+            });
         }
     };
 
@@ -640,11 +683,26 @@ export function AdminPanel() {
             });
 
             if (response.ok) {
+                const actionMessages: Record<string, { title: string; description: string }> = {
+                    resolve: { title: 'Report resolved', description: 'The report has been marked as resolved.' },
+                    dismiss: { title: 'Report dismissed', description: 'The report has been dismissed.' },
+                    review: { title: 'Report reviewed', description: 'The report has been marked for review.' },
+                };
+                toast.success(actionMessages[action].title, {
+                    description: actionMessages[action].description,
+                });
                 fetchReports();
                 fetchAdminData();
+            } else {
+                toast.error(`Failed to ${action} report`, {
+                    description: 'The action could not be completed.',
+                });
             }
         } catch (error) {
             console.error(`Failed to ${action} report:`, error);
+            toast.error(`Failed to ${action} report`, {
+                description: 'An error occurred.',
+            });
         }
     };
 
@@ -665,13 +723,25 @@ export function AdminPanel() {
 
             if (response.ok) {
                 setCategoryDialogOpen(false);
+                toast.success(editingCategory ? 'Category updated' : 'Category created', {
+                    description: editingCategory
+                        ? `"${categoryForm.name}" has been updated.`
+                        : `"${categoryForm.name}" has been created.`,
+                });
                 setEditingCategory(null);
                 setCategoryForm({ name: '', description: '', color: '#10b981', icon: 'FolderTree' });
                 fetchCategories();
                 fetchAdminData();
+            } else {
+                toast.error('Failed to save category', {
+                    description: 'The category could not be saved.',
+                });
             }
         } catch (error) {
             console.error('Failed to save category:', error);
+            toast.error('Failed to save category', {
+                description: 'An error occurred.',
+            });
         }
     };
 
@@ -685,11 +755,21 @@ export function AdminPanel() {
             });
 
             if (response.ok) {
+                toast.success('Category deleted', {
+                    description: 'The category has been permanently removed.',
+                });
                 fetchCategories();
                 fetchAdminData();
+            } else {
+                toast.error('Failed to delete category', {
+                    description: 'The category could not be deleted.',
+                });
             }
         } catch (error) {
             console.error('Failed to delete category:', error);
+            toast.error('Failed to delete category', {
+                description: 'An error occurred.',
+            });
         }
     };
 
