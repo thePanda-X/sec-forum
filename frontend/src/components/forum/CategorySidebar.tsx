@@ -44,6 +44,8 @@ interface CategorySidebarProps {
   className?: string;
 }
 
+export type { Category };
+
 export function CategorySidebar({
   selectedCategory,
   onSelectCategory,
@@ -114,10 +116,10 @@ export function CategorySidebar({
         {categories.map((category) => (
           <button
             key={category.id}
-            onClick={() => onSelectCategory?.(category.slug || category.id)}
+            onClick={() => onSelectCategory?.(String(category.id))}
             className={cn(
               "w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors",
-              selectedCategory === (category.slug || category.id)
+              selectedCategory === String(category.id)
                 ? "bg-secondary text-foreground"
                 : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
             )}
@@ -141,3 +143,5 @@ export function CategorySidebar({
     </aside>
   );
 }
+
+export type { Category };

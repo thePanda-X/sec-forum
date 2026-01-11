@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, User, Tag, MessageSquare, Eye, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, User, Tag, MessageSquare, Eye, Loader2, FolderTree } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,14 @@ interface PostAuthor {
     username?: string;
 }
 
+interface PostCategory {
+    id: string;
+    name: string;
+    slug: string;
+    color: string;
+    icon: string;
+}
+
 interface PostTag {
     id: string;
     name: string;
@@ -30,6 +38,7 @@ interface Post {
     createdAt: string;
     updatedAt: string;
     author: PostAuthor;
+    category?: PostCategory;
     tags: PostTag[];
 }
 
@@ -75,6 +84,13 @@ export function PostView() {
                         displayName: data.author.displayName || "Unknown",
                         username: data.author.username,
                     },
+                    category: data.category ? {
+                        id: data.category.id,
+                        name: data.category.name,
+                        slug: data.category.slug,
+                        color: data.category.color,
+                        icon: data.category.icon,
+                    } : undefined,
                     tags: (data.tags || []).map((tag: any) => ({
                         id: tag.id || tag,
                         name: tag.name || tag,
@@ -166,9 +182,29 @@ export function PostView() {
 
                         <article className="bg-card border border-border rounded-lg">
                             <div className="p-4 md:p-6 border-b border-border">
-                                <h1 className="text-xl md:text-2xl font-bold text-foreground mb-4">
-                                    {post.title}
-                                </h1>
+                                <div className="flex items-start justify-between gap-4 mb-4">
+                                    <h1 className="text-xl md:text-2xl font-bold text-foreground flex-1">
+                                        {post.title}
+                                    </h1>
+                                    {post.category && (
+                                        <Badge 
+                                            variant="outline" 
+                                            className="text-xs gap-1 shrink-0"
+                                            style={{ 
+                                                borderColor: post.category.color,
+                                                color: post.category.color,
+                                                backgroundColor: `${post.category.color}10`
+                                            }}
+                                        >
+                                            {post.category.icon === "FolderTree" ? (
+                                                <FolderTree className="h-3 w-3" />
+                                            ) : (
+                                                <FolderTree className="h-3 w-3" />
+                                            )}
+                                            {post.category.name}
+                                        </Badge>
+                                    )}
+                                </div>
 
                                 <div className="flex items-center gap-4 flex-wrap">
                                     <div className="flex items-center gap-2">
