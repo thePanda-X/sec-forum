@@ -12,7 +12,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Header } from "./Header";
-import { CategorySidebar } from "./CategorySidebar";
+import { CategorySidebar, type Category } from "./CategorySidebar";
 import { PostCard, type Post } from "./PostCard";
 import { ForumStatsSidebar } from "./ForumStatsSidebar";
 import { FilterDropdown, type SortOption } from "./FilterDropdown";
@@ -93,6 +93,13 @@ export function MainForum() {
                 createdAt: formatRelativeTime(post.createdAt),
                 isPinned: post.isPinned || post.pinned || false,
                 isLocked: post.isLocked || post.locked || false,
+                category: post.category ? {
+                    id: post.category.id,
+                    name: post.category.name,
+                    slug: post.category.slug,
+                    color: post.category.color,
+                    icon: post.category.icon,
+                } : undefined,
                 tags: (post.tags || []).map((tag: any) => ({
                     id: tag.id || tag,
                     name: tag.name || tag,

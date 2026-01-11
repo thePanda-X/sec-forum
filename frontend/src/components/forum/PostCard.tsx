@@ -1,4 +1,4 @@
-import { Pin, PinOff, MessageSquare, Eye, Lock, Pencil, Trash2 } from "lucide-react";
+import { Pin, PinOff, MessageSquare, Eye, Lock, Pencil, Trash2, FolderTree } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,14 @@ interface PostAuthor {
   isAdmin?: boolean;
 }
 
+interface PostCategory {
+  id: string;
+  name: string;
+  slug: string;
+  color: string;
+  icon: string;
+}
+
 interface Post {
   id: string;
   title: string;
@@ -25,6 +33,7 @@ interface Post {
   createdAt: string;
   isPinned?: boolean;
   isLocked?: boolean;
+  category?: PostCategory;
   tags: PostTag[];
   replyCount: number;
   viewCount: number;
@@ -85,6 +94,24 @@ export function PostCard({
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
+            {post.category && (
+              <Badge 
+                variant="outline" 
+                className="text-xs gap-1"
+                style={{ 
+                  borderColor: post.category.color,
+                  color: post.category.color,
+                  backgroundColor: `${post.category.color}10`
+                }}
+              >
+                {post.category.icon === "FolderTree" ? (
+                  <FolderTree className="h-3 w-3" />
+                ) : (
+                  <FolderTree className="h-3 w-3" />
+                )}
+                {post.category.name}
+              </Badge>
+            )}
             {post.isPinned && (
               <Badge variant="outline" className="text-xs gap-1 bg-secondary">
                 <Pin className="h-3 w-3" />
@@ -219,4 +246,4 @@ export function PostCard({
   );
 }
 
-export type { Post, PostAuthor, PostTag };
+export type { Post, PostAuthor, PostTag, PostCategory };
