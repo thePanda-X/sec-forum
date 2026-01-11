@@ -42,6 +42,8 @@ export const posts = sqliteTable("posts", {
   authorId: integer("author_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
+  categoryId: integer("category_id")
+    .references(() => categories.id, { onDelete: "set null" }),
   title: text("title").notNull(),
   body: text("body").notNull(),
   pinned: integer("pinned", { mode: "boolean" }).notNull().default(false),
@@ -203,6 +205,10 @@ export const postsRelations = relations(posts, ({ one, many }) => ({
   author: one(users, {
     fields: [posts.authorId],
     references: [users.id],
+  }),
+  category: one(categories, {
+    fields: [posts.categoryId],
+    references: [categories.id],
   }),
   postTags: many(postTags),
   comments: many(comments),
