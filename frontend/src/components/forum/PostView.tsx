@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, User, Tag, MessageSquare, Eye, Loader2, FolderTree, Lock, MessageCircle } from "lucide-react";
+import { ArrowLeft, Calendar, User, Tag, MessageSquare, Eye, Loader2, FolderTree, Lock, MessageCircle, ArrowUp, ArrowDown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Comments } from "./Comments";
 import { CommentForm } from "./CommentForm";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const API_BASE = "/api/v1";
 
@@ -45,6 +46,10 @@ interface Post {
     author: PostAuthor;
     category?: PostCategory;
     tags: PostTag[];
+    upvotes: number;
+    downvotes: number;
+    totalVotes: number;
+    userVote: number;
 }
 
 export function PostView() {
@@ -57,73 +62,139 @@ export function PostView() {
     const [error, setError] = useState<string | null>(null);
     const [loginModalOpen, setLoginModalOpen] = useState(false);
 
-    useEffect(() => {
-        const fetchPost = async () => {
-            if (!postId) return;
+    const fetchPost = async () => {
+        if (!postId) return;
 
-            setIsLoading(true);
-            setError(null);
+        setIsLoading(true);
+        setError(null);
 
-            try {
-                const response = await fetch(`${API_BASE}/posts/${postId}`, {
-                    credentials: "include",
-                });
+        try {
+            const response = await fetch(`${API_BASE}/posts/${postId}`, {
+                credentials: "include",
+            });
 
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        throw new Error("Post not found");
-                    }
-                    throw new Error("Failed to fetch post");
+            if (!response.ok) {
+                if (response.status === 404) {
+                    throw new Error("Post not found");
                 }
-
-                const data = await response.json();
-
-                const mappedPost: Post = {
-                    id: data.id,
-                    title: data.title,
-                    body: data.body,
-                    pinned: data.pinned || false,
-                    locked: data.locked || false,
-                    createdAt: formatDate(data.createdAt),
-                    updatedAt: data.updatedAt,
-                    author: {
-                        id: data.author.id,
-                        email: data.author.email,
-                        displayName: data.author.displayName || "Unknown",
-                        username: data.author.username,
-                    },
-                    category: data.category ? {
-                        id: data.category.id,
-                        name: data.category.name,
-                        slug: data.category.slug,
-                        color: data.category.color,
-                        icon: data.category.icon,
-                    } : undefined,
-                    tags: (data.tags || []).map((tag: any) => ({
-                        id: tag.id || tag,
-                        name: tag.name || tag,
-                    })),
-                };
-
-                setPost(mappedPost);
-
-                const renderedContent = await parseMarkdown(data.body || "");
-                setContent(renderedContent);
-
-                fetch(`${API_BASE}/posts/${postId}/views`, {
-                    method: "POST",
-                    credentials: "include",
-                }).catch(console.error);
-            } catch (err) {
-                console.error("Failed to fetch post:", err);
-                setError(err instanceof Error ? err.message : "Failed to fetch post");
-            } finally {
-                setIsLoading(false);
+                throw new Error("Failed to fetch post");
             }
-        };
 
+            const data = await response.json();
+
+            const mappedPost: Post = {
+                id: data.id,
+                title: data.title,
+                body: data.body,
+                pinned: data.pinned || false,
+                locked: data.locked || false,
+                createdAt: formatDate(data.createdAt),
+                updatedAt: data.updatedAt,
+                author: {
+                    id: data.author.id,
+                    email: data.author.email,
+                    displayName: data.author.displayName || "Unknown",
+                    username: data.author.username,
+                },
+                category: data.category ? {
+                    id: data.category.id,
+                    name: data.category.name,
+                    slug: data.category.slug,
+                    color: data.category.color,
+                    icon: data.category.icon,
+                } : undefined,
+                tags: (data.tags || []).map((tag: any) => ({
+                    id: tag.id || tag,
+                    name: tag.name || tag,
+                })),
+                upvotes: data.upvotes || 0,
+                downvotes: data.downvotes || 0,
+                totalVotes: data.totalVotes || 0,
+                userVote: data.userVote || 0,
+            };
+
+            setPost(mappedPost);
+
+            const renderedContent = await parseMarkdown(data.body || "");
+            setContent(renderedContent);
+
+            fetch(`${API_BASE}/posts/${postId}/views`, {
+                method: "POST",
+                credentials: "include",
+            }).catch(console.error);
+        } catch (err) {
+            console.error("Failed to fetch post:", err);
+            setError(err instanceof Error ? err.message : "Failed to fetch post");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchPost();
     }, [postId]);
+
+    const handleUpvote = async () => {
+        if (!user) {
+            setLoginModalOpen(true);
+            return;
+        }
+
+        if (!post) return;
+
+        try {
+            const response = await fetch(`${API_BASE}/posts/${post.id}/upvote`, {
+                method: "POST",
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                toast.success(data.message);
+                fetchPost();
+            } else {
+                toast.error("Failed to vote", {
+                    description: "Could not upvote the post.",
+                });
+            }
+        } catch (err) {
+            console.error("Failed to upvote post:", err);
+            toast.error("Failed to vote", {
+                description: "An error occurred while voting.",
+            });
+        }
+    };
+
+    const handleDownvote = async () => {
+        if (!user) {
+            setLoginModalOpen(true);
+            return;
+        }
+
+        if (!post) return;
+
+        try {
+            const response = await fetch(`${API_BASE}/posts/${post.id}/downvote`, {
+                method: "POST",
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                toast.success(data.message);
+                fetchPost();
+            } else {
+                toast.error("Failed to vote", {
+                    description: "Could not downvote the post.",
+                });
+            }
+        } catch (err) {
+            console.error("Failed to downvote post:", err);
+            toast.error("Failed to vote", {
+                description: "An error occurred while voting.",
+            });
+        }
+    };
 
     const headerUser = user
         ? {
@@ -191,34 +262,65 @@ export function PostView() {
                         <article className="bg-card border border-border rounded-lg">
                             <div className="p-4 md:p-6 border-b border-border">
                                 <div className="flex items-start justify-between gap-4 mb-4">
-                                    <h1 className="text-xl md:text-2xl font-bold text-foreground flex-1">
-                                        {post.title}
-                                    </h1>
-                                    <div className="flex items-center gap-2">
-                                        {post.locked && (
-                                            <Badge variant="secondary" className="text-xs gap-1">
-                                                <Lock className="h-3 w-3" />
-                                                Locked
-                                            </Badge>
-                                        )}
-                                        {post.category && (
-                                            <Badge 
-                                                variant="outline" 
-                                                className="text-xs gap-1 shrink-0"
-                                                style={{ 
-                                                    borderColor: post.category.color,
-                                                    color: post.category.color,
-                                                    backgroundColor: `${post.category.color}10`
-                                                }}
-                                            >
-                                                {post.category.icon === "FolderTree" ? (
-                                                    <FolderTree className="h-3 w-3" />
-                                                ) : (
-                                                    <FolderTree className="h-3 w-3" />
+                                    <div className="flex-1 min-w-0">
+                                        <h1 className="text-xl md:text-2xl font-bold text-foreground mb-3">
+                                            {post.title}
+                                        </h1>
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    onClick={handleUpvote}
+                                                    className={`p-1.5 rounded transition-colors ${
+                                                        post.userVote === 1
+                                                            ? 'text-green-500 hover:bg-green-500/10'
+                                                            : 'text-muted-foreground hover:text-green-500 hover:bg-green-500/10'
+                                                    }`}
+                                                    title="Upvote"
+                                                >
+                                                    <ArrowUp className="h-5 w-5" />
+                                                </button>
+                                                <span className="text-sm font-medium min-w-[2rem] text-center">
+                                                    {post.totalVotes}
+                                                </span>
+                                                <button
+                                                    onClick={handleDownvote}
+                                                    className={`p-1.5 rounded transition-colors ${
+                                                        post.userVote === -1
+                                                            ? 'text-red-500 hover:bg-red-500/10'
+                                                            : 'text-muted-foreground hover:text-red-500 hover:bg-red-500/10'
+                                                    }`}
+                                                    title="Downvote"
+                                                >
+                                                    <ArrowDown className="h-5 w-5" />
+                                                </button>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                {post.locked && (
+                                                    <Badge variant="secondary" className="text-xs gap-1">
+                                                        <Lock className="h-3 w-3" />
+                                                        Locked
+                                                    </Badge>
                                                 )}
-                                                {post.category.name}
-                                            </Badge>
-                                        )}
+                                                {post.category && (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="text-xs gap-1 shrink-0"
+                                                        style={{
+                                                            borderColor: post.category.color,
+                                                            color: post.category.color,
+                                                            backgroundColor: `${post.category.color}10`
+                                                        }}
+                                                    >
+                                                        {post.category.icon === "FolderTree" ? (
+                                                            <FolderTree className="h-3 w-3" />
+                                                        ) : (
+                                                            <FolderTree className="h-3 w-3" />
+                                                        )}
+                                                        {post.category.name}
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 

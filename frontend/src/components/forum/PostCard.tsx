@@ -1,4 +1,4 @@
-import { Pin, PinOff, MessageSquare, Eye, Lock, Pencil, Trash2, FolderTree } from "lucide-react";
+import { Pin, PinOff, MessageSquare, Eye, Lock, Pencil, Trash2, FolderTree, ArrowUp, ArrowDown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,10 @@ interface Post {
   tags: PostTag[];
   replyCount: number;
   viewCount: number;
+  upvotes: number;
+  downvotes: number;
+  totalVotes: number;
+  userVote?: number;
 }
 
 interface PostCardProps {
@@ -47,6 +51,8 @@ interface PostCardProps {
   onEdit?: () => void;
   onDeleteClick?: () => void;
   onPostClick?: () => void;
+  onUpvote?: () => void;
+  onDownvote?: () => void;
 }
 
 export function PostCard({
@@ -57,6 +63,8 @@ export function PostCard({
   onEdit,
   onDeleteClick,
   onPostClick,
+  onUpvote,
+  onDownvote,
 }: PostCardProps) {
   const navigate = useNavigate();
 
@@ -80,6 +88,40 @@ export function PostCard({
       onClick={onPostClick}
     >
       <div className="flex gap-3">
+        <div className="flex flex-col items-center gap-1 shrink-0">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onUpvote?.();
+            }}
+            className={`p-1 rounded transition-colors ${
+              post.userVote === 1
+                ? 'text-green-500 hover:bg-green-500/10'
+                : 'text-muted-foreground hover:text-green-500 hover:bg-green-500/10'
+            }`}
+            title="Upvote"
+          >
+            <ArrowUp className="h-5 w-5" />
+          </button>
+          <span className="text-sm font-medium min-w-[1.5rem] text-center">
+            {post.totalVotes}
+          </span>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDownvote?.();
+            }}
+            className={`p-1 rounded transition-colors ${
+              post.userVote === -1
+                ? 'text-red-500 hover:bg-red-500/10'
+                : 'text-muted-foreground hover:text-red-500 hover:bg-red-500/10'
+            }`}
+            title="Downvote"
+          >
+            <ArrowDown className="h-5 w-5" />
+          </button>
+        </div>
+
         <div
           onClick={handleAuthorClick}
           className="shrink-0 hidden sm:block cursor-pointer"

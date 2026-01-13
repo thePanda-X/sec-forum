@@ -108,6 +108,10 @@ export function MainForum() {
                 })),
                 replyCount: post.replyCount || post.commentCount || 0,
                 viewCount: post.viewCount || post.views || 0,
+                upvotes: post.upvotes || 0,
+                downvotes: post.downvotes || 0,
+                totalVotes: post.totalVotes || 0,
+                userVote: post.userVote || 0,
             }));
 
             const sortedPosts = [...mappedPosts].sort((a, b) => {
@@ -209,6 +213,64 @@ export function MainForum() {
             console.error("Failed to delete post:", err);
             toast.error("Failed to delete post", {
                 description: "An error occurred while deleting the post.",
+            });
+        }
+    };
+
+    const handleUpvote = async (postId: string) => {
+        if (!user) {
+            setLoginModalOpen(true);
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE}/posts/${postId}/upvote`, {
+                method: "POST",
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                toast.success(data.message);
+                fetchPosts();
+            } else {
+                toast.error("Failed to vote", {
+                    description: "Could not upvote the post.",
+                });
+            }
+        } catch (err) {
+            console.error("Failed to upvote post:", err);
+            toast.error("Failed to vote", {
+                description: "An error occurred while voting.",
+            });
+        }
+    };
+
+    const handleDownvote = async (postId: string) => {
+        if (!user) {
+            setLoginModalOpen(true);
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE}/posts/${postId}/downvote`, {
+                method: "POST",
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                toast.success(data.message);
+                fetchPosts();
+            } else {
+                toast.error("Failed to vote", {
+                    description: "Could not downvote the post.",
+                });
+            }
+        } catch (err) {
+            console.error("Failed to downvote post:", err);
+            toast.error("Failed to vote", {
+                description: "An error occurred while voting.",
             });
         }
     };
@@ -321,6 +383,8 @@ export function MainForum() {
                                         onLock={() => handleLockPost(post.id)}
                                         onDeleteClick={() => openDeleteModal(post)}
                                         onPostClick={() => navigate(`/post/${post.id}`)}
+                                        onUpvote={() => handleUpvote(post.id)}
+                                        onDownvote={() => handleDownvote(post.id)}
                                     />
                                 ))}
                             </div>
