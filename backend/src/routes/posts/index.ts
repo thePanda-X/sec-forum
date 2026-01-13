@@ -1,10 +1,10 @@
 import "reflect-metadata";
 import { Controller, Get, Post, Put, Delete } from "elysia-decorators";
 import { db } from "../../db";
-import { posts, postTags, comments, notifications, users } from "../../db/schema";
+import { posts, postTags, comments, notifications, users, postVotes } from "../../db/schema";
 import { hasRole } from "../../utils/auth";
 import type { UserRoleType } from "../../db/schema";
-import { eq, desc, sql, asc, and, not } from "drizzle-orm";
+import { eq, desc, sql, asc, and, not, sum } from "drizzle-orm";
 
 @Controller("/posts")
 export class PostsController {
@@ -15,9 +15,10 @@ export class PostsController {
             description: "Retrieve a list of posts with author and tag information",
         },
     } as any)
-    async index({ query }: any) {
+    async index({ query, user }: any) {
         const categoryId = query.category ? Number(query.category) : undefined;
         const whereClause = categoryId ? eq(posts.categoryId, categoryId) : undefined;
+        const currentUser = await user;
 
         const allPosts = await db.query.posts.findMany({
             where: whereClause,
@@ -55,37 +56,59 @@ export class PostsController {
                         },
                     },
                 },
+                postVotes: true,
             },
             orderBy: [desc(posts.pinned), desc(posts.createdAt)],
         });
 
-        return allPosts.map((post: any) => ({
-            id: post.id,
-            title: post.title,
-            body: post.body,
-            pinned: post.pinned,
-            locked: post.locked,
-            views: post.views,
-            createdAt: post.createdAt,
-            updatedAt: post.updatedAt,
-            author: {
-                id: post.author.id,
-                email: post.author.email,
-                displayName: post.author.profile?.displayName,
-                username: post.author.profile?.username,
-            },
-            category: post.category ? {
-                id: post.category.id,
-                name: post.category.name,
-                slug: post.category.slug,
-                color: post.category.color,
-                icon: post.category.icon,
-            } : null,
-            tags: post.postTags.map((pt: any) => ({
-                id: pt.tag.id,
-                name: pt.tag.name,
-            })),
+        const result = await Promise.all(allPosts.map(async (post: any) => {
+            const votes = post.postVotes || [];
+            const upvotes = votes.filter((v: any) => v.value === 1).length;
+            const downvotes = votes.filter((v: any) => v.value === -1).length;
+            const totalVotes = upvotes - downvotes;
+
+            let userVote = 0;
+            if (currentUser) {
+                const userVoteObj = votes.find((v: any) => v.userId === currentUser.id);
+                if (userVoteObj) {
+                    userVote = userVoteObj.value;
+                }
+            }
+
+            return {
+                id: post.id,
+                title: post.title,
+                body: post.body,
+                pinned: post.pinned,
+                locked: post.locked,
+                views: post.views,
+                upvotes,
+                downvotes,
+                totalVotes,
+                userVote,
+                createdAt: post.createdAt,
+                updatedAt: post.updatedAt,
+                author: {
+                    id: post.author.id,
+                    email: post.author.email,
+                    displayName: post.author.profile?.displayName,
+                    username: post.author.profile?.username,
+                },
+                category: post.category ? {
+                    id: post.category.id,
+                    name: post.category.name,
+                    slug: post.category.slug,
+                    color: post.category.color,
+                    icon: post.category.icon,
+                } : null,
+                tags: post.postTags.map((pt: any) => ({
+                    id: pt.tag.id,
+                    name: pt.tag.name,
+                })),
+            };
         }));
+
+        return result;
     }
 
     @Post("/", {
@@ -165,7 +188,8 @@ export class PostsController {
             },
         },
     } as any)
-    async show({ params, set }: any) {
+    async show({ params, set, user }: any) {
+        const currentUser = await user;
         const post = await db.query.posts.findFirst({
             where: eq(posts.id, Number(params.id)),
             with: {
@@ -203,6 +227,7 @@ export class PostsController {
                         },
                     },
                 },
+                postVotes: true,
             },
         });
 
@@ -211,11 +236,31 @@ export class PostsController {
             return { error: "Post not found" };
         }
 
+        const votes = post.postVotes || [];
+        const upvotes = votes.filter((v: any) => v.value === 1).length;
+        const downvotes = votes.filter((v: any) => v.value === -1).length;
+        const totalVotes = upvotes - downvotes;
+
+        let userVote = 0;
+        if (currentUser) {
+            const userVoteObj = votes.find((v: any) => v.userId === currentUser.id);
+            if (userVoteObj) {
+                userVote = userVoteObj.value;
+            }
+        }
+
         const author = post.author as any;
         return {
             id: post.id,
             title: post.title,
             body: post.body,
+            pinned: post.pinned,
+            locked: post.locked,
+            views: post.views,
+            upvotes,
+            downvotes,
+            totalVotes,
+            userVote,
             createdAt: post.createdAt,
             updatedAt: post.updatedAt,
             author: {
@@ -587,5 +632,155 @@ export class PostsController {
 
         set.status = 201;
         return { message: "Comment created", id: result[0].id };
+    }
+
+    @Post("/:id/upvote", {
+        detail: {
+            tags: ["Posts"],
+            summary: "Upvote a post",
+            description: "Upvote a post (authenticated users only)",
+            parameters: [
+                {
+                    name: "id",
+                    in: "path",
+                    required: true,
+                    schema: { type: "number" },
+                    description: "Post ID",
+                },
+            ],
+            responses: {
+                200: { description: "Vote recorded" },
+                401: { description: "Unauthorized" },
+                404: { description: "Post not found" },
+            },
+        },
+    } as any)
+    async upvote({ params, user, set }: any) {
+        const currentUser = await user;
+        if (!currentUser) {
+            set.status = 401;
+            return { error: "Unauthorized" };
+        }
+
+        const post = await db.query.posts.findFirst({
+            where: eq(posts.id, Number(params.id)),
+        });
+
+        if (!post) {
+            set.status = 404;
+            return { error: "Post not found" };
+        }
+
+        const existingVote = await db.query.postVotes.findFirst({
+            where: and(
+                eq(postVotes.postId, Number(params.id)),
+                eq(postVotes.userId, currentUser.id)
+            ),
+        });
+
+        if (existingVote) {
+            if (existingVote.value === 1) {
+                await db.delete(postVotes).where(
+                    and(
+                        eq(postVotes.postId, Number(params.id)),
+                        eq(postVotes.userId, currentUser.id)
+                    )
+                );
+                return { message: "Upvote removed" };
+            } else {
+                await db.update(postVotes)
+                    .set({ value: 1 })
+                    .where(
+                        and(
+                            eq(postVotes.postId, Number(params.id)),
+                            eq(postVotes.userId, currentUser.id)
+                        )
+                    );
+                return { message: "Changed to upvote" };
+            }
+        }
+
+        await db.insert(postVotes).values({
+            postId: Number(params.id),
+            userId: currentUser.id,
+            value: 1,
+        });
+
+        return { message: "Upvoted" };
+    }
+
+    @Post("/:id/downvote", {
+        detail: {
+            tags: ["Posts"],
+            summary: "Downvote a post",
+            description: "Downvote a post (authenticated users only)",
+            parameters: [
+                {
+                    name: "id",
+                    in: "path",
+                    required: true,
+                    schema: { type: "number" },
+                    description: "Post ID",
+                },
+            ],
+            responses: {
+                200: { description: "Vote recorded" },
+                401: { description: "Unauthorized" },
+                404: { description: "Post not found" },
+            },
+        },
+    } as any)
+    async downvote({ params, user, set }: any) {
+        const currentUser = await user;
+        if (!currentUser) {
+            set.status = 401;
+            return { error: "Unauthorized" };
+        }
+
+        const post = await db.query.posts.findFirst({
+            where: eq(posts.id, Number(params.id)),
+        });
+
+        if (!post) {
+            set.status = 404;
+            return { error: "Post not found" };
+        }
+
+        const existingVote = await db.query.postVotes.findFirst({
+            where: and(
+                eq(postVotes.postId, Number(params.id)),
+                eq(postVotes.userId, currentUser.id)
+            ),
+        });
+
+        if (existingVote) {
+            if (existingVote.value === -1) {
+                await db.delete(postVotes).where(
+                    and(
+                        eq(postVotes.postId, Number(params.id)),
+                        eq(postVotes.userId, currentUser.id)
+                    )
+                );
+                return { message: "Downvote removed" };
+            } else {
+                await db.update(postVotes)
+                    .set({ value: -1 })
+                    .where(
+                        and(
+                            eq(postVotes.postId, Number(params.id)),
+                            eq(postVotes.userId, currentUser.id)
+                        )
+                    );
+                return { message: "Changed to downvote" };
+            }
+        }
+
+        await db.insert(postVotes).values({
+            postId: Number(params.id),
+            userId: currentUser.id,
+            value: -1,
+        });
+
+        return { message: "Downvoted" };
     }
 }
