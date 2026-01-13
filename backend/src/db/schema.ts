@@ -91,6 +91,24 @@ export const postTags = sqliteTable(
   })
 );
 
+export const postVotes = sqliteTable(
+  "post_votes",
+  {
+    postId: integer("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    value: integer("value").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .$defaultFn(() => new Date()),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.postId, table.userId] }),
+  })
+);
+
 export const notifications = sqliteTable("notifications", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   userId: integer("user_id")
@@ -187,11 +205,12 @@ export const auditLogs = sqliteTable("audit_logs", {
     .$defaultFn(() => new Date()),
 });
 
-export const usersRelations = relations(users, ({ one }) => ({
+export const usersRelations = relations(users, ({ one, many }) => ({
   profile: one(profiles, {
     fields: [users.id],
     references: [profiles.userId],
   }),
+  postVotes: many(postVotes),
 }));
 
 export const profilesRelations = relations(profiles, ({ one }) => ({
@@ -211,6 +230,7 @@ export const postsRelations = relations(posts, ({ one, many }) => ({
     references: [categories.id],
   }),
   postTags: many(postTags),
+  postVotes: many(postVotes),
   comments: many(comments),
 }));
 
@@ -237,6 +257,17 @@ export const postTagsRelations = relations(postTags, ({ one }) => ({
   tag: one(tags, {
     fields: [postTags.tagId],
     references: [tags.id],
+  }),
+}));
+
+export const postVotesRelations = relations(postVotes, ({ one }) => ({
+  post: one(posts, {
+    fields: [postVotes.postId],
+    references: [posts.id],
+  }),
+  user: one(users, {
+    fields: [postVotes.userId],
+    references: [users.id],
   }),
 }));
 
@@ -293,6 +324,8 @@ export type Tag = typeof tags.$inferSelect;
 export type NewTag = typeof tags.$inferInsert;
 export type Comment = typeof comments.$inferSelect;
 export type NewComment = typeof comments.$inferInsert;
+export type PostVote = typeof postVotes.$inferSelect;
+export type NewPostVote = typeof postVotes.$inferInsert;
 export type Notification = typeof notifications.$inferSelect;
 export type NewNotification = typeof notifications.$inferInsert;
 export type UserSettings = typeof userSettings.$inferSelect;
