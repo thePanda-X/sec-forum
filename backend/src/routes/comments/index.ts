@@ -4,10 +4,76 @@ import { db } from "../../db";
 import { comments, posts } from "../../db/schema";
 import { hasRole } from "../../utils/auth";
 import type { UserRoleType } from "../../db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, asc } from "drizzle-orm";
 
 @Controller("/comments")
 export class CommentsController {
+  @Get("/post/:postId", {
+    detail: {
+      tags: ["Comments"],
+      summary: "Get comments for a post",
+      description: "Retrieve all comments for a specific post",
+      parameters: [
+        {
+          name: "postId",
+          in: "path",
+          required: true,
+          schema: { type: "number" },
+          description: "Post ID",
+        },
+      ],
+      responses: {
+        200: { description: "Comments list" },
+        404: { description: "Post not found" },
+      },
+    },
+  } as any)
+  async forPost({ params, set }: any) {
+    const post = await db.query.posts.findFirst({
+      where: eq(posts.id, Number(params.postId)),
+    });
+
+    if (!post) {
+      set.status = 404;
+      return { error: "Post not found" };
+    }
+
+    const allComments = await db.query.comments.findMany({
+      where: eq(comments.postId, Number(params.postId)),
+      with: {
+        author: {
+          columns: {
+            id: true,
+            email: true,
+          },
+          with: {
+            profile: {
+              columns: {
+                displayName: true,
+                username: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: [asc(comments.createdAt)],
+    });
+
+    return allComments.map((comment: any) => ({
+      id: comment.id,
+      body: comment.body,
+      parentId: comment.parentId,
+      createdAt: comment.createdAt,
+      updatedAt: comment.updatedAt,
+      author: {
+        id: comment.author.id,
+        email: comment.author.email,
+        displayName: comment.author.profile?.displayName,
+        username: comment.author.profile?.username,
+      },
+    }));
+  }
+
   @Get("/:id", {
     detail: {
       tags: ["Comments"],
