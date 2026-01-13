@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, User, Tag, MessageSquare, Eye, Loader2, FolderTree } from "lucide-react";
+import { ArrowLeft, Calendar, User, Tag, MessageSquare, Eye, Loader2, FolderTree, Lock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { parseMarkdown } from "@/lib/markdown";
 import { Header } from "./Header";
 import { CategorySidebar } from "./CategorySidebar";
+import { Comments } from "./Comments";
+import { CommentForm } from "./CommentForm";
 import { useAuth } from "@/contexts/AuthContext";
 
 const API_BASE = "/api/v1";
@@ -35,6 +37,8 @@ interface Post {
     id: string;
     title: string;
     body: string;
+    pinned: boolean;
+    locked: boolean;
     createdAt: string;
     updatedAt: string;
     author: PostAuthor;
@@ -76,6 +80,8 @@ export function PostView() {
                     id: data.id,
                     title: data.title,
                     body: data.body,
+                    pinned: data.pinned || false,
+                    locked: data.locked || false,
                     createdAt: formatDate(data.createdAt),
                     updatedAt: data.updatedAt,
                     author: {
@@ -186,24 +192,32 @@ export function PostView() {
                                     <h1 className="text-xl md:text-2xl font-bold text-foreground flex-1">
                                         {post.title}
                                     </h1>
-                                    {post.category && (
-                                        <Badge 
-                                            variant="outline" 
-                                            className="text-xs gap-1 shrink-0"
-                                            style={{ 
-                                                borderColor: post.category.color,
-                                                color: post.category.color,
-                                                backgroundColor: `${post.category.color}10`
-                                            }}
-                                        >
-                                            {post.category.icon === "FolderTree" ? (
-                                                <FolderTree className="h-3 w-3" />
-                                            ) : (
-                                                <FolderTree className="h-3 w-3" />
-                                            )}
-                                            {post.category.name}
-                                        </Badge>
-                                    )}
+                                    <div className="flex items-center gap-2">
+                                        {post.locked && (
+                                            <Badge variant="secondary" className="text-xs gap-1">
+                                                <Lock className="h-3 w-3" />
+                                                Locked
+                                            </Badge>
+                                        )}
+                                        {post.category && (
+                                            <Badge 
+                                                variant="outline" 
+                                                className="text-xs gap-1 shrink-0"
+                                                style={{ 
+                                                    borderColor: post.category.color,
+                                                    color: post.category.color,
+                                                    backgroundColor: `${post.category.color}10`
+                                                }}
+                                            >
+                                                {post.category.icon === "FolderTree" ? (
+                                                    <FolderTree className="h-3 w-3" />
+                                                ) : (
+                                                    <FolderTree className="h-3 w-3" />
+                                                )}
+                                                {post.category.name}
+                                            </Badge>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="flex items-center gap-4 flex-wrap">
@@ -266,16 +280,28 @@ export function PostView() {
                             />
                         </article>
 
-                        <div className="mt-6 p-4 bg-muted rounded-lg">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                    <div className="flex items-center gap-1">
-                                        <MessageSquare className="h-4 w-4" />
-                                        <span>Comments section coming soon</span>
-                                    </div>
-                                </div>
+                        {!user && (
+                            <div className="mt-6 p-4 bg-muted/50 rounded-lg text-center">
+                                <p className="text-sm text-muted-foreground">
+                                    Please <a href="/auth" className="text-primary hover:underline">sign in</a> to join the discussion.
+                                </p>
                             </div>
-                        </div>
+                        )}
+
+                        {user && (
+                            <CommentForm
+                                postId={post.id}
+                                postLocked={post.locked}
+                                onCommentSubmitted={() => {
+                                    window.location.reload();
+                                }}
+                            />
+                        )}
+
+                        <Comments
+                            postId={post.id}
+                            postLocked={post.locked}
+                        />
                     </main>
                 </div>
             </div>

@@ -9,3 +9,6 @@ export { MarkdownEditor } from "./MarkdownEditor";
 export { MarkdownPreview } from "./MarkdownPreview";
 export { CreatePostPage } from "./CreatePostPage";
 export { PostView } from "./PostView";
+export { CommentItem } from "./CommentItem";
+export { Comments } from "./Comments";
+export { CommentForm } from "./CommentForm";
