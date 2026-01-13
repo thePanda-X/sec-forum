@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, User, Tag, MessageSquare, Eye, Loader2, FolderTree, Lock } from "lucide-react";
+import { ArrowLeft, Calendar, User, Tag, MessageSquare, Eye, Loader2, FolderTree, Lock, MessageCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Header } from "./Header";
 import { CategorySidebar } from "./CategorySidebar";
 import { Comments } from "./Comments";
 import { CommentForm } from "./CommentForm";
+import { LoginModal } from "@/components/auth/LoginModal";
 import { useAuth } from "@/contexts/AuthContext";
 
 const API_BASE = "/api/v1";
@@ -54,6 +55,7 @@ export function PostView() {
     const [content, setContent] = useState<string>("");
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [loginModalOpen, setLoginModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchPost = async () => {
@@ -281,10 +283,20 @@ export function PostView() {
                         </article>
 
                         {!user && (
-                            <div className="mt-6 p-4 bg-muted/50 rounded-lg text-center">
-                                <p className="text-sm text-muted-foreground">
-                                    Please <a href="/auth" className="text-primary hover:underline">sign in</a> to join the discussion.
+                            <div className="mt-6 p-6 bg-muted/50 rounded-lg text-center border border-border">
+                                <MessageCircle className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
+                                <h3 className="text-lg font-semibold mb-2">Join the Discussion</h3>
+                                <p className="text-sm text-muted-foreground mb-4">
+                                    Sign in or create an account to comment on this post and engage with the community.
                                 </p>
+                                <div className="flex items-center justify-center gap-2">
+                                    <Button variant="outline" onClick={() => navigate("/login")} className="gap-2">
+                                        Sign In
+                                    </Button>
+                                    <Button onClick={() => setLoginModalOpen(true)} className="gap-2">
+                                        Create Account
+                                    </Button>
+                                </div>
                             </div>
                         )}
 
@@ -305,6 +317,8 @@ export function PostView() {
                     </main>
                 </div>
             </div>
+
+            <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} />
         </div>
     );
 }

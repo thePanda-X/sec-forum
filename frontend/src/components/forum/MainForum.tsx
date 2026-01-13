@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Plus, Shield, Loader2, Trash2, Menu, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Shield, Loader2, Trash2, Menu, X, ChevronLeft, ChevronRight, LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -16,6 +16,7 @@ import { CategorySidebar, type Category } from "./CategorySidebar";
 import { PostCard, type Post } from "./PostCard";
 import { ForumStatsSidebar } from "./ForumStatsSidebar";
 import { FilterDropdown, type SortOption } from "./FilterDropdown";
+import { LoginModal } from "@/components/auth/LoginModal";
 import { useAuth } from "@/contexts/AuthContext";
 
 const API_BASE = "/api/v1";
@@ -44,6 +45,7 @@ export function MainForum() {
     const [showStats, setShowStats] = useState(true);
     const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
     const [mobileStatsOpen, setMobileStatsOpen] = useState(false);
+    const [loginModalOpen, setLoginModalOpen] = useState(false);
 
     const isAdmin = user?.role === "admin";
 
@@ -273,7 +275,16 @@ export function MainForum() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <FilterDropdown value={sortOption} onChange={setSortOption} />
-                                <Button className="gap-2" onClick={() => navigate("/new-post")}>
+                                <Button
+                                    className="gap-2"
+                                    onClick={() => {
+                                        if (user) {
+                                            navigate("/new-post");
+                                        } else {
+                                            setLoginModalOpen(true);
+                                        }
+                                    }}
+                                >
                                     <Plus className="h-4 w-4" />
                                     <span className="hidden sm:inline">New Post</span>
                                 </Button>
@@ -381,6 +392,8 @@ export function MainForum() {
                     <ForumStatsSidebar />
                 </DialogContent>
             </Dialog>
+
+            <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} />
         </div>
     );
 }

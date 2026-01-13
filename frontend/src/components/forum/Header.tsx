@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Search, Bell, User, Settings, Shield, LogOut, Menu, X } from "lucide-react";
+import { Search, Bell, User, Settings, Shield, LogOut, Menu, X, LogIn, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
@@ -18,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { NotificationsDropdown } from "./NotificationsDropdown";
+import { LoginModal } from "@/components/auth/LoginModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +43,7 @@ export function Header({ user }: HeaderProps) {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   const fetchUnreadCount = async () => {
     try {
@@ -173,14 +176,14 @@ export function Header({ user }: HeaderProps) {
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className="cursor-pointer"
                   onClick={() => user.username && navigate(`/profile/${user.username}`)}
                 >
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className="cursor-pointer"
                   onClick={() => navigate("/settings")}
                 >
@@ -188,7 +191,7 @@ export function Header({ user }: HeaderProps) {
                   Settings
                 </DropdownMenuItem>
                 {(user.isAdmin || user.isModerator) && (
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     className="cursor-pointer text-primary focus:text-primary"
                     onClick={() => navigate("/admin")}
                   >
@@ -207,12 +210,26 @@ export function Header({ user }: HeaderProps) {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <button
-              onClick={() => navigate("/login")}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Sign In
-            </button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/login")}
+                className="hidden sm:flex gap-2"
+              >
+                <LogIn className="h-4 w-4" />
+                Sign In
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => setLoginModalOpen(true)}
+                className="gap-2"
+              >
+                <UserPlus className="h-4 w-4" />
+                <span className="hidden sm:inline">Sign Up</span>
+                <span className="sm:hidden">Sign Up</span>
+              </Button>
+            </div>
           )}
 
           <button
@@ -231,32 +248,38 @@ export function Header({ user }: HeaderProps) {
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-border bg-background px-4 py-4">
           <div className="flex flex-col gap-4">
-            <button
-              onClick={() => {
-                navigate("/new-post");
-                setMobileMenuOpen(false);
-              }}
-              className="flex items-center justify-center gap-2 w-full py-2 bg-primary text-primary-foreground rounded-md font-medium"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-4 w-4"
-              >
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              New Post
-            </button>
+            {!user && (
+              <>
+                <button
+                  onClick={() => {
+                    setLoginModalOpen(true);
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex items-center justify-center gap-2 w-full py-2 bg-primary text-primary-foreground rounded-md font-medium"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Sign Up
+                </button>
+                <button
+                  onClick={() => {
+                    navigate("/login");
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex items-center justify-center gap-2 w-full py-2 bg-secondary text-secondary-foreground rounded-md font-medium"
+                >
+                  <LogIn className="h-4 w-4" />
+                  Sign In
+                </button>
+              </>
+            )}
             <div className="text-sm text-muted-foreground text-center">
               Use the menu to navigate categories
             </div>
           </div>
         </div>
       )}
+
+      <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} />
     </header>
   );
 }
