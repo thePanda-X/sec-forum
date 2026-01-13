@@ -17,11 +17,33 @@ export class CategoriesController {
     },
   } as any)
   async index() {
-    const allCategories = await db.query.categories.findMany({
-      orderBy: [desc(categories.createdAt)],
-    });
+const allCategories = await db.query.categories.findMany({
+  orderBy: [desc(categories.createdAt)],
+});
 
-    return allCategories;
+// Compute post counts per category
+const categoryPostCounts = await db
+  .select({
+    categoryId: categories.id,
+    postCount: count(posts.id),
+  })
+  .from(posts)
+  .leftJoin(categories, eq(posts.categoryId, categories.id))
+  .groupBy(categories.id);
+
+const postCountMap = new Map<number, number>();
+for (const record of categoryPostCounts) {
+  if (record && typeof record.categoryId === 'number') {
+    postCountMap.set(record.categoryId, record.postCount ?? 0);
+  }
+}
+
+const categoriesWithCounts = allCategories.map((cat) => ({
+  ...cat,
+  postCount: postCountMap.get(cat.id) ?? 0,
+}));
+
+return categoriesWithCounts;
   }
 }
 
