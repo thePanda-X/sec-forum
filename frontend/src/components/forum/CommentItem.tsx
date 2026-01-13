@@ -90,7 +90,7 @@ export function CommentItem({ comment, currentUser, onEdit, onDelete, onReply, i
                                 {comment.body}
                             </div>
                         </div>
-                        {!isReply && !isEditing && !replyingTo && (
+                        {!isReply && !isEditing && !replyingTo && currentUser && (
                             <Button
                                 variant="ghost"
                                 size="sm"

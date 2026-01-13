@@ -17,11 +17,7 @@ export function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route
         path="/"
-        element={
-          <ProtectedRoute>
-            <MainForum />
-          </ProtectedRoute>
-        }
+        element={<MainForum />}
       />
       <Route
         path="/new-post"
@@ -33,11 +29,7 @@ export function App() {
       />
       <Route
         path="/post/:postId"
-        element={
-          <ProtectedRoute>
-            <PostView />
-          </ProtectedRoute>
-        }
+        element={<PostView />}
       />
       <Route
         path="/settings"
