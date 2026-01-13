@@ -143,5 +143,3 @@ export function CategorySidebar({
     </aside>
   );
 }
-
-export type { Category };

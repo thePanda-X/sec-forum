@@ -174,7 +174,7 @@ export function PostView() {
 
             <div className="container mx-auto px-4 py-6">
                 <div className="flex gap-6">
-                    <CategorySidebar className="hidden lg:block shrink-0" />
+                    <CategorySidebar className="hidden lg:block shrink-0 lg:w-64" />
 
                     <main className="flex-1 min-w-0">
                         <Button

@@ -228,7 +228,7 @@ export function MainForum() {
                             setSelectedCategory(category);
                             setMobileCategoriesOpen(false);
                         }}
-                        className={`${showCategories ? "md:block" : "hidden"} hidden lg:block shrink-0`}
+                        className={`${showCategories ? "md:block" : "hidden"} hidden lg:block shrink-0 lg:w-64`}
                     />
 
                     <main className="flex-1 min-w-0">
