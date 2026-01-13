@@ -1679,35 +1679,28 @@ function PostsTab({
             {/* Table header - hidden on mobile */}
             <div className="hidden md:grid grid-cols-12 gap-4 p-4 border-b bg-muted/30 text-sm font-medium text-muted-foreground">
                 <div
-                    className="col-span-5 cursor-pointer hover:text-foreground transition-colors flex items-center gap-1"
+                    className="col-span-5 cursor-pointer hover:text-foreground transition-colors flex items-center gap-1 truncate"
                     onClick={() => handleSort('title')}
                 >
                     Post
                     {sortColumn === 'title' && (sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
                 </div>
                 <div
-                    className="col-span-2 cursor-pointer hover:text-foreground transition-colors flex items-center gap-1"
+                    className="col-span-2 cursor-pointer hover:text-foreground transition-colors flex items-center gap-1 truncate"
                     onClick={() => handleSort('author')}
                 >
                     Author
                     {sortColumn === 'author' && (sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
                 </div>
-                <div className="col-span-2">Status</div>
+                <div className="col-span-2 flex items-center truncate">Status</div>
                 <div
-                    className="col-span-2 cursor-pointer hover:text-foreground transition-colors flex items-center gap-1"
-                    onClick={() => handleSort('views')}
-                >
-                    Views
-                    {sortColumn === 'views' && (sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
-                </div>
-                <div
-                    className="col-span-2 cursor-pointer hover:text-foreground transition-colors flex items-center gap-1"
+                    className="col-span-2 cursor-pointer hover:text-foreground transition-colors flex items-center gap-1 truncate"
                     onClick={() => handleSort('created')}
                 >
                     Created
                     {sortColumn === 'created' && (sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
                 </div>
-                <div className="col-span-1">Actions</div>
+                <div className="col-span-1 flex items-center justify-end truncate">Actions</div>
             </div>
 
             {/* Table rows */}
