@@ -109,6 +109,23 @@ export const postVotes = sqliteTable(
   })
 );
 
+export const postViews = sqliteTable(
+  "post_views",
+  {
+    postId: integer("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    viewedAt: integer("viewed_at", { mode: "timestamp" })
+      .$defaultFn(() => new Date()),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.postId, table.userId] }),
+  })
+);
+
 export const notifications = sqliteTable("notifications", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   userId: integer("user_id")
@@ -211,6 +228,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     references: [profiles.userId],
   }),
   postVotes: many(postVotes),
+  postViews: many(postViews),
 }));
 
 export const profilesRelations = relations(profiles, ({ one }) => ({
@@ -231,6 +249,7 @@ export const postsRelations = relations(posts, ({ one, many }) => ({
   }),
   postTags: many(postTags),
   postVotes: many(postVotes),
+  postViews: many(postViews),
   comments: many(comments),
 }));
 
@@ -267,6 +286,17 @@ export const postVotesRelations = relations(postVotes, ({ one }) => ({
   }),
   user: one(users, {
     fields: [postVotes.userId],
+    references: [users.id],
+  }),
+}));
+
+export const postViewsRelations = relations(postViews, ({ one }) => ({
+  post: one(posts, {
+    fields: [postViews.postId],
+    references: [posts.id],
+  }),
+  user: one(users, {
+    fields: [postViews.userId],
     references: [users.id],
   }),
 }));
@@ -326,6 +356,8 @@ export type Comment = typeof comments.$inferSelect;
 export type NewComment = typeof comments.$inferInsert;
 export type PostVote = typeof postVotes.$inferSelect;
 export type NewPostVote = typeof postVotes.$inferInsert;
+export type PostView = typeof postViews.$inferSelect;
+export type NewPostView = typeof postViews.$inferInsert;
 export type Notification = typeof notifications.$inferSelect;
 export type NewNotification = typeof notifications.$inferInsert;
 export type UserSettings = typeof userSettings.$inferSelect;

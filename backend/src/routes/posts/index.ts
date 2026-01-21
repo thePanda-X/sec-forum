@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { Controller, Get, Post, Put, Delete } from "elysia-decorators";
 import { db } from "../../db";
-import { posts, postTags, comments, notifications, users, postVotes } from "../../db/schema";
+import { posts, postTags, comments, notifications, users, postVotes, postViews } from "../../db/schema";
 import { hasRole } from "../../utils/auth";
 import type { UserRoleType } from "../../db/schema";
 import { eq, desc, sql, asc, and, not, sum } from "drizzle-orm";
@@ -288,7 +288,7 @@ export class PostsController {
         detail: {
             tags: ["Posts"],
             summary: "Increment post views",
-            description: "Increment the view count of a post",
+            description: "Increment the view count of a post (only counts unique authenticated users)",
             parameters: [
                 {
                     name: "id",
@@ -300,18 +300,46 @@ export class PostsController {
             ],
             responses: {
                 200: { description: "Views incremented" },
+                401: { description: "Unauthorized" },
             },
         },
     } as any)
-    async incrementViews({ params }: any) {
-        await db
-            .update(posts)
-            .set({
-                views: sql`${posts.views} + 1`,
-            })
-            .where(eq(posts.id, Number(params.id)));
+    async incrementViews({ params, user, set }: any) {
+        const currentUser = await user;
+        if (!currentUser) {
+            set.status = 401;
+            return { error: "Unauthorized" };
+        }
 
-        return { message: "Views incremented" };
+        const postId = Number(params.id);
+        const userId = currentUser.id;
+
+        const existingView = await db.query.postViews.findFirst({
+            where: and(
+                eq(postViews.postId, postId),
+                eq(postViews.userId, userId)
+            ),
+        });
+
+        if (existingView) {
+            return { message: "View already recorded" };
+        }
+
+        await db.transaction(async (tx) => {
+            await tx.insert(postViews).values({
+                postId,
+                userId,
+            });
+
+            await tx
+                .update(posts)
+                .set({
+                    views: sql`${posts.views} + 1`,
+                })
+                .where(eq(posts.id, postId));
+        });
+
+        return { message: "View recorded" };
     }
 
     @Put("/:id", {
