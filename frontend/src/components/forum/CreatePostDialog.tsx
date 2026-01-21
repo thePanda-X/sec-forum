@@ -214,7 +214,7 @@ export function CreatePostDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] md:max-w-[1100px] max-h-[90vh] overflow-y-auto rounded-2xl p-0">
+      <DialogContent className="sm:max-w-[95vw] md:max-w-[95vw] max-h-[90vh] overflow-y-auto rounded-2xl p-0">
         <div className="p-6 md:p-8">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-primary/10 rounded-lg">
@@ -272,13 +272,14 @@ export function CreatePostDialog({
                 )}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 w-full">
               <Label className="text-sm font-semibold">Content</Label>
               <MarkdownEditor
                 value={body}
                 onChange={setBody}
                 placeholder="Share your thoughts, questions, or ideas..."
                 minHeight="250px"
+                className="w-full"
               />
             </div>
 
