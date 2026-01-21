@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="./logo.png" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.27/dist/katex.min.css" />
     <link rel="stylesheet" href="/dist/index.css" />
     <title>SecureForum</title>
 </head>
@@ -14,6 +15,9 @@
     <script type="module" src="./frontend.tsx"></script>
     <script>
         function copyCodeBlock(button) {
+            event.preventDefault();
+            event.stopPropagation();
+            
             const codeBlock = button.closest('.code-block');
             const code = codeBlock.querySelector('code').textContent;
             const copyText = button.querySelector('.copy-text');
