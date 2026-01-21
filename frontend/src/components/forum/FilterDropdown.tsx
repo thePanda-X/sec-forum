@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-type SortOption = "recent" | "popular" | "trending" | "unanswered";
+type SortOption = "recent" | "popular" | "trending" | "unanswered" | "oldest" | "most-replies";
 
 interface FilterDropdownProps {
   value: SortOption;
@@ -18,6 +18,8 @@ const sortOptions: { value: SortOption; label: string }[] = [
   { value: "recent", label: "Recent" },
   { value: "popular", label: "Popular" },
   { value: "trending", label: "Trending" },
+  { value: "most-replies", label: "Most Replies" },
+  { value: "oldest", label: "Oldest" },
   { value: "unanswered", label: "Unanswered" },
 ];
 

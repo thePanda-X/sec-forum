@@ -53,9 +53,11 @@ interface ForumStatsResponse {
 
 interface ForumStatsSidebarProps {
     className?: string;
+    selectedTag?: string;
+    onTagClick?: (tagName: string) => void;
 }
 
-export function ForumStatsSidebar({ className }: ForumStatsSidebarProps) {
+export function ForumStatsSidebar({ className, selectedTag, onTagClick }: ForumStatsSidebarProps) {
     const [stats, setStats] = useState<ForumStats>({
         totalPosts: 0,
         members: 0,
@@ -214,15 +216,22 @@ export function ForumStatsSidebar({ className }: ForumStatsSidebarProps) {
                 <div className="rounded-lg border border-border bg-card p-4 mb-3">
                     <h3 className="font-semibold mb-4">Trending Tags</h3>
                     <div className="flex flex-wrap gap-2">
-                        {trendingTags.map((tag) => (
-                            <Badge
-                                key={tag.id}
-                                variant="secondary"
-                                className="text-xs font-normal hover:bg-secondary/80 cursor-pointer"
-                            >
-                                {tag.name}
-                            </Badge>
-                        ))}
+                        {trendingTags.map((tag) => {
+                            const tagWithoutHash = tag.name.startsWith('#') ? tag.name.slice(1) : tag.name;
+                            const isSelected = selectedTag === tagWithoutHash;
+                            return (
+                                <Badge
+                                    key={tag.id}
+                                    variant={isSelected ? "default" : "secondary"}
+                                    className={`text-xs font-normal hover:bg-secondary/80 cursor-pointer transition-colors ${
+                                        isSelected ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""
+                                    }`}
+                                    onClick={() => onTagClick?.(tagWithoutHash)}
+                                >
+                                    {tag.name}
+                                </Badge>
+                            );
+                        })}
                     </div>
                 </div>
             )}

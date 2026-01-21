@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Plus, Shield, Loader2, Trash2, Menu, X, ChevronLeft, ChevronRight, LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,15 +26,20 @@ const sortMap: Record<SortOption, string> = {
     popular: "popular",
     "most-replies": "replies",
     oldest: "oldest",
+    trending: "trending",
+    unanswered: "unanswered",
 };
 
 export function MainForum() {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [selectedCategory, setSelectedCategory] = useState<string | undefined>(
-        undefined
-    );
-    const [sortOption, setSortOption] = useState<SortOption>("recent");
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const selectedCategory = searchParams.get('category') || undefined;
+    const selectedTag = searchParams.get('tag') || undefined;
+    const sortParam = searchParams.get('sort') as SortOption || 'recent';
+
+    const [sortOption, setSortOption] = useState<SortOption>(sortParam);
     const [posts, setPosts] = useState<Post[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -69,6 +74,18 @@ export function MainForum() {
             params.set("sort", sortMap[sortOption]);
             if (selectedCategory) {
                 params.set("category", selectedCategory);
+            }
+            if (selectedTag) {
+                const tags = await fetch(`${API_BASE}/tags`, {
+                    credentials: "include",
+                });
+                if (tags.ok) {
+                    const tagsData = await tags.json();
+                    const tag = tagsData.find((t: any) => t.name.toLowerCase() === selectedTag.toLowerCase());
+                    if (tag) {
+                        params.set("tagId", String(tag.id));
+                    }
+                }
             }
 
             const response = await fetch(`${API_BASE}/posts?${params.toString()}`, {
@@ -130,7 +147,11 @@ export function MainForum() {
         } finally {
             setIsLoading(false);
         }
-    }, [sortOption, selectedCategory]);
+    }, [sortOption, selectedCategory, selectedTag]);
+
+    useEffect(() => {
+        setSortOption(sortParam);
+    }, [sortParam]);
 
     useEffect(() => {
         fetchPosts();
@@ -289,7 +310,13 @@ export function MainForum() {
                     <CategorySidebar
                         selectedCategory={selectedCategory}
                         onSelectCategory={(category) => {
-                            setSelectedCategory(category);
+                            const params = new URLSearchParams(searchParams);
+                            if (category) {
+                                params.set('category', category);
+                            } else {
+                                params.delete('category');
+                            }
+                            setSearchParams(params);
                             setMobileCategoriesOpen(false);
                         }}
                         className={`${showCategories ? "md:block" : "hidden"} hidden lg:block shrink-0 lg:w-64`}
@@ -330,13 +357,36 @@ export function MainForum() {
 
                         <div className="flex items-center justify-between mb-6">
                             <div>
-                                <h1 className="text-xl md:text-2xl font-bold">All Discussions</h1>
+                                <h1 className="text-xl md:text-2xl font-bold">
+                                    {selectedTag ? `#${selectedTag}` : selectedCategory ? "Category Discussions" : "All Discussions"}
+                                </h1>
                                 <p className="text-sm text-muted-foreground">
                                     {totalPosts} posts
                                 </p>
                             </div>
                             <div className="flex items-center gap-2">
-                                <FilterDropdown value={sortOption} onChange={setSortOption} />
+                                {(selectedCategory || selectedTag) && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            const params = new URLSearchParams(searchParams);
+                                            params.delete('category');
+                                            params.delete('tag');
+                                            setSearchParams(params);
+                                        }}
+                                    >
+                                        Clear Filters
+                                    </Button>
+                                )}
+                                <FilterDropdown
+                                    value={sortOption}
+                                    onChange={(value) => {
+                                        const params = new URLSearchParams(searchParams);
+                                        params.set('sort', value);
+                                        setSearchParams(params);
+                                    }}
+                                />
                                 <Button
                                     className="gap-2"
                                     onClick={() => {
@@ -385,13 +435,26 @@ export function MainForum() {
                                         onPostClick={() => navigate(`/post/${post.id}`)}
                                         onUpvote={() => handleUpvote(post.id)}
                                         onDownvote={() => handleDownvote(post.id)}
+                                        onTagClick={(tagName) => {
+                                            const params = new URLSearchParams(searchParams);
+                                            params.set('tag', tagName);
+                                            setSearchParams(params);
+                                        }}
                                     />
                                 ))}
                             </div>
                         )}
                     </main>
 
-                    <ForumStatsSidebar className={`${showStats ? "md:block" : "hidden"} hidden lg:block shrink-0`} />
+                    <ForumStatsSidebar
+                        className={`${showStats ? "md:block" : "hidden"} hidden lg:block shrink-0`}
+                        selectedTag={selectedTag}
+                        onTagClick={(tagName) => {
+                            const params = new URLSearchParams(searchParams);
+                            params.set('tag', tagName);
+                            setSearchParams(params);
+                        }}
+                    />
                 </div>
             </div>
 
@@ -441,7 +504,13 @@ export function MainForum() {
                     <CategorySidebar
                         selectedCategory={selectedCategory}
                         onSelectCategory={(category) => {
-                            setSelectedCategory(category);
+                            const params = new URLSearchParams(searchParams);
+                            if (category) {
+                                params.set('category', category);
+                            } else {
+                                params.delete('category');
+                            }
+                            setSearchParams(params);
                             setMobileCategoriesOpen(false);
                         }}
                     />
@@ -453,7 +522,14 @@ export function MainForum() {
                     <DialogHeader>
                         <DialogTitle>Forum Stats</DialogTitle>
                     </DialogHeader>
-                    <ForumStatsSidebar />
+                    <ForumStatsSidebar
+                        selectedTag={selectedTag}
+                        onTagClick={(tagName) => {
+                            const params = new URLSearchParams(searchParams);
+                            params.set('tag', tagName);
+                            setSearchParams(params);
+                        }}
+                    />
                 </DialogContent>
             </Dialog>
 
