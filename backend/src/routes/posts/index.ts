@@ -4,7 +4,7 @@ import { db } from "../../db";
 import { posts, postTags, comments, notifications, users, postVotes, postViews } from "../../db/schema";
 import { hasRole } from "../../utils/auth";
 import type { UserRoleType } from "../../db/schema";
-import { eq, desc, sql, asc, and, not, sum } from "drizzle-orm";
+import { eq, desc, sql, asc, and, not, sum, count } from "drizzle-orm";
 
 @Controller("/posts")
 export class PostsController {
@@ -17,10 +17,13 @@ export class PostsController {
     } as any)
     async index({ query, user }: any) {
         const categoryId = query.category ? Number(query.category) : undefined;
-        const whereClause = categoryId ? eq(posts.categoryId, categoryId) : undefined;
+        const tagId = query.tagId ? Number(query.tagId) : undefined;
+        const sort = query.sort || "recent";
         const currentUser = await user;
 
-        const allPosts = await db.query.posts.findMany({
+        const whereClause = categoryId ? eq(posts.categoryId, categoryId) : undefined;
+
+        let allPostsQuery = db.query.posts.findMany({
             where: whereClause,
             with: {
                 author: {
@@ -58,10 +61,99 @@ export class PostsController {
                 },
                 postVotes: true,
             },
-            orderBy: [desc(posts.pinned), desc(posts.createdAt)],
         });
 
-        const result = await Promise.all(allPosts.map(async (post: any) => {
+        let allPosts = await allPostsQuery;
+
+        if (tagId) {
+            allPosts = allPosts.filter((post: any) =>
+                post.postTags.some((pt: any) => pt.tagId === tagId)
+            );
+        }
+
+        if (sort === "unanswered") {
+            allPosts = await Promise.all(
+                allPosts.map(async (post: any) => {
+                    const commentCount = await db
+                        .select({ count: count() })
+                        .from(comments)
+                        .where(eq(comments.postId, post.id));
+
+                    return {
+                        post,
+                        commentCount: commentCount[0]?.count || 0,
+                    };
+                })
+            ).then((results) => results.filter((r) => r.commentCount === 0).map((r) => r.post));
+        }
+
+        const allPostsWithComments = await Promise.all(
+            allPosts.map(async (post: any) => {
+                const commentCount = await db
+                    .select({ count: count() })
+                    .from(comments)
+                    .where(eq(comments.postId, post.id));
+
+                return {
+                    ...post,
+                    commentCount: commentCount[0]?.count || 0,
+                };
+            })
+        );
+
+        const sortMap: Record<string, (a: any, b: any) => number> = {
+            recent: (a, b) => {
+                if (a.pinned && !b.pinned) return -1;
+                if (!a.pinned && b.pinned) return 1;
+                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            },
+            popular: (a, b) => {
+                const aVotes = a.postVotes.reduce((sum: number, v: any) => sum + v.value, 0);
+                const bVotes = b.postVotes.reduce((sum: number, v: any) => sum + v.value, 0);
+                if (a.pinned && !b.pinned) return -1;
+                if (!a.pinned && b.pinned) return 1;
+                return bVotes - aVotes;
+            },
+            trending: (a, b) => {
+                const sevenDaysAgo = new Date();
+                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                const aDate = new Date(a.createdAt);
+                const bDate = new Date(b.createdAt);
+
+                const aIsRecent = aDate >= sevenDaysAgo;
+                const bIsRecent = bDate >= sevenDaysAgo;
+
+                if (a.pinned && !b.pinned) return -1;
+                if (!a.pinned && b.pinned) return 1;
+                if (aIsRecent && !bIsRecent) return -1;
+                if (!aIsRecent && bIsRecent) return 1;
+                if (!aIsRecent && !bIsRecent) return 0;
+
+                const aVotes = a.postVotes.reduce((sum: number, v: any) => sum + v.value, 0);
+                const bVotes = b.postVotes.reduce((sum: number, v: any) => sum + v.value, 0);
+                return bVotes - aVotes;
+            },
+            oldest: (a, b) => {
+                if (a.pinned && !b.pinned) return -1;
+                if (!a.pinned && b.pinned) return 1;
+                return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+            },
+            "most-replies": (a, b) => {
+                if (a.pinned && !b.pinned) return -1;
+                if (!a.pinned && b.pinned) return 1;
+                return (b.commentCount || 0) - (a.commentCount || 0);
+            },
+            unanswered: (a, b) => {
+                if (a.pinned && !b.pinned) return -1;
+                if (!a.pinned && b.pinned) return 1;
+                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            },
+        };
+
+        const sortFn = sortMap[sort] || sortMap.recent;
+        allPostsWithComments.sort(sortFn);
+
+        const result = allPostsWithComments.map((post: any) => {
             const votes = post.postVotes || [];
             const upvotes = votes.filter((v: any) => v.value === 1).length;
             const downvotes = votes.filter((v: any) => v.value === -1).length;
@@ -86,6 +178,7 @@ export class PostsController {
                 downvotes,
                 totalVotes,
                 userVote,
+                commentCount: post.commentCount || 0,
                 createdAt: post.createdAt,
                 updatedAt: post.updatedAt,
                 author: {
@@ -106,7 +199,7 @@ export class PostsController {
                     name: pt.tag.name,
                 })),
             };
-        }));
+        });
 
         return result;
     }

@@ -53,6 +53,7 @@ interface PostCardProps {
   onPostClick?: () => void;
   onUpvote?: () => void;
   onDownvote?: () => void;
+  onTagClick?: (tagName: string) => void;
 }
 
 export function PostCard({
@@ -65,6 +66,7 @@ export function PostCard({
   onPostClick,
   onUpvote,
   onDownvote,
+  onTagClick,
 }: PostCardProps) {
   const navigate = useNavigate();
 
@@ -208,6 +210,10 @@ export function PostCard({
                   key={tag.id}
                   variant="secondary"
                   className="text-xs font-normal hover:bg-secondary/80 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTagClick?.(tag.name);
+                  }}
                 >
                   {tag.name}
                 </Badge>
