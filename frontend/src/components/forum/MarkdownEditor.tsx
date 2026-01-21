@@ -239,7 +239,7 @@ export function MarkdownEditor({
         }
       }
 
-      if (e.key === "/" && !e.metaKey && !e.ctrlKey) {
+      if (e.key === "?" && !e.metaKey && !e.ctrlKey) {
         const textarea = editorRef.current?.textarea;
         if (textarea && textarea.value.slice(textarea.selectionStart - 1, textarea.selectionStart) === "\n") {
           e.preventDefault();
@@ -560,11 +560,11 @@ export function MarkdownEditor({
                 variant="ghost"
                 size="sm"
                 className="h-8 gap-1.5 px-2 rounded-md hover:bg-accent"
-                title="Quick Insert (Type /)"
+                title="Quick Insert (Type ?)"
                 type="button"
               >
                 <Command className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline text-xs">/</span>
+                <span className="hidden sm:inline text-xs">?</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
@@ -774,31 +774,6 @@ export function MarkdownEditor({
           --wmd-border-color: transparent !important;
           --wmd-toolbar-bg: transparent !important;
           background: transparent !important;
-          width: 100% !important;
-        }
-        .w-md-editor-text {
-          background: transparent !important;
-          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-          line-height: 1.6;
-          font-size: 14px;
-          width: 100% !important;
-          max-width: 100% !important;
-        }
-        .w-md-editor-text textarea {
-          font-size: 14px !important;
-          line-height: 1.6 !important;
-          width: 100% !important;
-          max-width: 100% !important;
-        }
-        .w-md-editor-text-pre,
-        .w-md-editor-text-input {
-          font-size: 14px !important;
-          line-height: 1.6 !important;
-          width: 100% !important;
-          max-width: 100% !important;
-        }
-        .w-md-editor-content {
-          max-width: 100% !important;
         }
       `}</style>
     </div>

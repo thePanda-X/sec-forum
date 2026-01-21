@@ -1,6 +1,6 @@
 /**
- * This file is the entry point for the React app, it sets up the root
- * element and renders the App component to the DOM.
+ * This file is entry point for React app, it sets up root
+ * element and renders App component to DOM.
  *
  * It is included in `src/index.html`.
  */

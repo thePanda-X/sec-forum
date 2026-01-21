@@ -379,7 +379,7 @@ export function PostView() {
                             </div>
 
                             <div
-                                className="p-4 md:p-6 prose prose-sm md:prose-base max-w-none dark:prose-invert"
+                                className="p-4 md:p-6 markdown-preview prose prose-sm md:prose-base max-w-none"
                                 dangerouslySetInnerHTML={{ __html: content }}
                             />
                         </article>
