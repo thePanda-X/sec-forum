@@ -1,0 +1,16 @@
+{
+  "name": "sec-forum",
+  "version": "1.0.0",
+  "description": "Security Forum - Full Stack Application",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n \"backend,frontend\" -c \"blue,magenta\" \"cd backend && bun run dev\" \"cd frontend && bun run dev\"",
+    "dev:backend": "cd backend && bun run dev",
+    "dev:frontend": "cd frontend && bun run dev",
+    "install:all": "cd backend && bun install && cd ../frontend && bun install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
