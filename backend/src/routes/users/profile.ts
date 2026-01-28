@@ -343,11 +343,16 @@ export class UsersController {
       followingId: profile.userId,
     });
 
+    const currentUserProfile = await db.query.profiles.findFirst({
+      where: eq(profiles.userId, currentUser.id),
+    });
+
     await db.insert(notifications).values({
       userId: profile.userId,
-      type: "FOLLOW",
+      type: "follow",
       title: "New Follower",
-      body: `You have a new follower`,
+      body: `${currentUserProfile?.displayName || "Someone"} started following you`,
+      actorUserId: currentUser.id,
     });
 
     return { message: "User followed" };

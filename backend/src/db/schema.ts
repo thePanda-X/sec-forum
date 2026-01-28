@@ -134,6 +134,8 @@ export const notifications = sqliteTable("notifications", {
   type: text("type").notNull(),
   title: text("title").notNull(),
   body: text("body").notNull(),
+  postId: integer("post_id").references(() => posts.id, { onDelete: "cascade" }),
+  actorUserId: integer("actor_user_id").references(() => users.id, { onDelete: "cascade" }),
   read: integer("read", { mode: "boolean" }).notNull().default(false),
   createdAt: integer("created_at", { mode: "timestamp" })
     .$defaultFn(() => new Date()),
@@ -304,6 +306,14 @@ export const postViewsRelations = relations(postViews, ({ one }) => ({
 export const notificationsRelations = relations(notifications, ({ one }) => ({
   user: one(users, {
     fields: [notifications.userId],
+    references: [users.id],
+  }),
+  post: one(posts, {
+    fields: [notifications.postId],
+    references: [posts.id],
+  }),
+  actor: one(users, {
+    fields: [notifications.actorUserId],
     references: [users.id],
   }),
 }));

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   MessageSquare,
@@ -17,7 +18,7 @@ const API_BASE = "/api/v1";
 
 interface Notification {
   id: string;
-  type: "reply" | "mention" | "like" | "achievement" | "comment" | "follow";
+  type: "reply" | "mention" | "like" | "achievement" | "comment" | "follow" | "post_pinned";
   title: string;
   description: string;
   message?: string;
@@ -25,6 +26,8 @@ interface Notification {
   createdAt?: string;
   read: boolean;
   isRead?: boolean;
+  postId?: number;
+  actorUserId?: number;
   user?: {
     name: string;
     username?: string;
@@ -34,6 +37,10 @@ interface Notification {
     name: string;
     username?: string;
     avatar?: string;
+  };
+  post?: {
+    id: number;
+    title?: string;
   };
 }
 
@@ -53,6 +60,38 @@ const NotificationIcon = ({ type }: { type: Notification["type"] }) => {
   }
 };
 
+function getNotificationActionText(type: string, description: string): string {
+  const postRelatedTypes = ["like", "comment", "mention", "post_pinned"];
+  
+  if (postRelatedTypes.includes(type)) {
+    const match = description.match(/^(.+) (.+)$/);
+    if (match && match[2]) {
+      return match[2];
+    }
+    return description;
+  }
+
+  if (type === "follow") {
+    const match = description.match(/^(?:.+) (started following you)$/);
+    if (match) {
+      return "started following you";
+    }
+  }
+
+  if (type === "reply") {
+    const match = description.match(/^(?:.+) (replied to your comment)$/);
+    if (match) {
+      return "replied to your comment";
+    }
+  }
+
+  if (type === "achievement") {
+    return description;
+  }
+
+  return description;
+}
+
 // Helper to format relative time
 function formatRelativeTime(dateString: string): string {
   const date = new Date(dateString);
@@ -70,6 +109,7 @@ function formatRelativeTime(dateString: string): string {
 }
 
 export function NotificationsDropdown() {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -94,10 +134,20 @@ export function NotificationsDropdown() {
         id: n.id,
         type: n.type || "reply",
         title: n.title || getDefaultTitle(n.type),
-        description: n.description || n.message || "",
+        description: n.body || n.description || n.message || "",
         time: n.time || formatRelativeTime(n.createdAt),
         read: n.read ?? n.isRead ?? false,
-        user: n.user || n.actor,
+        postId: n.postId,
+        actorUserId: n.actorUserId,
+        actor: n.actor?.profile ? {
+          name: n.actor.profile.displayName,
+          username: n.actor.profile.username,
+          avatar: n.actor.profile.avatar,
+        } : undefined,
+        post: n.post ? {
+          id: n.post.id,
+          title: n.post.title,
+        } : undefined,
       }));
 
       setNotifications(mapped);
@@ -170,6 +220,31 @@ export function NotificationsDropdown() {
     }
   };
 
+  const handleNotificationClick = async (notification: Notification) => {
+    if (!notification.read) {
+      await handleMarkRead(notification.id);
+    }
+
+    switch (notification.type) {
+      case "reply":
+      case "comment":
+      case "mention":
+      case "like":
+      case "post_pinned":
+        if (notification.postId) {
+          navigate(`/post/${notification.postId}`);
+        }
+        break;
+      case "follow":
+        if (notification.actor?.username) {
+          navigate(`/profile/${notification.actor.username}`);
+        }
+        break;
+      case "achievement":
+        break;
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -226,14 +301,14 @@ export function NotificationsDropdown() {
               <div
                 key={notification.id}
                 className="group flex items-start gap-3 p-4 hover:bg-secondary/50 cursor-pointer border-b border-border last:border-b-0"
-                onClick={() => !notification.read && handleMarkRead(notification.id)}
+                onClick={() => handleNotificationClick(notification)}
               >
                 {/* User Avatar or Icon */}
-                {notification.user ? (
+                {notification.actor ? (
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={notification.user.avatar} />
+                    <AvatarImage src={notification.actor.avatar} />
                     <AvatarFallback className="bg-teal-600 text-white text-sm">
-                      {(notification.user.name || notification.user.username || "U").charAt(0)}
+                      {(notification.actor.name || notification.actor.username || "U").charAt(0)}
                     </AvatarFallback>
                   </Avatar>
                 ) : (
@@ -254,7 +329,26 @@ export function NotificationsDropdown() {
                     )}
                   </div>
                   <p className="text-sm mt-1 line-clamp-2">
-                    {notification.description}
+                    {notification.type === "post_pinned" ? (
+                      notification.description
+                    ) : (
+                      <>
+                        {notification.actor ? (
+                          <span
+                            className="font-semibold text-foreground hover:text-primary underline cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (notification.actor?.username) {
+                                navigate(`/profile/${notification.actor.username}`);
+                              }
+                            }}
+                          >
+                            {notification.actor.name}
+                          </span>
+                        ) : null}{" "}
+                        {getNotificationActionText(notification.type, notification.description)}
+                      </>
+                    )}
                   </p>
                   <span className="text-xs text-muted-foreground mt-1 block">
                     {notification.time}

@@ -27,6 +27,14 @@ export class NotificationsController {
     const userNotifications = await db.query.notifications.findMany({
       where: eq(notifications.userId, currentUser.id),
       orderBy: [desc(notifications.createdAt)],
+      with: {
+        actor: {
+          with: {
+            profile: true,
+          },
+        },
+        post: true,
+      },
     });
 
     return userNotifications;
