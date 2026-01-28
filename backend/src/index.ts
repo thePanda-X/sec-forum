@@ -10,6 +10,7 @@ import { join } from "path";
 config({ path: join(process.cwd(), "../.env") });
 
 await import("./db/migrate");
+await import("./db/auto-seed").then((m) => m.autoSeed());
 
 config({ path: join(process.cwd(), "../.env") });
 
