@@ -29,7 +29,11 @@ export async function autoSeed() {
   } catch (error) {
     // Don't crash the server if auto-seed fails
     // The user can still manually run db:seed
-    logger.error("❌ Auto-seed failed:", error);
-    logger.info("💡 You can manually seed the database with: bun run db:seed");
+    if (error instanceof Error) {
+      logger.error("❌ Auto-seed failed:", { message: error.message, stack: error.stack });
+    } else {
+      logger.error("❌ Auto-seed failed:", { error });
+    }
+    logger.info("💡 You can manually seed database with: bun run db:seed");
   }
 }
