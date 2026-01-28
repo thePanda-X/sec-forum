@@ -9,9 +9,7 @@
     "db:migrate": "bun run src/db/migrate.ts",
     "db:push": "bun run src/db/push.ts",
     "db:studio": "bun run src/db/studio.ts",
-    "db:seed": "bun run src/db/seed.ts",
-    "db:setup": "bun run src/db/setup.ts",
-    "db:deploy": "bun run src/db/deploy.ts"
+    "db:seed": "bun run src/db/seed.ts"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.1.0",

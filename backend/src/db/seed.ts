@@ -7,7 +7,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const projectRoot = join(__dirname, "../../..");
 
-config({ path: join(projectRoot, ".env") });
+// Only load .env if environment variables are not already set
+const envPath = join(projectRoot, ".env");
+if (typeof process.env.ADMIN_EMAIL === "undefined" || typeof process.env.ADMIN_PASSWORD === "undefined") {
+  config({ path: envPath });
+}
 
 import { db } from "./index";
 import { users, profiles, categories } from "./schema";
