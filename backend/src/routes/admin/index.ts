@@ -652,13 +652,22 @@ export class AdminController {
       tags: ["Admin"],
       summary: "Get audit log",
       description: "Retrieve system audit log (admin only)",
+      parameters: [
+        {
+          name: "userId",
+          in: "query",
+          required: false,
+          schema: { type: "number" },
+          description: "Filter logs by user ID",
+        },
+      ],
       responses: {
         200: { description: "Audit log" },
         403: { description: "Admin access required" },
       },
     },
   } as any)
-  async auditLog({ user, set }: any) {
+  async auditLog({ user, set, query }: any) {
     const currentUser = await user;
     if (!currentUser || !hasRole(currentUser.role as UserRoleType, "ADMIN")) {
       set.status = 403;
@@ -666,6 +675,7 @@ export class AdminController {
     }
 
     const logs = await db.query.auditLogs.findMany({
+      ...(query.userId && { where: eq(auditLogs.userId, Number(query.userId)) }),
       orderBy: [desc(auditLogs.createdAt)],
       with: {
         user: {
