@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { Controller, Get, Post, Put, Delete } from "elysia-decorators";
 import { db } from "../../db";
-import { posts, postTags, comments, notifications, users, postVotes, postViews } from "../../db/schema";
+import { posts, postTags, comments, notifications, users, profiles, postVotes, postViews } from "../../db/schema";
 import { hasRole } from "../../utils/auth";
 import type { UserRoleType } from "../../db/schema";
 import { eq, desc, sql, asc, and, not, sum, count } from "drizzle-orm";
@@ -619,6 +619,7 @@ export class PostsController {
                     type: "post_pinned",
                     title: "Post Pinned",
                     body: `A new post has been pinned: "${authorName}"`,
+                    postId: post.id,
                     read: false,
                     createdAt: new Date(),
                 }))
@@ -751,8 +752,78 @@ export class PostsController {
             return { error: "Failed to create comment" };
         }
 
+        const newComment = result[0];
+
+        const currentUserProfile = await db.query.profiles.findFirst({
+            where: eq(profiles.userId, currentUser.id),
+        });
+
+        if (post.authorId !== currentUser.id) {
+            await db.insert(notifications).values({
+                userId: post.authorId,
+                type: "comment",
+                title: "New Comment",
+                body: `${currentUserProfile?.displayName || "Someone"} commented on your post "${post.title}"`,
+                postId: post.id,
+                actorUserId: currentUser.id,
+                read: false,
+                createdAt: new Date(),
+            });
+        }
+
+        if (body.parentId) {
+            const parentComment = await db.query.comments.findFirst({
+                where: eq(comments.id, body.parentId),
+            });
+
+            if (parentComment && parentComment.authorId !== currentUser.id) {
+                const currentUserProfile = await db.query.profiles.findFirst({
+                    where: eq(profiles.userId, currentUser.id),
+                });
+
+                await db.insert(notifications).values({
+                    userId: parentComment.authorId,
+                    type: "reply",
+                    title: "New Reply",
+                    body: `${currentUserProfile?.displayName || "Someone"} replied to your comment`,
+                    postId: post.id,
+                    actorUserId: currentUser.id,
+                    read: false,
+                    createdAt: new Date(),
+                });
+            }
+        }
+
+        const mentionRegex = /@(\w+)/g;
+        const mentions = body.body.match(mentionRegex);
+        if (mentions) {
+            const usernames = mentions.map((m: string) => m.substring(1));
+            const currentUserProfile = await db.query.profiles.findFirst({
+                where: eq(profiles.userId, currentUser.id),
+            });
+
+            for (const username of usernames) {
+                const mentionedProfile = await db.query.profiles.findFirst({
+                    where: eq(profiles.username, username),
+                });
+
+                if (mentionedProfile && mentionedProfile.userId !== currentUser.id) {
+                    await db.insert(notifications).values({
+                        userId: mentionedProfile.userId,
+                        type: "mention",
+                        title: "You were mentioned",
+                        body: `${currentUserProfile?.displayName || "Someone"} mentioned you in a comment on "${post.title}"`,
+                        postId: post.id,
+                        actorUserId: currentUser.id,
+                        read: false,
+                        createdAt: new Date(),
+                    });
+                }
+            }
+        }
+
         set.status = 201;
-        return { message: "Comment created", id: result[0].id };
+        return { message: "Comment created", id: newComment.id };
     }
 
     @Post("/:id/upvote", {
@@ -826,6 +897,23 @@ export class PostsController {
             userId: currentUser.id,
             value: 1,
         });
+
+        if (post.authorId !== currentUser.id) {
+            const currentUserProfile = await db.query.profiles.findFirst({
+                where: eq(profiles.userId, currentUser.id),
+            });
+
+            await db.insert(notifications).values({
+                userId: post.authorId,
+                type: "like",
+                title: "Post Liked",
+                body: `${currentUserProfile?.displayName || "Someone"} liked your post "${post.title}"`,
+                postId: post.id,
+                actorUserId: currentUser.id,
+                read: false,
+                createdAt: new Date(),
+            });
+        }
 
         return { message: "Upvoted" };
     }
