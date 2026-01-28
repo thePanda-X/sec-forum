@@ -225,7 +225,7 @@ export function NotificationsDropdown() {
             {notifications.map((notification) => (
               <div
                 key={notification.id}
-                className="flex items-start gap-3 p-4 hover:bg-secondary/50 cursor-pointer border-b border-border last:border-b-0"
+                className="group flex items-start gap-3 p-4 hover:bg-secondary/50 cursor-pointer border-b border-border last:border-b-0"
                 onClick={() => !notification.read && handleMarkRead(notification.id)}
               >
                 {/* User Avatar or Icon */}
@@ -260,6 +260,22 @@ export function NotificationsDropdown() {
                     {notification.time}
                   </span>
                 </div>
+
+                {/* Mark as read button - visible on hover */}
+                {!notification.read && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleMarkRead(notification.id);
+                    }}
+                    title="Mark as read"
+                  >
+                    <Check className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             ))}
           </div>
