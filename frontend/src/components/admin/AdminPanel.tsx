@@ -346,7 +346,7 @@ interface Category {
     description: string;
     color: string;
     icon: string;
-    postCount: number;
+    postCount?: number;
 }
 
 interface AuditLogEntry {
@@ -414,10 +414,20 @@ export function AdminPanel() {
     const [userToActOn, setUserToActOn] = useState<AdminUser | null>(null);
     const [categoryForm, setCategoryForm] = useState({
         name: '',
+        slug: '',
         description: '',
         color: '#10b981',
         icon: 'Shield',
     });
+
+    const slugify = (text: string): string => {
+        return text
+            .toLowerCase()
+            .replace(/[^\w\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .trim();
+    };
 
     const headerUser = user ? {
         name: user.name || 'User',
@@ -729,7 +739,7 @@ export function AdminPanel() {
                         : `"${categoryForm.name}" has been created.`,
                 });
                 setEditingCategory(null);
-                setCategoryForm({ name: '', description: '', color: '#10b981', icon: 'FolderTree' });
+                setCategoryForm({ name: '', slug: '', description: '', color: '#10b981', icon: 'FolderTree' });
                 fetchCategories();
                 fetchAdminData();
             } else {
@@ -777,6 +787,7 @@ export function AdminPanel() {
         setEditingCategory(category);
         setCategoryForm({
             name: category.name,
+            slug: category.slug,
             description: category.description,
             color: category.color,
             icon: category.icon,
@@ -786,7 +797,7 @@ export function AdminPanel() {
 
     const openNewCategory = () => {
         setEditingCategory(null);
-        setCategoryForm({ name: '', description: '', color: '#10b981', icon: 'FolderTree' });
+        setCategoryForm({ name: '', slug: '', description: '', color: '#10b981', icon: 'FolderTree' });
         setCategoryDialogOpen(true);
     };
 
@@ -968,9 +979,26 @@ export function AdminPanel() {
                             <Input
                                 id="name"
                                 value={categoryForm.name}
-                                onChange={(e) => setCategoryForm(prev => ({ ...prev, name: e.target.value }))}
+                                onChange={(e) => setCategoryForm(prev => ({ 
+                                    ...prev, 
+                                    name: e.target.value,
+                                    slug: editingCategory ? prev.slug : slugify(e.target.value)
+                                }))}
                                 className="mt-1"
                             />
+                        </div>
+                        <div>
+                            <Label htmlFor="slug">Slug</Label>
+                            <Input
+                                id="slug"
+                                value={categoryForm.slug}
+                                onChange={(e) => setCategoryForm(prev => ({ ...prev, slug: e.target.value }))}
+                                className="mt-1 font-mono text-sm"
+                                placeholder="url-friendly-slug"
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                                The slug will be used in URLs. Leave empty to auto-generate from name.
+                            </p>
                         </div>
                         <div>
                             <Label htmlFor="description">Description</Label>
