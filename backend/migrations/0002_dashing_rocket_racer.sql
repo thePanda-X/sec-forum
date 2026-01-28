@@ -1,1 +1,0 @@
-ALTER TABLE `posts` ADD `category_id` integer REFERENCES categories(id) ON DELETE SET NULL;
