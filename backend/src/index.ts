@@ -26,15 +26,15 @@ import { AdminController } from "./routes/admin";
 import { CategoriesController, StatsController } from "./routes/categories";
 import { UsersController as ProfileController } from "./routes/users/profile";
 import { authPlugin } from "./middleware/auth";
+import { loggingPlugin } from "./middleware/logging";
 import { logger } from "./utils/logger";
 
 logger.info("Starting SEC Forum API...", { level: process.env.LOG_LEVEL || "DEBUG" });
 
-type RequestWithLog = Request & { _logStart?: number };
-
 const app = new Elysia({ prefix: "/api/v1" })
     .use(cors())
     .use(swagger({ path: "/docs" }))
+    .use(loggingPlugin)
     .use(authPlugin)
     .use(
         decorators({
@@ -54,47 +54,13 @@ const app = new Elysia({ prefix: "/api/v1" })
             ],
         })
     )
-    .onStart((app) => {
-        const request = (app as { request?: Request }).request;
-        if (request) {
-            const url = new URL(request.url);
-            (request as RequestWithLog)._logStart = performance.now();
-            logger.debug(`→ ${request.method} ${url.pathname}${url.search}`);
-        }
+    .get("/", ({ request }: { request: Request }) => {
+        console.log("=== ROOT HANDLER CALLED ===", request.url);
+        return {
+            message: "SEC Forum API",
+            docs: "/docs",
+        };
     })
-    .onAfterHandle((app) => {
-        const request = (app as { request?: Request }).request;
-        const set = (app as { set?: { status?: number | string } }).set;
-        if (request && set) {
-            const req = request as RequestWithLog;
-            if (req._logStart) {
-                const duration = performance.now() - req._logStart;
-                const statusCode = typeof set.status === "number" ? set.status : undefined;
-                logger.logRequest(request.method, new URL(request.url).pathname, statusCode, duration);
-            }
-        }
-    })
-    .onError((app) => {
-        const request = (app as { request?: Request }).request;
-        const error = (app as { error?: unknown }).error;
-        const set = (app as { set?: { status?: number | string } }).set;
-        if (request && error && set) {
-            const req = request as RequestWithLog;
-            const duration = req._logStart ? `${Math.round(performance.now() - req._logStart)}ms` : "N/A";
-            const errorMessage = typeof error === "object" && error && "message" in error ? String(error.message) : String(error);
-            logger.error(`✗ ${request.method} ${new URL(request.url).pathname} - ${errorMessage}`, {
-                method: request.method,
-                path: new URL(request.url).pathname,
-                status: set.status,
-                duration,
-                error: errorMessage,
-            });
-        }
-    })
-    .get("/", () => ({
-        message: "SEC Forum API",
-        docs: "/docs",
-    }))
     .listen(Number(process.env.PORT) || 3000, ({ hostname, port }) => {
         logger.info(`Server running at http://${hostname}:${port}`);
     });

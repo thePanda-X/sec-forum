@@ -63,15 +63,36 @@ export const logger = {
     path: string,
     status?: number,
     duration?: number,
-    userId?: number
+    userId?: number,
+    queryParams?: Record<string, unknown>
   ) => {
     if (shouldLog("INFO")) {
       const meta: Record<string, unknown> = { method, path };
-      if (status) meta.status = status;
-      if (duration) meta.duration = `${duration.toFixed(2)}ms`;
-      if (userId) meta.userId = userId;
+      if (status !== undefined) meta.status = status;
+      if (duration !== undefined) meta.duration = `${duration.toFixed(2)}ms`;
+      if (userId !== undefined) meta.userId = userId;
+      if (queryParams && Object.keys(queryParams).length > 0) meta.query = queryParams;
       const icon = status && status >= 400 ? "✗" : "✓";
       console.log(formatLog("INFO", `${icon} ${method} ${path}`, meta));
+    }
+  },
+
+  logErrorWithStack: (
+    method: string,
+    path: string,
+    errorMessage: string,
+    stack?: string,
+    status?: number | string,
+    duration?: string,
+    body?: unknown
+  ) => {
+    if (shouldLog("INFO")) {
+      const meta: Record<string, unknown> = { method, path, error: errorMessage };
+      if (status !== undefined) meta.status = status;
+      if (duration !== undefined) meta.duration = duration;
+      if (stack) meta.stack = stack;
+      if (body) meta.body = body;
+      console.log(formatLog("INFO", `✗ ${method} ${path} - ${errorMessage}`, meta));
     }
   },
 };
