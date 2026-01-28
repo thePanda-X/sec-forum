@@ -10,6 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Dialog,
     DialogContent,
@@ -157,6 +159,7 @@ import {
     ChevronRight,
     ArrowUp,
     ArrowDown,
+    ChevronDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -382,6 +385,7 @@ export function AdminPanel() {
     const [auditLog, setAuditLog] = useState<AuditLogEntry[]>([]);
     const [recentActivity, setRecentActivity] = useState<AuditLogEntry[]>([]);
     const [reportFilter, setReportFilter] = useState<string>('all');
+    const [auditLogUserFilter, setAuditLogUserFilter] = useState<string>('');
 
     // Users pagination, search, and sort
     const [userSearch, setUserSearch] = useState('');
@@ -456,8 +460,8 @@ export function AdminPanel() {
         else if (activeTab === 'posts') fetchPosts();
         else if (activeTab === 'reports') fetchReports();
         else if (activeTab === 'categories') fetchCategories();
-        else if (activeTab === 'audit-log') fetchAuditLog();
-    }, [activeTab]);
+        else if (activeTab === 'audit-log') fetchAuditLog(auditLogUserFilter);
+    }, [activeTab, auditLogUserFilter]);
 
     const fetchAdminData = async () => {
         try {
@@ -552,9 +556,12 @@ export function AdminPanel() {
         }
     };
 
-    const fetchAuditLog = async () => {
+    const fetchAuditLog = async (userId?: string) => {
         try {
-            const response = await fetch(`${API_BASE}/admin/audit-log`, {
+            const url = userId 
+                ? `${API_BASE}/admin/audit-log?userId=${userId}`
+                : `${API_BASE}/admin/audit-log`;
+            const response = await fetch(url, {
                 credentials: 'include',
             });
 
@@ -955,6 +962,10 @@ export function AdminPanel() {
                         <AuditLogTab
                             auditLog={auditLog}
                             formatDate={formatDate}
+                            userFilter={auditLogUserFilter}
+                            setUserFilter={setAuditLogUserFilter}
+                            onFilterChange={fetchAuditLog}
+                            users={users}
                         />
                     )}
                 </div>
@@ -2119,11 +2130,20 @@ function CategoriesTab({
 function AuditLogTab({
     auditLog,
     formatDate,
+    userFilter,
+    setUserFilter,
+    onFilterChange,
+    users,
 }: {
     auditLog: AuditLogEntry[];
     formatDate: (date: string) => string;
+    userFilter?: string;
+    setUserFilter?: (filter: string) => void;
+    onFilterChange?: (userId?: string) => void;
+    users?: AdminUser[];
 }) {
     const [searchQuery, setSearchQuery] = useState('');
+    const [userSearch, setUserSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
     const [sortColumn, setSortColumn] = useState<'action' | 'admin' | 'date'>('date');
@@ -2191,6 +2211,75 @@ function AuditLogTab({
                             />
                         </div>
                     </div>
+                    {users && (
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="outline" className="w-full sm:w-64 justify-between">
+                                    <span className="truncate">
+                                        {userFilter
+                                            ? users?.find(u => u.id === userFilter)?.name || users?.find(u => u.id === userFilter)?.username || 'Select user'
+                                            : 'Filter by user'}
+                                    </span>
+                                    <ChevronDown className="h-4 w-4 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full sm:w-80 p-0" align="start">
+                                <div className="p-3">
+                                    <Input
+                                        placeholder="Search users..."
+                                        value={userSearch}
+                                        onChange={(e) => setUserSearch(e.target.value)}
+                                    />
+                                </div>
+                                <ScrollArea className="h-60">
+                                    {users?.filter(u =>
+                                        u.name?.toLowerCase().includes(userSearch.toLowerCase()) ||
+                                        u.username?.toLowerCase().includes(userSearch.toLowerCase()) ||
+                                        u.email?.toLowerCase().includes(userSearch.toLowerCase())
+                                    ).map(u => (
+                                        <div
+                                            key={u.id}
+                                            onClick={() => {
+                                                const newFilter = u.id === userFilter ? '' : u.id;
+                                                setUserFilter?.(newFilter);
+                                                onFilterChange?.(newFilter || undefined);
+                                                setUserSearch('');
+                                            }}
+                                            className={cn(
+                                                "flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-accent transition-colors",
+                                                userFilter === u.id && "bg-accent"
+                                            )}
+                                        >
+                                            <Avatar className="h-6 w-6">
+                                                <AvatarImage src={u.avatar} />
+                                                <AvatarFallback className="text-xs">
+                                                    {(u.name || u.username)?.charAt(0).toUpperCase()}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium truncate">
+                                                    {u.name || u.username}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground truncate">
+                                                    {u.email}
+                                                </p>
+                                            </div>
+                                            {userFilter === u.id && <Check className="h-4 w-4 text-primary" />}
+                                        </div>
+                                    ))}
+                                    {users?.filter(u =>
+                                        u.name?.toLowerCase().includes(userSearch.toLowerCase()) ||
+                                        u.username?.toLowerCase().includes(userSearch.toLowerCase()) ||
+                                        u.email?.toLowerCase().includes(userSearch.toLowerCase())
+                                    ).length === 0 && (
+                                        <div className="p-4 text-center text-sm text-muted-foreground">
+                                            No users found
+                                        </div>
+                                    )}
+                                </ScrollArea>
+                            </PopoverContent>
+                        </Popover>
+                    )}
                     <Select value={perPage.toString()} onValueChange={(value) => setPerPage(parseInt(value))}>
                         <SelectTrigger className="w-full sm:w-32">
                             <SelectValue />
