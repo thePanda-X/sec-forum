@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { highlightText } from "@/lib/highlight";
 
 interface PostTag {
   id: string;
@@ -46,6 +47,7 @@ interface Post {
 interface PostCardProps {
   post: Post;
   showAdminActions?: boolean;
+  searchQuery?: string;
   onPin?: () => void;
   onLock?: () => void;
   onEdit?: () => void;
@@ -59,6 +61,7 @@ interface PostCardProps {
 export function PostCard({
   post,
   showAdminActions = false,
+  searchQuery,
   onPin,
   onLock,
   onEdit,
@@ -164,9 +167,12 @@ export function PostCard({
             )}
           </div>
 
-          <h3 className="text-base font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2">
-            {post.title}
-          </h3>
+          <h3 
+            className="text-base font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2"
+            dangerouslySetInnerHTML={{
+              __html: highlightText(post.title, searchQuery || "")
+            }}
+          />
 
           <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground flex-wrap">
             <span className="flex items-center gap-1">
@@ -184,9 +190,18 @@ export function PostCard({
               <button
                 onClick={handleAuthorClick}
                 className="hover:text-primary transition-colors"
-              >
-                {post.author.name}
-              </button>
+                dangerouslySetInnerHTML={{
+                  __html: highlightText(post.author.name, searchQuery || "")
+                }}
+              />
+              {post.author.username && (
+                <span 
+                  className="text-xs text-muted-foreground"
+                  dangerouslySetInnerHTML={{
+                    __html: highlightText(`(@${post.author.username})`, searchQuery || "")
+                  }}
+                />
+              )}
             </span>
             {post.author.isAdmin && (
               <Badge variant="secondary" className="text-xs bg-amber-500/20 text-amber-500 border-0">
@@ -199,9 +214,12 @@ export function PostCard({
             <span className="text-xs">{post.createdAt}</span>
           </div>
 
-          <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-            {post.excerpt}
-          </p>
+          <p 
+            className="text-sm text-muted-foreground mt-2 line-clamp-2"
+            dangerouslySetInnerHTML={{
+              __html: highlightText(post.excerpt, searchQuery || "")
+            }}
+          />
 
           <div className="flex items-center justify-between mt-3 gap-2">
             <div className="flex flex-wrap gap-1.5">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Search, Bell, User, Settings, Shield, LogOut, Menu, X, LogIn, UserPlus } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,7 @@ import {
 import { NotificationsDropdown } from "./NotificationsDropdown";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDebounce } from "@/hooks/useDebounce";
 import { cn } from "@/lib/utils";
 
 const API_BASE = "/api/v1";
@@ -39,11 +40,31 @@ interface HeaderProps {
 export function Header({ user }: HeaderProps) {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [notificationCount, setNotificationCount] = useState(0);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+
+  const shouldShowSearch = location.pathname === "/" || location.pathname === "";
+
+  useEffect(() => {
+    const currentSearch = searchParams.get("search") || "";
+    if (shouldShowSearch && currentSearch !== searchQuery) {
+      setSearchQuery(currentSearch);
+    }
+  }, [searchParams, shouldShowSearch]);
+
+  useEffect(() => {
+    const currentSearch = searchParams.get("search") || "";
+    if (debouncedSearchQuery !== currentSearch && shouldShowSearch) {
+      navigate(`/?search=${encodeURIComponent(debouncedSearchQuery)}`, { replace: true });
+    }
+  }, [debouncedSearchQuery, navigate, shouldShowSearch, searchParams]);
 
   const fetchUnreadCount = async () => {
     try {
@@ -99,19 +120,23 @@ export function Header({ user }: HeaderProps) {
           <span className="text-xl font-semibold hidden sm:inline">SecureForum</span>
         </div>
 
-        <div className={cn(
-          "flex-1 max-w-xl mx-4 transition-all duration-300",
-          searchOpen ? "flex" : "hidden md:flex"
-        )}>
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search discussions..."
-              className="pl-10 bg-secondary border-none w-full"
-            />
+        {shouldShowSearch && (
+          <div className={cn(
+            "flex-1 max-w-xl mx-4 transition-all duration-300",
+            searchOpen ? "flex" : "hidden md:flex"
+          )}>
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search discussions..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-secondary border-none w-full"
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="flex items-center gap-2">
           <button

@@ -1,10 +1,10 @@
 import "reflect-metadata";
 import { Controller, Get, Post, Put, Delete } from "elysia-decorators";
 import { db } from "../../db";
-import { posts, postTags, comments, notifications, users, profiles, postVotes, postViews } from "../../db/schema";
+import { posts, postTags, comments, notifications, users, profiles, postVotes, postViews, categories } from "../../db/schema";
 import { hasRole } from "../../utils/auth";
 import type { UserRoleType } from "../../db/schema";
-import { eq, desc, sql, asc, and, not, sum, count } from "drizzle-orm";
+import { eq, desc, sql, asc, and, not, sum, count, or } from "drizzle-orm";
 
 @Controller("/posts")
 export class PostsController {
@@ -19,51 +19,94 @@ export class PostsController {
         const categoryId = query.category ? Number(query.category) : undefined;
         const tagId = query.tagId ? Number(query.tagId) : undefined;
         const sort = query.sort || "recent";
+        const searchQuery = query.search || undefined;
         const currentUser = await user;
 
-        const whereClause = categoryId ? eq(posts.categoryId, categoryId) : undefined;
+        const categoryCondition = categoryId ? eq(posts.categoryId, categoryId) : undefined;
 
-        let allPostsQuery = db.query.posts.findMany({
-            where: whereClause,
-            with: {
+        const searchCondition = searchQuery
+            ? or(
+                sql`${posts.title} LIKE ${'%' + searchQuery + '%'}`,
+                sql`${posts.body} LIKE ${'%' + searchQuery + '%'}`,
+                sql`${profiles.displayName} LIKE ${'%' + searchQuery + '%'}`,
+                sql`${profiles.username} LIKE ${'%' + searchQuery + '%'}`
+            )
+            : undefined;
+
+        const finalWhereClause = categoryCondition && searchCondition
+            ? and(categoryCondition, searchCondition)
+            : categoryCondition || searchCondition;
+
+        const allPostsData = await db.select({
+            id: posts.id,
+            title: posts.title,
+            body: posts.body,
+            pinned: posts.pinned,
+            locked: posts.locked,
+            views: posts.views,
+            createdAt: posts.createdAt,
+            updatedAt: posts.updatedAt,
+            authorId: posts.authorId,
+            authorEmail: users.email,
+            profileDisplayName: profiles.displayName,
+            profileUsername: profiles.username,
+            categoryId: categories.id,
+            categoryName: categories.name,
+            categorySlug: categories.slug,
+            categoryColor: categories.color,
+            categoryIcon: categories.icon,
+        })
+        .from(posts)
+        .leftJoin(users, eq(posts.authorId, users.id))
+        .leftJoin(profiles, eq(users.id, profiles.userId))
+        .leftJoin(categories, eq(posts.categoryId, categories.id))
+        .where(finalWhereClause);
+
+        let allPosts = await Promise.all(allPostsData.map(async (post: any) => {
+            const tagsData = await db.query.postTags.findMany({
+                where: eq(postTags.postId, post.id),
+                with: {
+                    tag: {
+                        columns: {
+                            id: true,
+                            name: true,
+                        },
+                    },
+                },
+            });
+
+            const votesData = await db.query.postVotes.findMany({
+                where: eq(postVotes.postId, post.id),
+            });
+
+            return {
+                id: post.id,
+                title: post.title,
+                body: post.body,
+                pinned: post.pinned,
+                locked: post.locked,
+                views: post.views,
+                createdAt: post.createdAt,
+                updatedAt: post.updatedAt,
                 author: {
-                    columns: {
-                        id: true,
-                        email: true,
-                    },
-                    with: {
-                        profile: {
-                            columns: {
-                                displayName: true,
-                                username: true,
-                            },
-                        },
+                    id: post.authorId,
+                    email: post.authorEmail,
+                    profile: {
+                        displayName: post.profileDisplayName,
+                        username: post.profileUsername,
                     },
                 },
-                category: {
-                    columns: {
-                        id: true,
-                        name: true,
-                        slug: true,
-                        color: true,
-                        icon: true,
-                    },
-                },
-                postTags: {
-                    with: {
-                        tag: {
-                            columns: {
-                                id: true,
-                                name: true,
-                            },
-                        },
-                    },
-                },
-                postVotes: true,
-            },
-        });
-
-        let allPosts = await allPostsQuery;
+                category: post.categoryId ? {
+                    id: post.categoryId,
+                    name: post.categoryName,
+                    slug: post.categorySlug,
+                    color: post.categoryColor,
+                    icon: post.categoryIcon,
+                } : null,
+                postTags: tagsData,
+                postVotes: votesData,
+            };
+        }));
 
         if (tagId) {
             allPosts = allPosts.filter((post: any) =>
