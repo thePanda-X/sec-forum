@@ -37,6 +37,7 @@ export function MainForum() {
 
     const selectedCategory = searchParams.get('category') || undefined;
     const selectedTag = searchParams.get('tag') || undefined;
+    const searchQuery = searchParams.get('search') || undefined;
     const sortParam = searchParams.get('sort') as SortOption || 'recent';
 
     const [sortOption, setSortOption] = useState<SortOption>(sortParam);
@@ -86,6 +87,9 @@ export function MainForum() {
                         params.set("tagId", String(tag.id));
                     }
                 }
+            }
+            if (searchQuery) {
+                params.set("search", searchQuery);
             }
 
             const response = await fetch(`${API_BASE}/posts?${params.toString()}`, {
@@ -147,7 +151,7 @@ export function MainForum() {
         } finally {
             setIsLoading(false);
         }
-    }, [sortOption, selectedCategory, selectedTag]);
+    }, [sortOption, selectedCategory, selectedTag, searchQuery]);
 
     useEffect(() => {
         setSortOption(sortParam);
@@ -358,14 +362,14 @@ export function MainForum() {
                         <div className="flex items-center justify-between mb-6">
                             <div>
                                 <h1 className="text-xl md:text-2xl font-bold">
-                                    {selectedTag ? `#${selectedTag}` : selectedCategory ? "Category Discussions" : "All Discussions"}
+                                    {searchQuery ? `Search results for "${searchQuery}"` : selectedTag ? `#${selectedTag}` : selectedCategory ? "Category Discussions" : "All Discussions"}
                                 </h1>
                                 <p className="text-sm text-muted-foreground">
                                     {totalPosts} posts
                                 </p>
                             </div>
                             <div className="flex items-center gap-2">
-                                {(selectedCategory || selectedTag) && (
+                                {(selectedCategory || selectedTag || searchQuery) && (
                                     <Button
                                         variant="outline"
                                         size="sm"
@@ -373,6 +377,7 @@ export function MainForum() {
                                             const params = new URLSearchParams(searchParams);
                                             params.delete('category');
                                             params.delete('tag');
+                                            params.delete('search');
                                             setSearchParams(params);
                                         }}
                                     >
@@ -429,6 +434,7 @@ export function MainForum() {
                                         key={post.id}
                                         post={post}
                                         showAdminActions={isAdmin}
+                                        searchQuery={searchQuery}
                                         onPin={() => handlePinPost(post.id)}
                                         onLock={() => handleLockPost(post.id)}
                                         onDeleteClick={() => openDeleteModal(post)}
