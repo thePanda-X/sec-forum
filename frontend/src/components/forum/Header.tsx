@@ -132,8 +132,17 @@ export function Header({ user }: HeaderProps) {
                 placeholder="Search discussions..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-secondary border-none w-full"
+                className="pl-10 pr-10 bg-secondary border-none w-full [&::-webkit-search-cancel-button]:hidden"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 hover:bg-muted rounded-full p-0.5 transition-colors"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
+              )}
             </div>
           </div>
         )}
