@@ -775,6 +775,9 @@ export function MarkdownEditor({
           --wmd-toolbar-bg: transparent !important;
           background: transparent !important;
         }
+        .w-md-editor-toolbar {
+          display: none !important;
+        }
       `}</style>
     </div>
   );
