@@ -103,7 +103,11 @@ export function Header({ user }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4">
-        <div className="flex items-center gap-2">
+        <button
+          onClick={() => navigate("/")}
+          className="flex items-center gap-2 p-1 hover:bg-secondary rounded-md transition-colors cursor-pointer"
+          aria-label="Go to main forum"
+        >
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
             <svg
               viewBox="0 0 24 24"
@@ -118,7 +122,7 @@ export function Header({ user }: HeaderProps) {
             </svg>
           </div>
           <span className="text-xl font-semibold hidden sm:inline">SecureForum</span>
-        </div>
+        </button>
 
         {shouldShowSearch && (
           <div className={cn(
