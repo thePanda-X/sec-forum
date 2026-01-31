@@ -403,3 +403,55 @@ export function createExcerpt(markdown: string, maxLength: number = 150): string
 
   return plainText.substring(0, maxLength).trim() + "...";
 }
+
+/**
+ * Parses markdown for preview display with limited formatting.
+ * Supports: bold, italic, links, inline code
+ * Excludes: code blocks, tables, math, images, blockquotes, headers
+ */
+export function parseMarkdownPreview(markdown: string): string {
+  if (!markdown) return "";
+  
+  let text = markdown
+    // Remove code blocks (``` or ~~~)
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/~~~[\s\S]*?~~~/g, "")
+    // Remove math blocks ($$...$$)
+    .replace(/\$\$[\s\S]*?\$\$/g, "")
+    // Remove inline math ($...$) - be careful not to remove currency
+    .replace(/\$([^\$\n]+?)\$/g, "$1")
+    // Remove images ![alt](url)
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, "")
+    // Remove headers
+    .replace(/^#{1,6}\s+/gm, "")
+    // Remove blockquotes
+    .replace(/^>\s+/gm, "")
+    // Remove horizontal rules
+    .replace(/^[-*_]{3,}\s*$/gm, "")
+    // Remove list markers but keep content
+    .replace(/^[\s]*[-*+]\s+/gm, "")
+    .replace(/^[\s]*\d+\.\s+/gm, "")
+    // Normalize multiple newlines to single space
+    .replace(/\n+/g, " ")
+    .trim();
+
+  // Now parse inline formatting
+  // Bold: **text** or __text__
+  text = text.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  text = text.replace(/__([^_]+)__/g, "<strong>$1</strong>");
+  
+  // Italic: *text* or _text_ (but not inside words for underscore)
+  text = text.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+  text = text.replace(/(?<![a-zA-Z])_([^_]+)_(?![a-zA-Z])/g, "<em>$1</em>");
+  
+  // Strikethrough: ~~text~~
+  text = text.replace(/~~([^~]+)~~/g, "<del>$1</del>");
+  
+  // Inline code: `code`
+  text = text.replace(/`([^`]+)`/g, '<code class="preview-inline-code">$1</code>');
+  
+  // Links: [text](url) - make them non-clickable in preview for cleaner look
+  text = text.replace(/\[([^\]]+)\]\([^)]+\)/g, '<span class="preview-link">$1</span>');
+
+  return text;
+}

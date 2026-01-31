@@ -1,9 +1,11 @@
+import { useMemo } from "react";
 import { Pin, PinOff, MessageSquare, Eye, Lock, Pencil, Trash2, FolderTree, ArrowUp, ArrowDown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { highlightText } from "@/lib/highlight";
+import { parseMarkdownPreview } from "@/lib/markdown";
 
 interface PostTag {
   id: string;
@@ -72,6 +74,13 @@ export function PostCard({
   onTagClick,
 }: PostCardProps) {
   const navigate = useNavigate();
+
+  // Parse markdown for preview (memoized for performance)
+  const parsedExcerpt = useMemo(() => {
+    const mdHtml = parseMarkdownPreview(post.excerpt);
+    // Apply search highlighting on the parsed markdown
+    return highlightText(mdHtml, searchQuery || "");
+  }, [post.excerpt, searchQuery]);
 
   const handleAuthorClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -215,9 +224,9 @@ export function PostCard({
           </div>
 
           <p 
-            className="text-sm text-muted-foreground mt-2 line-clamp-2"
+            className="text-sm text-muted-foreground mt-2 line-clamp-2 markdown-preview-excerpt"
             dangerouslySetInnerHTML={{
-              __html: highlightText(post.excerpt, searchQuery || "")
+              __html: parsedExcerpt
             }}
           />
 
