@@ -1,0 +1,39 @@
+{
+  "notFound": "User not found",
+  "notFoundDesc": "The user you're looking for doesn't exist.",
+  "backToForum": "Back to Forum",
+  "editProfile": "Edit Profile",
+  "follow": "Follow",
+  "unfollow": "Unfollow",
+  "joined": "Joined {{date}}",
+  "loadFailed": "Failed to load profile",
+  "stats": {
+    "reputation": "Reputation",
+    "posts": "Posts",
+    "replies": "Replies",
+    "role": "Role"
+  },
+  "tabs": {
+    "posts": "Posts",
+    "followers": "Followers",
+    "following": "Following",
+    "activity": "Activity"
+  },
+  "empty": {
+    "noPosts": "No posts yet",
+    "noFollowers": "No followers yet",
+    "noFollowing": "Not following anyone yet",
+    "activitySoon": "Activity feed coming soon"
+  },
+  "website": "Website",
+  "toast": {
+    "followed": "Following {{name}}",
+    "followedDesc": "You'll see their posts in your feed.",
+    "unfollowed": "Unfollowed {{name}}",
+    "unfollowedDesc": "You won't see their posts in your feed anymore.",
+    "followFailed": "Failed to follow user",
+    "followFailedDesc": "Could not follow this user.",
+    "unfollowFailed": "Failed to unfollow user",
+    "unfollowFailedDesc": "Could not unfollow this user."
+  }
+}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Loader2, MessageSquare, X, Send } from "lucide-react";
 import { CommentItem, CommentData } from "./CommentItem";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,6 +14,7 @@ interface ReplyFormProps {
 }
 
 function ReplyForm({ postId, parentId, onReplySubmitted, onCancel }: ReplyFormProps) {
+    const { t } = useTranslation('forum');
     const { user } = useAuth();
     const [content, setContent] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,7 +50,7 @@ function ReplyForm({ postId, parentId, onReplySubmitted, onCancel }: ReplyFormPr
             <Textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="Write a reply..."
+                placeholder={t('comments.placeholder')}
                 rows={2}
                 disabled={isSubmitting}
                 autoFocus
@@ -62,12 +64,12 @@ function ReplyForm({ postId, parentId, onReplySubmitted, onCancel }: ReplyFormPr
                 >
                     {isSubmitting ? (
                         <>
-                            <span className="mr-2">Sending...</span>
+                            <span className="mr-2">{t('comments.sending')}</span>
                         </>
                     ) : (
                         <>
                             <Send className="h-3.5 w-3.5 mr-1.5" />
-                            Reply
+                            {t('comments.reply')}
                         </>
                     )}
                 </Button>
@@ -79,7 +81,7 @@ function ReplyForm({ postId, parentId, onReplySubmitted, onCancel }: ReplyFormPr
                     disabled={isSubmitting}
                 >
                     <X className="h-3.5 w-3.5 mr-1" />
-                    Cancel
+                    {t('comments.cancel')}
                 </Button>
             </div>
         </form>
@@ -92,6 +94,7 @@ interface CommentsProps {
 }
 
 export function Comments({ postId, postLocked }: CommentsProps) {
+    const { t } = useTranslation('forum');
     const { user } = useAuth();
     const [comments, setComments] = useState<CommentData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -122,7 +125,7 @@ export function Comments({ postId, postLocked }: CommentsProps) {
     }, [postId]);
 
     const handleDelete = async (commentId: string) => {
-        if (!confirm("Are you sure you want to delete this comment?")) return;
+        if (!confirm(t('comments.deleteConfirm'))) return;
 
         try {
             const response = await fetch(`/api/v1/comments/${commentId}`, {
@@ -207,7 +210,7 @@ export function Comments({ postId, postLocked }: CommentsProps) {
         <div className="mt-6">
             <div className="flex items-center gap-2 mb-4">
                 <MessageSquare className="h-5 w-5 text-muted-foreground" />
-                <h3 className="text-lg font-semibold">Comments</h3>
+                <h3 className="text-lg font-semibold">{t('comments.title')}</h3>
                 <span className="text-sm text-muted-foreground">({comments.length})</span>
             </div>
 
@@ -217,7 +220,7 @@ export function Comments({ postId, postLocked }: CommentsProps) {
                 </div>
             ) : comments.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                    No comments yet. Be the first to comment!
+                    {t('comments.noComments')}
                 </div>
             ) : (
                 <div className="space-y-4">
@@ -243,20 +246,20 @@ export function Comments({ postId, postLocked }: CommentsProps) {
                                             value={editContent}
                                             onChange={(e) => setEditContent(e.target.value)}
                                             className="w-full min-h-[100px] p-3 rounded-md border border-input bg-background text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring"
-                                            placeholder="Edit your comment..."
+                                            placeholder={t('comments.editPlaceholder')}
                                         />
                                         <div className="flex gap-2">
                                             <button
                                                 onClick={() => handleSaveEdit(comment.id)}
                                                 className="px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
                                             >
-                                                Save
+                                                {t('comments.save')}
                                             </button>
                                             <button
                                                 onClick={handleCancelEdit}
                                                 className="px-3 py-1.5 text-sm bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80"
                                             >
-                                                Cancel
+                                                {t('comments.cancel')}
                                             </button>
                                         </div>
                                     </div>
@@ -297,20 +300,20 @@ export function Comments({ postId, postLocked }: CommentsProps) {
                                                                 value={editContent}
                                                                 onChange={(e) => setEditContent(e.target.value)}
                                                                 className="w-full min-h-[100px] p-3 rounded-md border border-input bg-background text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring"
-                                                                placeholder="Edit your comment..."
+                                                                placeholder={t('comments.editPlaceholder')}
                                                             />
                                                             <div className="flex gap-2">
                                                                 <button
                                                                     onClick={() => handleSaveEdit(reply.id)}
                                                                     className="px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
                                                                 >
-                                                                    Save
+                                                                    {t('comments.save')}
                                                                 </button>
                                                                 <button
                                                                     onClick={handleCancelEdit}
                                                                     className="px-3 py-1.5 text-sm bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80"
                                                                 >
-                                                                    Cancel
+                                                                    {t('comments.cancel')}
                                                                 </button>
                                                             </div>
                                                         </div>

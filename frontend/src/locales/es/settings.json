@@ -1,0 +1,129 @@
+{
+  "title": "Configuración",
+  "tabs": {
+    "profile": "Perfil",
+    "notifications": "Notificaciones",
+    "appearance": "Apariencia",
+    "security": "Seguridad"
+  },
+  "profile": {
+    "title": "Información del perfil",
+    "subtitle": "Actualiza los detalles de tu perfil público",
+    "picture": {
+      "title": "Foto de perfil",
+      "subtitle": "Actualiza tu foto de perfil",
+      "change": "Cambiar foto"
+    },
+    "displayName": "Nombre para mostrar",
+    "bio": "Biografía",
+    "bioPlaceholder": "Cuéntanos sobre ti...",
+    "location": "Ubicación",
+    "locationPlaceholder": "¿Dónde te encuentras?",
+    "website": "Sitio web",
+    "websitePlaceholder": "https://tusitio.com",
+    "github": "Usuario de GitHub",
+    "githubPlaceholder": "Tu usuario de GitHub",
+    "twitter": "Usuario de Twitter",
+    "twitterPlaceholder": "@tuusuario",
+    "skills": "Habilidades (separadas por comas)",
+    "skillsPlaceholder": "React, TypeScript, Seguridad...",
+    "save": "Guardar perfil"
+  },
+  "notifications": {
+    "title": "Preferencias de notificaciones",
+    "subtitle": "Controla cómo recibes notificaciones",
+    "email": {
+      "title": "Notificaciones por correo",
+      "description": "Recibir notificaciones por correo electrónico"
+    },
+    "push": {
+      "title": "Notificaciones push",
+      "description": "Recibir notificaciones del navegador"
+    },
+    "replies": {
+      "title": "Correo para respuestas",
+      "description": "Recibe una notificación cuando alguien responda a tus publicaciones"
+    },
+    "mentions": {
+      "title": "Correo para menciones",
+      "description": "Recibe una notificación cuando alguien te mencione"
+    },
+    "digest": {
+      "title": "Resumen semanal",
+      "description": "Recibe un resumen semanal de actividad"
+    }
+  },
+  "appearance": {
+    "title": "Configuración de apariencia",
+    "subtitle": "Personaliza cómo se ve el foro",
+    "theme": {
+      "title": "Tema",
+      "light": "Claro",
+      "dark": "Oscuro"
+    },
+    "fontSize": {
+      "title": "Tamaño de fuente",
+      "small": "Pequeño",
+      "medium": "Mediano",
+      "large": "Grande"
+    },
+    "compactMode": {
+      "title": "Modo compacto",
+      "description": "Mostrar más contenido con menos espacio"
+    },
+    "language": {
+      "title": "Idioma",
+      "description": "Elige tu idioma preferido"
+    }
+  },
+  "security": {
+    "changePassword": {
+      "title": "Cambiar contraseña",
+      "subtitle": "Actualiza la contraseña de tu cuenta",
+      "current": "Contraseña actual",
+      "currentPlaceholder": "Ingresa la contraseña actual",
+      "new": "Nueva contraseña",
+      "newPlaceholder": "Ingresa la nueva contraseña",
+      "confirm": "Confirmar nueva contraseña",
+      "confirmPlaceholder": "Confirma la nueva contraseña",
+      "update": "Actualizar contraseña"
+    },
+    "dangerZone": {
+      "title": "Zona de peligro",
+      "subtitle": "Acciones irreversibles",
+      "deleteAccount": "Eliminar cuenta",
+      "deleteConfirmation": "¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer.",
+      "passwordPrompt": "Por favor ingresa tu contraseña para confirmar la eliminación de la cuenta:"
+    }
+  },
+  "toast": {
+    "profileUpdated": "Perfil actualizado",
+    "profileUpdatedDesc": "Tu configuración de perfil ha sido guardada.",
+    "profileFailed": "Error al guardar perfil",
+    "profileFailedDesc": "No se pudo actualizar la configuración del perfil.",
+    "avatarUpdated": "Avatar actualizado",
+    "avatarUpdatedDesc": "Tu foto de perfil ha sido cambiada.",
+    "avatarFailed": "Error al subir avatar",
+    "avatarFailedDesc": "No se pudo actualizar la foto de perfil.",
+    "appearanceUpdated": "Apariencia actualizada",
+    "appearanceUpdatedDesc": "Tu configuración de apariencia ha sido guardada.",
+    "notificationsUpdated": "Notificaciones actualizadas",
+    "notificationsUpdatedDesc": "Tus preferencias de notificaciones han sido guardadas.",
+    "passwordChanged": "Contraseña cambiada",
+    "passwordChangedDesc": "Tu contraseña ha sido actualizada correctamente.",
+    "passwordFailed": "Error al cambiar contraseña",
+    "passwordFailedDesc": "No se pudo actualizar la contraseña.",
+    "accountDeleted": "Cuenta eliminada",
+    "accountDeletedDesc": "Tu cuenta ha sido eliminada permanentemente.",
+    "accountDeleteFailed": "Error al eliminar cuenta",
+    "accountDeleteFailedDesc": "No se pudo eliminar la cuenta.",
+    "languageUpdated": "Idioma actualizado",
+    "languageUpdatedDesc": "Tu preferencia de idioma ha sido guardada."
+  },
+  "validation": {
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "passwordMismatchDesc": "Por favor asegúrate de que ambas contraseñas sean iguales.",
+    "passwordTooShort": "Contraseña muy corta",
+    "passwordTooShortDesc": "La contraseña debe tener al menos 8 caracteres."
+  }
+}

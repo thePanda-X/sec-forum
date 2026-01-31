@@ -14,6 +14,7 @@ export interface User {
     role: "user" | "moderator" | "admin";
     avatar?: string;
     bio?: string;
+    language?: string;
 }
 
 interface AuthContextType {
@@ -54,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     role: (userData.role?.toLowerCase() as "user" | "moderator" | "admin") || "user",
                     avatar: userData.avatar,
                     bio: userData.bio,
+                    language: userData.language,
                 });
             } else {
                 // Not authenticated - this is expected, not an error

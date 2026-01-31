@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { LogIn, UserPlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +18,7 @@ interface LoginModalProps {
 
 export function LoginModal({ open, onOpenChange }: LoginModalProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation('auth');
 
   const handleLogin = () => {
     onOpenChange(false);
@@ -39,9 +41,9 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
           <span className="sr-only">Close</span>
         </button>
         <DialogHeader className="pt-8">
-          <DialogTitle className="text-2xl font-semibold">Sign In Required</DialogTitle>
+          <DialogTitle className="text-2xl font-semibold">{t('modal.title')}</DialogTitle>
           <DialogDescription className="text-base">
-            You need to be signed in to interact with posts. Join our community to start participating.
+            {t('modal.description')}
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-3 py-4">
@@ -51,7 +53,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
             size="lg"
           >
             <LogIn className="h-5 w-5" />
-            Sign In
+            {t('modal.signIn')}
           </Button>
           <Button
             onClick={handleRegister}
@@ -60,11 +62,11 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
             size="lg"
           >
             <UserPlus className="h-5 w-5" />
-            Create Account
+            {t('modal.createAccount')}
           </Button>
         </div>
         <DialogFooter className="text-sm text-muted-foreground">
-          By continuing, you agree to our Terms of Service and Privacy Policy
+          {t('login.termsAgreement')}
         </DialogFooter>
       </DialogContent>
     </Dialog>

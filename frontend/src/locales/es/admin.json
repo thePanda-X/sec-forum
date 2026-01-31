@@ -1,0 +1,223 @@
+{
+  "title": "Panel de administración",
+  "subtitle": "Administra tu foro",
+  "tabs": {
+    "dashboard": "Panel",
+    "users": "Usuarios",
+    "posts": "Publicaciones",
+    "reports": "Reportes",
+    "categories": "Categorías",
+    "auditLog": "Registro de auditoría"
+  },
+  "dashboard": {
+    "totalUsers": "Total de usuarios",
+    "totalPosts": "Total de publicaciones",
+    "pendingReports": "Reportes pendientes",
+    "categories": "Categorías",
+    "banned": "{{count}} suspendidos",
+    "locked": "{{count}} bloqueados",
+    "totalReports": "{{count}} reportes totales",
+    "activeToday": "{{count}} activos hoy",
+    "quickActions": "Acciones rápidas",
+    "reviewReports": "Revisar reportes",
+    "manageUsers": "Gestionar usuarios",
+    "moderatePosts": "Moderar publicaciones",
+    "addCategory": "Agregar categoría",
+    "recentActivity": "Actividad reciente",
+    "noRecentActivity": "Sin actividad reciente",
+    "target": "Objetivo: {{target}}"
+  },
+  "users": {
+    "title": "Gestión de usuarios",
+    "subtitle": "Administra cuentas de usuario y permisos",
+    "search": "Buscar usuarios...",
+    "noUsers": "No se encontraron usuarios",
+    "columns": {
+      "user": "Usuario",
+      "role": "Rol",
+      "reputation": "Reputación",
+      "joined": "Registro",
+      "actions": "Acciones"
+    },
+    "actions": {
+      "ban": "Suspender usuario",
+      "unban": "Reactivar usuario",
+      "promote": "Promover usuario",
+      "demote": "Degradar usuario",
+      "promoteToMod": "Promover a moderador",
+      "demoteToUser": "Degradar a usuario",
+      "viewProfile": "Ver perfil"
+    },
+    "pagination": {
+      "showing": "Mostrando {{from}} a {{to}} de {{total}} usuarios",
+      "perPage": "{{count}} por página"
+    }
+  },
+  "posts": {
+    "title": "Gestión de publicaciones",
+    "subtitle": "Modera y administra las publicaciones del foro",
+    "search": "Buscar publicaciones...",
+    "noPosts": "No se encontraron publicaciones",
+    "columns": {
+      "post": "Publicación",
+      "author": "Autor",
+      "status": "Estado",
+      "created": "Creado",
+      "actions": "Acciones"
+    },
+    "actions": {
+      "pin": "Fijar publicación",
+      "unpin": "Desfijar publicación",
+      "lock": "Bloquear publicación",
+      "unlock": "Desbloquear publicación",
+      "delete": "Eliminar publicación",
+      "view": "Ver publicación"
+    },
+    "pagination": {
+      "showing": "Mostrando {{from}} a {{to}} de {{total}} publicaciones",
+      "perPage": "{{count}} por página"
+    }
+  },
+  "reports": {
+    "title": "Gestión de reportes",
+    "subtitle": "Revisa y gestiona los reportes de usuarios",
+    "noReports": "No se encontraron reportes",
+    "filterPlaceholder": "Filtrar reportes",
+    "allReports": "Todos los reportes",
+    "postReport": "Reporte de publicación",
+    "userReport": "Reporte de usuario",
+    "byUser": "Por {{username}}",
+    "status": {
+      "pending": "Pendiente",
+      "reviewed": "Revisado",
+      "resolved": "Resuelto",
+      "dismissed": "Descartado"
+    },
+    "actions": {
+      "review": "Revisar",
+      "resolve": "Resolver",
+      "dismiss": "Descartar"
+    }
+  },
+  "categories": {
+    "title": "Gestión de categorías",
+    "subtitle": "Organiza los temas del foro",
+    "noCategories": "No se encontraron categorías. ¡Crea tu primera categoría!",
+    "posts": "{{count}} publicaciones",
+    "add": "Agregar categoría",
+    "edit": "Editar categoría",
+    "editSubtitle": "Actualiza los detalles de la categoría.",
+    "addSubtitle": "Crea una nueva categoría para el foro.",
+    "form": {
+      "name": "Nombre",
+      "slug": "Slug",
+      "slugPlaceholder": "slug-amigable",
+      "slugHelp": "El slug se usará en las URLs. Déjalo vacío para generarlo automáticamente desde el nombre.",
+      "description": "Descripción",
+      "color": "Color",
+      "icon": "Icono"
+    },
+    "saveChanges": "Guardar cambios",
+    "create": "Crear categoría"
+  },
+  "auditLog": {
+    "title": "Registro de auditoría",
+    "subtitle": "Rastrea todas las acciones de administración",
+    "search": "Buscar en el registro...",
+    "noEntries": "No se encontraron entradas de auditoría",
+    "filterByUser": "Filtrar por usuario",
+    "selectUser": "Seleccionar usuario",
+    "searchUsers": "Buscar usuarios...",
+    "noUsersFound": "No se encontraron usuarios",
+    "columns": {
+      "action": "Acción",
+      "admin": "Admin",
+      "date": "Fecha"
+    },
+    "pagination": {
+      "showing": "Mostrando {{from}} a {{to}} de {{total}} entradas",
+      "perPage": "{{count}} por página"
+    }
+  },
+  "dialogs": {
+    "deletePost": {
+      "title": "Eliminar publicación",
+      "description": "¿Estás seguro de que quieres eliminar esta publicación? Esta acción no se puede deshacer.",
+      "byAuthor": "Por {{author}}",
+      "cancel": "Cancelar",
+      "delete": "Eliminar"
+    },
+    "userAction": {
+      "ban": {
+        "title": "Suspender usuario",
+        "description": "Este usuario ya no podrá acceder al foro. Esta acción puede revertirse más tarde.",
+        "confirm": "Suspender usuario"
+      },
+      "unban": {
+        "title": "Reactivar usuario",
+        "description": "Este usuario recuperará el acceso al foro.",
+        "confirm": "Reactivar usuario"
+      },
+      "promote": {
+        "title": "Promover usuario",
+        "description": "Este usuario será promovido a moderador y obtendrá permisos adicionales.",
+        "confirm": "Promover a moderador"
+      },
+      "demote": {
+        "title": "Degradar usuario",
+        "description": "Este usuario será degradado a usuario regular y perderá los permisos de moderador.",
+        "confirm": "Degradar a usuario"
+      },
+      "currentRole": "Rol actual: {{role}}",
+      "banned": "(Suspendido)",
+      "cancel": "Cancelar"
+    },
+    "deleteCategory": {
+      "confirm": "¿Estás seguro de que quieres eliminar esta categoría?"
+    }
+  },
+  "common": {
+    "cancel": "Cancelar"
+  },
+  "toast": {
+    "userBanned": "Usuario suspendido",
+    "userBannedDesc": "{{name}} ha sido suspendido del foro.",
+    "userUnbanned": "Usuario reactivado",
+    "userUnbannedDesc": "{{name}} ahora puede acceder al foro.",
+    "userPromoted": "Usuario promovido",
+    "userPromotedDesc": "{{name}} ahora es moderador.",
+    "userDemoted": "Usuario degradado",
+    "userDemotedDesc": "{{name}} ahora es un usuario regular.",
+    "postPinned": "Publicación fijada",
+    "postPinnedDesc": "La publicación aparecerá en la parte superior del foro.",
+    "postUnpinned": "Publicación desfijada",
+    "postUnpinnedDesc": "La publicación ha sido desfijada.",
+    "postLocked": "Publicación bloqueada",
+    "postLockedDesc": "Los comentarios han sido deshabilitados en esta publicación.",
+    "postUnlocked": "Publicación desbloqueada",
+    "postUnlockedDesc": "Los comentarios ahora están habilitados en esta publicación.",
+    "postDeleted": "Publicación eliminada",
+    "postDeletedDesc": "La publicación ha sido eliminada permanentemente.",
+    "reportResolved": "Reporte resuelto",
+    "reportResolvedDesc": "El reporte ha sido marcado como resuelto.",
+    "reportDismissed": "Reporte descartado",
+    "reportDismissedDesc": "El reporte ha sido descartado.",
+    "reportReviewed": "Reporte revisado",
+    "reportReviewedDesc": "El reporte ha sido marcado para revisión.",
+    "categoryCreated": "Categoría creada",
+    "categoryCreatedDesc": "\"{{name}}\" ha sido creada.",
+    "categoryUpdated": "Categoría actualizada",
+    "categoryUpdatedDesc": "\"{{name}}\" ha sido actualizada.",
+    "categoryDeleted": "Categoría eliminada",
+    "categoryDeletedDesc": "La categoría ha sido eliminada permanentemente.",
+    "actionFailed": "Error al {{action}}",
+    "actionFailedDesc": "No se pudo completar la acción.",
+    "errorOccurred": "Ocurrió un error.",
+    "saveCategoryFailed": "Error al guardar categoría",
+    "saveCategoryFailedDesc": "No se pudo guardar la categoría.",
+    "deleteCategoryFailed": "Error al eliminar categoría",
+    "deleteCategoryFailedDesc": "No se pudo eliminar la categoría.",
+    "deletePostFailed": "Error al eliminar publicación",
+    "deletePostFailedDesc": "No se pudo eliminar la publicación."
+  }
+}

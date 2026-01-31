@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Search, Bell, User, Settings, Shield, LogOut, Menu, X, LogIn, UserPlus } from "lucide-react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { NotificationsDropdown } from "./NotificationsDropdown";
 import { LoginModal } from "@/components/auth/LoginModal";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDebounce } from "@/hooks/useDebounce";
 import { cn } from "@/lib/utils";
@@ -42,6 +44,7 @@ export function Header({ user }: HeaderProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  const { t } = useTranslation(['forum', 'auth', 'common']);
   const [notificationCount, setNotificationCount] = useState(0);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -133,7 +136,7 @@ export function Header({ user }: HeaderProps) {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search discussions..."
+                placeholder={t('forum:header.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-10 bg-secondary border-none w-full [&::-webkit-search-cancel-button]:hidden"
@@ -158,6 +161,8 @@ export function Header({ user }: HeaderProps) {
           >
             <Search className="h-5 w-5 text-muted-foreground" />
           </button>
+
+          <LanguageSwitcher />
 
           <Popover open={popoverOpen} onOpenChange={handlePopoverChange}>
             <PopoverTrigger asChild>
@@ -212,21 +217,21 @@ export function Header({ user }: HeaderProps) {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuLabel>{t('auth:myAccount')}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="cursor-pointer"
                   onClick={() => user.username && navigate(`/profile/${user.username}`)}
                 >
                   <User className="mr-2 h-4 w-4" />
-                  Profile
+                  {t('auth:profile')}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="cursor-pointer"
                   onClick={() => navigate("/settings")}
                 >
                   <Settings className="mr-2 h-4 w-4" />
-                  Settings
+                  {t('auth:settings')}
                 </DropdownMenuItem>
                 {(user.isAdmin || user.isModerator) && (
                   <DropdownMenuItem
@@ -234,7 +239,7 @@ export function Header({ user }: HeaderProps) {
                     onClick={() => navigate("/admin")}
                   >
                     <Shield className="mr-2 h-4 w-4" />
-                    Admin Panel
+                    {t('forum:header.adminPanel')}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
@@ -243,7 +248,7 @@ export function Header({ user }: HeaderProps) {
                   onClick={handleLogout}
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  Logout
+                  {t('auth:logout')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -256,7 +261,7 @@ export function Header({ user }: HeaderProps) {
                 className="hidden sm:flex gap-2"
               >
                 <LogIn className="h-4 w-4" />
-                Sign In
+                {t('auth:login.signIn')}
               </Button>
               <Button
                 size="sm"
@@ -264,8 +269,8 @@ export function Header({ user }: HeaderProps) {
                 className="gap-2"
               >
                 <UserPlus className="h-4 w-4" />
-                <span className="hidden sm:inline">Sign Up</span>
-                <span className="sm:hidden">Sign Up</span>
+                <span className="hidden sm:inline">{t('auth:register.title')}</span>
+                <span className="sm:hidden">{t('auth:register.title')}</span>
               </Button>
             </div>
           )}
@@ -296,7 +301,7 @@ export function Header({ user }: HeaderProps) {
                   className="flex items-center justify-center gap-2 w-full py-2 bg-primary text-primary-foreground rounded-md font-medium"
                 >
                   <UserPlus className="h-4 w-4" />
-                  Sign Up
+                  {t('auth:register.title')}
                 </button>
                 <button
                   onClick={() => {
@@ -306,12 +311,12 @@ export function Header({ user }: HeaderProps) {
                   className="flex items-center justify-center gap-2 w-full py-2 bg-secondary text-secondary-foreground rounded-md font-medium"
                 >
                   <LogIn className="h-4 w-4" />
-                  Sign In
+                  {t('auth:login.signIn')}
                 </button>
               </>
             )}
             <div className="text-sm text-muted-foreground text-center">
-              Use the menu to navigate categories
+              {t('forum:header.menuHint')}
             </div>
           </div>
         </div>

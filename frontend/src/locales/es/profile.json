@@ -1,0 +1,39 @@
+{
+  "notFound": "Usuario no encontrado",
+  "notFoundDesc": "El usuario que buscas no existe.",
+  "backToForum": "Volver al foro",
+  "editProfile": "Editar perfil",
+  "follow": "Seguir",
+  "unfollow": "Dejar de seguir",
+  "joined": "Se unió en {{date}}",
+  "loadFailed": "Error al cargar perfil",
+  "stats": {
+    "reputation": "Reputación",
+    "posts": "Publicaciones",
+    "replies": "Respuestas",
+    "role": "Rol"
+  },
+  "tabs": {
+    "posts": "Publicaciones",
+    "followers": "Seguidores",
+    "following": "Siguiendo",
+    "activity": "Actividad"
+  },
+  "empty": {
+    "noPosts": "Sin publicaciones aún",
+    "noFollowers": "Sin seguidores aún",
+    "noFollowing": "No sigue a nadie aún",
+    "activitySoon": "Feed de actividad próximamente"
+  },
+  "website": "Sitio web",
+  "toast": {
+    "followed": "Siguiendo a {{name}}",
+    "followedDesc": "Verás sus publicaciones en tu feed.",
+    "unfollowed": "Dejaste de seguir a {{name}}",
+    "unfollowedDesc": "Ya no verás sus publicaciones en tu feed.",
+    "followFailed": "Error al seguir usuario",
+    "followFailedDesc": "No se pudo seguir a este usuario.",
+    "unfollowFailed": "Error al dejar de seguir",
+    "unfollowFailedDesc": "No se pudo dejar de seguir a este usuario."
+  }
+}

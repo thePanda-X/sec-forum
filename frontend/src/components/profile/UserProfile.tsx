@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/forum/Header';
@@ -63,6 +64,7 @@ interface FollowerUser {
 }
 
 export function UserProfile() {
+    const { t } = useTranslation('profile');
     const { username } = useParams<{ username: string }>();
     const { user: currentUser } = useAuth();
     const navigate = useNavigate();
@@ -107,9 +109,9 @@ export function UserProfile() {
 
             if (!response.ok) {
                 if (response.status === 404) {
-                    setError('User not found');
+                    setError(t('notFound'));
                 } else {
-                    setError('Failed to load profile');
+                    setError(t('loadFailed'));
                 }
                 return;
             }
@@ -117,7 +119,7 @@ export function UserProfile() {
             const data = await response.json();
             setProfile(data);
         } catch (err) {
-            setError('Failed to load profile');
+            setError(t('loadFailed'));
             console.error('Failed to fetch profile:', err);
         } finally {
             setIsLoading(false);
@@ -193,18 +195,18 @@ export function UserProfile() {
                     ...prev,
                     followersCount: prev.followersCount + 1
                 } : null);
-                toast.success(`Following ${profile.displayName || profile.username}`, {
-                    description: "You'll see their posts in your feed.",
+                toast.success(t('toast.followed', { name: profile.displayName || profile.username }), {
+                    description: t('toast.followedDesc'),
                 });
             } else {
-                toast.error('Failed to follow user', {
-                    description: 'Could not follow this user.',
+                toast.error(t('toast.followFailed'), {
+                    description: t('toast.followFailedDesc'),
                 });
             }
         } catch (err) {
             console.error('Failed to follow user:', err);
-            toast.error('Failed to follow user', {
-                description: 'An error occurred.',
+            toast.error(t('toast.followFailed'), {
+                description: t('toast.followFailedDesc'),
             });
         } finally {
             setFollowLoading(false);
@@ -227,18 +229,18 @@ export function UserProfile() {
                     ...prev,
                     followersCount: Math.max(0, prev.followersCount - 1)
                 } : null);
-                toast.success(`Unfollowed ${profile.displayName || profile.username}`, {
-                    description: "You won't see their posts in your feed anymore.",
+                toast.success(t('toast.unfollowed', { name: profile.displayName || profile.username }), {
+                    description: t('toast.unfollowedDesc'),
                 });
             } else {
-                toast.error('Failed to unfollow user', {
-                    description: 'Could not unfollow this user.',
+                toast.error(t('toast.unfollowFailed'), {
+                    description: t('toast.unfollowFailedDesc'),
                 });
             }
         } catch (err) {
             console.error('Failed to unfollow user:', err);
-            toast.error('Failed to unfollow user', {
-                description: 'An error occurred.',
+            toast.error(t('toast.unfollowFailed'), {
+                description: t('toast.unfollowFailedDesc'),
             });
         } finally {
             setFollowLoading(false);
@@ -320,11 +322,11 @@ export function UserProfile() {
                         className="flex items-center text-muted-foreground hover:text-foreground mb-4 transition-colors"
                     >
                         <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back to Forum
+                        {t('backToForum')}
                     </button>
                     <div className="text-center py-20">
-                        <h2 className="text-xl font-semibold mb-2">{error || 'User not found'}</h2>
-                        <p className="text-muted-foreground">The user you're looking for doesn't exist.</p>
+                        <h2 className="text-xl font-semibold mb-2">{error || t('notFound')}</h2>
+                        <p className="text-muted-foreground">{t('notFoundDesc')}</p>
                     </div>
                 </div>
             </div>
@@ -349,7 +351,7 @@ export function UserProfile() {
                         className="flex items-center text-muted-foreground hover:text-foreground mb-4 transition-colors"
                     >
                         <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back to Forum
+                        {t('backToForum')}
                     </button>
 
                     {/* Profile Card */}
@@ -395,7 +397,7 @@ export function UserProfile() {
                                         <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1 flex-wrap">
                                             <span className="flex items-center gap-1">
                                                 <Calendar className="h-4 w-4" />
-                                                Joined {formatDate(profile.createdAt)}
+                                                {t('joined', { date: formatDate(profile.createdAt) })}
                                             </span>
                                             {profile.location && (
                                                 <span className="flex items-center gap-1">
@@ -414,7 +416,7 @@ export function UserProfile() {
                                             className="gap-2"
                                         >
                                             <Pencil className="h-4 w-4" />
-                                            Edit Profile
+                                            {t('editProfile')}
                                         </Button>
                                     ) : (
                                         <Button
@@ -428,12 +430,12 @@ export function UserProfile() {
                                             ) : isFollowing ? (
                                                 <>
                                                     <UserMinus className="h-4 w-4" />
-                                                    Unfollow
+                                                    {t('unfollow')}
                                                 </>
                                             ) : (
                                                 <>
                                                     <UserPlus className="h-4 w-4" />
-                                                    Follow
+                                                    {t('follow')}
                                                 </>
                                             )}
                                         </Button>
@@ -457,7 +459,7 @@ export function UserProfile() {
                                             className="flex items-center gap-1 hover:text-foreground transition-colors"
                                         >
                                             <Globe className="h-4 w-4" />
-                                            Website
+                                            {t('website')}
                                         </a>
                                     )}
                                     {profile.githubUsername && (
@@ -507,22 +509,22 @@ export function UserProfile() {
                         <StatCard
                             icon={<Star className="h-5 w-5 text-amber-500" />}
                             value={posts.reduce((acc, p) => acc + (p.views || 0), 0)}
-                            label="Reputation"
+                            label={t('stats.reputation')}
                         />
                         <StatCard
                             icon={<FileText className="h-5 w-5 text-primary" />}
                             value={posts.length}
-                            label="Posts"
+                            label={t('stats.posts')}
                         />
                         <StatCard
                             icon={<MessageSquare className="h-5 w-5 text-blue-500" />}
                             value={posts.reduce((acc, p) => acc + (p.commentCount || 0), 0)}
-                            label="Replies"
+                            label={t('stats.replies')}
                         />
                         <StatCard
                             icon={<Shield className="h-5 w-5 text-green-500" />}
                             value={getRoleDisplayName(profile.role)}
-                            label="Role"
+                            label={t('stats.role')}
                             isText
                         />
                     </div>
@@ -535,27 +537,27 @@ export function UserProfile() {
                                 onClick={() => setActiveTab('posts')}
                                 count={posts.length}
                             >
-                                Posts
+                                {t('tabs.posts')}
                             </TabButton>
                             <TabButton
                                 active={activeTab === 'followers'}
                                 onClick={() => setActiveTab('followers')}
                                 count={profile.followersCount}
                             >
-                                Followers
+                                {t('tabs.followers')}
                             </TabButton>
                             <TabButton
                                 active={activeTab === 'following'}
                                 onClick={() => setActiveTab('following')}
                                 count={profile.followingCount}
                             >
-                                Following
+                                {t('tabs.following')}
                             </TabButton>
                             <TabButton
                                 active={activeTab === 'activity'}
                                 onClick={() => setActiveTab('activity')}
                             >
-                                Activity
+                                {t('tabs.activity')}
                             </TabButton>
                         </div>
 
@@ -563,7 +565,7 @@ export function UserProfile() {
                             {activeTab === 'posts' && (
                                 <div className="space-y-4">
                                     {posts.length === 0 ? (
-                                        <p className="text-muted-foreground text-center py-8">No posts yet</p>
+                                        <p className="text-muted-foreground text-center py-8">{t('empty.noPosts')}</p>
                                     ) : (
                                         posts.map((post) => (
                                             <PostItem
@@ -580,7 +582,7 @@ export function UserProfile() {
                             {activeTab === 'followers' && (
                                 <div className="space-y-3">
                                     {followers.length === 0 ? (
-                                        <p className="text-muted-foreground text-center py-8">No followers yet</p>
+                                        <p className="text-muted-foreground text-center py-8">{t('empty.noFollowers')}</p>
                                     ) : (
                                         followers.map((follower) => (
                                             <UserItem
@@ -596,7 +598,7 @@ export function UserProfile() {
                             {activeTab === 'following' && (
                                 <div className="space-y-3">
                                     {following.length === 0 ? (
-                                        <p className="text-muted-foreground text-center py-8">Not following anyone yet</p>
+                                        <p className="text-muted-foreground text-center py-8">{t('empty.noFollowing')}</p>
                                     ) : (
                                         following.map((user) => (
                                             <UserItem
@@ -610,7 +612,7 @@ export function UserProfile() {
                             )}
 
                             {activeTab === 'activity' && (
-                                <p className="text-muted-foreground text-center py-8">Activity feed coming soon</p>
+                                <p className="text-muted-foreground text-center py-8">{t('empty.activitySoon')}</p>
                             )}
                         </div>
                     </div>

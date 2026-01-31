@@ -1,0 +1,27 @@
+{
+  "title": "Notifications",
+  "markAllRead": "Mark all read",
+  "markAsRead": "Mark as read",
+  "clearAll": "Clear all",
+  "noNotifications": "No notifications",
+  "types": {
+    "reply": "New Reply",
+    "mention": "You were mentioned",
+    "like": "Post Liked",
+    "achievement": "Achievement Unlocked",
+    "follow": "New Follower",
+    "default": "Notification"
+  },
+  "messages": {
+    "startedFollowing": "started following you",
+    "repliedToComment": "replied to your comment",
+    "mentionedYou": "mentioned you in a comment",
+    "likedPost": "liked your post"
+  },
+  "toast": {
+    "markedAsRead": "All notifications marked as read",
+    "cleared": "All notifications cleared",
+    "markReadFailed": "Failed to mark notifications as read",
+    "clearFailed": "Failed to clear notifications"
+  }
+}

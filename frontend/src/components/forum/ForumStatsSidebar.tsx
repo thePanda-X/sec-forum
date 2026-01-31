@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
     TrendingUp,
     MessageSquare,
@@ -58,6 +59,7 @@ interface ForumStatsSidebarProps {
 }
 
 export function ForumStatsSidebar({ className, selectedTag, onTagClick }: ForumStatsSidebarProps) {
+    const { t } = useTranslation('forum');
     const [stats, setStats] = useState<ForumStats>({
         totalPosts: 0,
         members: 0,
@@ -140,27 +142,27 @@ export function ForumStatsSidebar({ className, selectedTag, onTagClick }: ForumS
             <div className="rounded-lg border border-border bg-card p-4 mb-3">
                 <h3 className="flex items-center gap-2 font-semibold mb-4">
                     <TrendingUp className="h-4 w-4 text-primary" />
-                    Forum Statistics
+                    {t('stats.title')}
                 </h3>
                 <div className="space-y-3">
                     <StatItem
                         icon={<MessageSquare className="h-4 w-4" />}
-                        label="Total Posts"
+                        label={t('stats.totalPosts')}
                         value={stats.totalPosts}
                     />
                     <StatItem
                         icon={<Users className="h-4 w-4" />}
-                        label="Members"
+                        label={t('stats.members')}
                         value={stats.members.toLocaleString()}
                     />
                     <StatItem
                         icon={<MessageSquare className="h-4 w-4" />}
-                        label="Total Replies"
+                        label={t('stats.totalReplies')}
                         value={stats.totalReplies}
                     />
                     <StatItem
                         icon={<Eye className="h-4 w-4" />}
-                        label="Online Now"
+                        label={t('stats.onlineNow')}
                         value={stats.onlineNow}
                         highlight
                     />
@@ -172,7 +174,7 @@ export function ForumStatsSidebar({ className, selectedTag, onTagClick }: ForumS
                 <div className="rounded-lg border border-border bg-card p-4 mb-3">
                     <h3 className="flex items-center gap-2 font-semibold mb-4">
                         <Trophy className="h-4 w-4 text-amber-500" />
-                        Top Contributors
+                        {t('stats.topContributors')}
                     </h3>
                     <div className="space-y-3">
                         {topContributors.map((contributor) => (
@@ -202,7 +204,7 @@ export function ForumStatsSidebar({ className, selectedTag, onTagClick }: ForumS
                                         )}
                                     </div>
                                     <span className="text-xs text-muted-foreground">
-                                        {contributor.reputation} rep • {contributor.posts} posts
+                                        {t('stats.repAndPosts', { rep: contributor.reputation, posts: contributor.posts })}
                                     </span>
                                 </div>
                             </div>
@@ -214,7 +216,7 @@ export function ForumStatsSidebar({ className, selectedTag, onTagClick }: ForumS
             {/* Trending Tags */}
             {trendingTags.length > 0 && (
                 <div className="rounded-lg border border-border bg-card p-4 mb-3">
-                    <h3 className="font-semibold mb-4">Trending Tags</h3>
+                    <h3 className="font-semibold mb-4">{t('stats.trendingTags')}</h3>
                     <div className="flex flex-wrap gap-2">
                         {trendingTags.map((tag) => {
                             const tagWithoutHash = tag.name.startsWith('#') ? tag.name.slice(1) : tag.name;

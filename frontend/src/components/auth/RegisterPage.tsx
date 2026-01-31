@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { translateApiKey } from "@/i18n";
 import { Shield, Eye, EyeOff, Loader2, CheckCircle } from "lucide-react";
 
 export function RegisterPage() {
   const navigate = useNavigate();
   const { register } = useAuth();
+  const { t } = useTranslation(['auth', 'settings', 'errors']);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,25 +21,25 @@ export function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const passwordRequirements = [
-    { met: password.length >= 8, text: "At least 8 characters" },
-    { met: /[A-Z]/.test(password), text: "One uppercase letter" },
-    { met: /[a-z]/.test(password), text: "One lowercase letter" },
-    { met: /[0-9]/.test(password), text: "One number" },
+    { met: password.length >= 8, text: t('auth:register.passwordRequirements.minLength') },
+    { met: /[A-Z]/.test(password), text: t('auth:register.passwordRequirements.uppercase') },
+    { met: /[a-z]/.test(password), text: t('auth:register.passwordRequirements.lowercase') },
+    { met: /[0-9]/.test(password), text: t('auth:register.passwordRequirements.number') },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match", {
-        description: "Please make sure both passwords are the same.",
+      toast.error(t('settings:validation.passwordMismatch'), {
+        description: t('settings:validation.passwordMismatchDesc'),
       });
       return;
     }
 
     if (password.length < 8) {
-      toast.error("Password too short", {
-        description: "Password must be at least 8 characters long.",
+      toast.error(t('settings:validation.passwordTooShort'), {
+        description: t('settings:validation.passwordTooShortDesc'),
       });
       return;
     }
@@ -44,13 +48,14 @@ export function RegisterPage() {
 
     try {
       await register(email, password, name);
-      toast.success("Account created!", {
-        description: "Welcome to the security forum community.",
+      toast.success(t('auth:toast.registerSuccess'), {
+        description: t('auth:toast.registerSuccessDesc'),
       });
       navigate("/");
     } catch (err) {
-      toast.error("Registration failed", {
-        description: err instanceof Error ? err.message : "Could not create account",
+      const errorMessage = err instanceof Error ? err.message : "Could not create account";
+      toast.error(t('auth:toast.registerFailed'), {
+        description: translateApiKey(errorMessage),
       });
     } finally {
       setIsLoading(false);
@@ -59,14 +64,17 @@ export function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher />
+      </div>
       <div className="w-full max-w-md">
         <div className="text-center mb-6 md:mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full bg-primary/10 mb-3 md:mb-4">
             <Shield className="w-6 h-6 md:w-8 md:h-8 text-primary" />
           </div>
-          <h1 className="text-xl md:text-2xl font-bold text-foreground">Create Account</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-foreground">{t('auth:register.title')}</h1>
           <p className="text-sm text-muted-foreground mt-1 md:mt-2">
-            Join the security forum community
+            {t('auth:register.subtitle')}
           </p>
         </div>
 
@@ -77,12 +85,12 @@ export function RegisterPage() {
                 htmlFor="name"
                 className="text-sm font-medium text-foreground"
               >
-                Display Name
+                {t('auth:register.displayName')}
               </label>
               <Input
                 id="name"
                 type="text"
-                placeholder="How should we call you?"
+                placeholder={t('auth:register.displayNamePlaceholder')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
@@ -96,12 +104,12 @@ export function RegisterPage() {
                 htmlFor="email"
                 className="text-sm font-medium text-foreground"
               >
-                Email
+                {t('auth:register.email')}
               </label>
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder={t('auth:register.emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -115,13 +123,13 @@ export function RegisterPage() {
                 htmlFor="password"
                 className="text-sm font-medium text-foreground"
               >
-                Password
+                {t('auth:register.password')}
               </label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Create a password"
+                  placeholder={t('auth:register.passwordPlaceholder')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -165,12 +173,12 @@ export function RegisterPage() {
                 htmlFor="confirmPassword"
                 className="text-sm font-medium text-foreground"
               >
-                Confirm Password
+                {t('auth:register.confirmPassword')}
               </label>
               <Input
                 id="confirmPassword"
                 type={showPassword ? "text" : "password"}
-                placeholder="Confirm your password"
+                placeholder={t('auth:register.confirmPasswordPlaceholder')}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -183,25 +191,24 @@ export function RegisterPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Creating account...
+                  {t('auth:register.creatingAccount')}
                 </>
               ) : (
-                "Create Account"
+                t('auth:register.createAccount')
               )}
             </Button>
           </form>
 
           <div className="mt-4 md:mt-6 text-center text-sm text-muted-foreground">
-            Already have an account?{" "}
+            {t('auth:register.hasAccount')}{" "}
             <Link to="/login" className="text-primary hover:underline">
-              Sign in
+              {t('auth:register.signIn')}
             </Link>
           </div>
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-4 md:mt-6 px-2">
-          By creating an account, you agree to our Terms of Service and Privacy
-          Policy
+          {t('auth:login.termsAgreement')}
         </p>
       </div>
     </div>

@@ -1,0 +1,129 @@
+{
+  "title": "Settings",
+  "tabs": {
+    "profile": "Profile",
+    "notifications": "Notifications",
+    "appearance": "Appearance",
+    "security": "Security"
+  },
+  "profile": {
+    "title": "Profile Information",
+    "subtitle": "Update your public profile details",
+    "picture": {
+      "title": "Profile Picture",
+      "subtitle": "Update your profile photo",
+      "change": "Change Photo"
+    },
+    "displayName": "Display Name",
+    "bio": "Bio",
+    "bioPlaceholder": "Tell us about yourself...",
+    "location": "Location",
+    "locationPlaceholder": "Where are you based?",
+    "website": "Website",
+    "websitePlaceholder": "https://yourwebsite.com",
+    "github": "GitHub Username",
+    "githubPlaceholder": "Your GitHub username",
+    "twitter": "Twitter Handle",
+    "twitterPlaceholder": "@yourhandle",
+    "skills": "Skills (comma separated)",
+    "skillsPlaceholder": "React, TypeScript, Security...",
+    "save": "Save Profile"
+  },
+  "notifications": {
+    "title": "Notification Preferences",
+    "subtitle": "Control how you receive notifications",
+    "email": {
+      "title": "Email Notifications",
+      "description": "Receive email notifications"
+    },
+    "push": {
+      "title": "Push Notifications",
+      "description": "Receive browser push notifications"
+    },
+    "replies": {
+      "title": "Email for Replies",
+      "description": "Get notified when someone replies to your posts"
+    },
+    "mentions": {
+      "title": "Email for Mentions",
+      "description": "Get notified when someone mentions you"
+    },
+    "digest": {
+      "title": "Weekly Digest",
+      "description": "Receive a weekly summary of activity"
+    }
+  },
+  "appearance": {
+    "title": "Appearance Settings",
+    "subtitle": "Customize how the forum looks",
+    "theme": {
+      "title": "Theme",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "fontSize": {
+      "title": "Font Size",
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large"
+    },
+    "compactMode": {
+      "title": "Compact Mode",
+      "description": "Show more content with less spacing"
+    },
+    "language": {
+      "title": "Language",
+      "description": "Choose your preferred language"
+    }
+  },
+  "security": {
+    "changePassword": {
+      "title": "Change Password",
+      "subtitle": "Update your account password",
+      "current": "Current Password",
+      "currentPlaceholder": "Enter current password",
+      "new": "New Password",
+      "newPlaceholder": "Enter new password",
+      "confirm": "Confirm New Password",
+      "confirmPlaceholder": "Confirm new password",
+      "update": "Update Password"
+    },
+    "dangerZone": {
+      "title": "Danger Zone",
+      "subtitle": "Irreversible actions",
+      "deleteAccount": "Delete Account",
+      "deleteConfirmation": "Are you sure you want to delete your account? This action cannot be undone.",
+      "passwordPrompt": "Please enter your password to confirm account deletion:"
+    }
+  },
+  "toast": {
+    "profileUpdated": "Profile updated",
+    "profileUpdatedDesc": "Your profile settings have been saved.",
+    "profileFailed": "Failed to save profile",
+    "profileFailedDesc": "Could not update profile settings.",
+    "avatarUpdated": "Avatar updated",
+    "avatarUpdatedDesc": "Your profile picture has been changed.",
+    "avatarFailed": "Failed to upload avatar",
+    "avatarFailedDesc": "Could not update profile picture.",
+    "appearanceUpdated": "Appearance updated",
+    "appearanceUpdatedDesc": "Your appearance settings have been saved.",
+    "notificationsUpdated": "Notifications updated",
+    "notificationsUpdatedDesc": "Your notification preferences have been saved.",
+    "passwordChanged": "Password changed",
+    "passwordChangedDesc": "Your password has been updated successfully.",
+    "passwordFailed": "Failed to change password",
+    "passwordFailedDesc": "Could not update password.",
+    "accountDeleted": "Account deleted",
+    "accountDeletedDesc": "Your account has been permanently deleted.",
+    "accountDeleteFailed": "Failed to delete account",
+    "accountDeleteFailedDesc": "Could not delete account.",
+    "languageUpdated": "Language updated",
+    "languageUpdatedDesc": "Your language preference has been saved."
+  },
+  "validation": {
+    "passwordMismatch": "Passwords do not match",
+    "passwordMismatchDesc": "Please make sure both passwords are the same.",
+    "passwordTooShort": "Password too short",
+    "passwordTooShortDesc": "Password must be at least 8 characters long."
+  }
+}

@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/components/theme-provider';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { SUPPORTED_LANGUAGES, LANGUAGE_NAMES, type SupportedLanguage } from '@/i18n';
 import { Header } from '@/components/forum/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +15,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { User, Bell, Palette, Shield, Upload, Loader2, ArrowLeft, Save, ChevronDown, Trash2, AlertTriangle } from 'lucide-react';
+import { User, Bell, Palette, Shield, Upload, Loader2, ArrowLeft, Save, ChevronDown, Trash2, AlertTriangle, Globe } from 'lucide-react';
 
 const API_BASE = '/api/v1';
 
@@ -45,8 +48,10 @@ interface AppearanceSettings {
 }
 
 export function UserSettings() {
+    const { t } = useTranslation('settings');
     const { user } = useAuth();
     const { theme, setTheme } = useTheme();
+    const { language, setLanguage } = useLanguage();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
     const [isLoading, setIsLoading] = useState(true);
@@ -84,10 +89,10 @@ export function UserSettings() {
     });
 
     const tabs = [
-        { id: 'profile' as const, label: 'Profile', icon: User },
-        { id: 'notifications' as const, label: 'Notifications', icon: Bell },
-        { id: 'appearance' as const, label: 'Appearance', icon: Palette },
-        { id: 'security' as const, label: 'Security', icon: Shield },
+        { id: 'profile' as const, label: t('tabs.profile'), icon: User },
+        { id: 'notifications' as const, label: t('tabs.notifications'), icon: Bell },
+        { id: 'appearance' as const, label: t('tabs.appearance'), icon: Palette },
+        { id: 'security' as const, label: t('tabs.security'), icon: Shield },
     ];
 
     useEffect(() => {
@@ -154,18 +159,18 @@ export function UserSettings() {
             });
 
             if (response.ok) {
-                toast.success('Profile updated', {
-                    description: 'Your profile settings have been saved.',
+                toast.success(t('toast.profileUpdated'), {
+                    description: t('toast.profileUpdatedDesc'),
                 });
             } else {
                 const error = await response.json();
-                toast.error('Failed to save profile', {
-                    description: error.error || 'Could not update profile settings.',
+                toast.error(t('toast.profileFailed'), {
+                    description: error.error || t('toast.profileFailedDesc'),
                 });
             }
         } catch (error) {
-            toast.error('Failed to save profile', {
-                description: 'An error occurred while saving.',
+            toast.error(t('toast.profileFailed'), {
+                description: t('toast.profileFailedDesc'),
             });
         }
     };
@@ -185,18 +190,18 @@ export function UserSettings() {
 
             if (response.ok) {
                 setTheme(appearance.theme);
-                toast.success('Appearance updated', {
-                    description: 'Your appearance settings have been saved.',
+                toast.success(t('toast.appearanceUpdated'), {
+                    description: t('toast.appearanceUpdatedDesc'),
                 });
             } else {
                 const error = await response.json();
-                toast.error('Failed to save appearance', {
-                    description: error.error || 'Could not update appearance settings.',
+                toast.error(t('toast.appearanceFailed'), {
+                    description: error.error || t('toast.appearanceFailedDesc'),
                 });
             }
         } catch (error) {
-            toast.error('Failed to save appearance', {
-                description: 'An error occurred while saving.',
+            toast.error(t('toast.appearanceFailed'), {
+                description: t('toast.appearanceFailedDesc'),
             });
         }
     };
@@ -214,33 +219,33 @@ export function UserSettings() {
             });
 
             if (response.ok) {
-                toast.success('Notifications updated', {
-                    description: 'Your notification preferences have been saved.',
+                toast.success(t('toast.notificationsUpdated'), {
+                    description: t('toast.notificationsUpdatedDesc'),
                 });
             } else {
                 const error = await response.json();
-                toast.error('Failed to save notifications', {
-                    description: error.error || 'Could not update notification settings.',
+                toast.error(t('toast.notificationsFailed'), {
+                    description: error.error || t('toast.notificationsFailedDesc'),
                 });
             }
         } catch (error) {
-            toast.error('Failed to save notifications', {
-                description: 'An error occurred while saving.',
+            toast.error(t('toast.notificationsFailed'), {
+                description: t('toast.notificationsFailedDesc'),
             });
         }
     };
 
     const handleChangePassword = async () => {
         if (passwords.new !== passwords.confirm) {
-            toast.error('Passwords do not match', {
-                description: 'Please make sure both passwords are the same.',
+            toast.error(t('validation.passwordMismatch'), {
+                description: t('validation.passwordMismatchDesc'),
             });
             return;
         }
 
         if (passwords.new.length < 8) {
-            toast.error('Password too short', {
-                description: 'Password must be at least 8 characters.',
+            toast.error(t('validation.passwordTooShort'), {
+                description: t('validation.passwordTooShortDesc'),
             });
             return;
         }
@@ -257,28 +262,28 @@ export function UserSettings() {
             });
 
             if (response.ok) {
-                toast.success('Password changed', {
-                    description: 'Your password has been updated successfully.',
+                toast.success(t('toast.passwordChanged'), {
+                    description: t('toast.passwordChangedDesc'),
                 });
                 setPasswords({ current: '', new: '', confirm: '' });
             } else {
                 const error = await response.json();
-                toast.error('Failed to change password', {
-                    description: error.error || 'Could not update password.',
+                toast.error(t('toast.passwordFailed'), {
+                    description: error.error || t('toast.passwordFailedDesc'),
                 });
             }
         } catch (error) {
-            toast.error('Failed to change password', {
-                description: 'An error occurred while updating password.',
+            toast.error(t('toast.passwordFailed'), {
+                description: t('toast.passwordFailedDesc'),
             });
         }
     };
 
     const handleDeleteAccount = async () => {
-        const password = prompt('Please enter your password to confirm account deletion:');
+        const password = prompt(t('security.dangerZone.passwordPrompt'));
         if (!password) return;
 
-        if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+        if (!confirm(t('security.dangerZone.deleteConfirmation'))) {
             return;
         }
 
@@ -291,19 +296,19 @@ export function UserSettings() {
             });
 
             if (response.ok) {
-                toast.success('Account deleted', {
-                    description: 'Your account has been permanently deleted.',
+                toast.success(t('toast.accountDeleted'), {
+                    description: t('toast.accountDeletedDesc'),
                 });
                 navigate('/');
             } else {
                 const error = await response.json();
-                toast.error('Failed to delete account', {
-                    description: error.error || 'Could not delete account.',
+                toast.error(t('toast.accountDeleteFailed'), {
+                    description: error.error || t('toast.accountDeleteFailedDesc'),
                 });
             }
         } catch (error) {
-            toast.error('Failed to delete account', {
-                description: 'An error occurred while deleting account.',
+            toast.error(t('toast.accountDeleteFailed'), {
+                description: t('toast.accountDeleteFailedDesc'),
             });
         }
     };
@@ -325,17 +330,17 @@ export function UserSettings() {
             if (response.ok) {
                 const data = await response.json();
                 setProfile(prev => ({ ...prev, avatar: data.avatar }));
-                toast.success('Avatar updated', {
-                    description: 'Your profile picture has been changed.',
+                toast.success(t('toast.avatarUpdated'), {
+                    description: t('toast.avatarUpdatedDesc'),
                 });
             } else {
-                toast.error('Failed to upload avatar', {
-                    description: 'Could not update profile picture.',
+                toast.error(t('toast.avatarFailed'), {
+                    description: t('toast.avatarFailedDesc'),
                 });
             }
         } catch (error) {
-            toast.error('Failed to upload avatar', {
-                description: 'An error occurred while uploading.',
+            toast.error(t('toast.avatarFailed'), {
+                description: t('toast.avatarFailedDesc'),
             });
         }
     };
@@ -366,9 +371,9 @@ export function UserSettings() {
                         className="flex items-center text-muted-foreground hover:text-foreground mb-4 transition-colors"
                     >
                         <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back to Forum
+                        {t('common:navigation.backToForum')}
                     </button>
-                    <h1 className="text-2xl font-bold mb-8 text-center">Settings</h1>
+                    <h1 className="text-2xl font-bold mb-8 text-center">{t('title')}</h1>
 
                     <div className="mb-8">
                         <div className="hidden md:flex max-w-2xl mx-auto bg-card p-1 rounded-lg border">
@@ -419,6 +424,7 @@ export function UserSettings() {
                                     setProfile={setProfile}
                                     onSave={handleSaveProfile}
                                     onFileUpload={handleFileUpload}
+                                    t={t}
                                 />
                             )}
 
@@ -427,6 +433,7 @@ export function UserSettings() {
                                     notifications={notifications}
                                     setNotifications={setNotifications}
                                     onSave={handleSaveNotifications}
+                                    t={t}
                                 />
                             )}
 
@@ -437,6 +444,9 @@ export function UserSettings() {
                                     theme={theme}
                                     setTheme={setTheme}
                                     onSave={handleSaveAppearance}
+                                    language={language}
+                                    setLanguage={setLanguage}
+                                    t={t}
                                 />
                             )}
 
@@ -446,6 +456,7 @@ export function UserSettings() {
                                     setPasswords={setPasswords}
                                     onSave={handleChangePassword}
                                     onDelete={handleDeleteAccount}
+                                    t={t}
                                 />
                             )}
                         </div>
@@ -456,11 +467,12 @@ export function UserSettings() {
     );
 }
 
-function ProfileTab({ profile, setProfile, onSave, onFileUpload }: {
+function ProfileTab({ profile, setProfile, onSave, onFileUpload, t }: {
     profile: UserProfile;
     setProfile: React.Dispatch<React.SetStateAction<UserProfile>>;
     onSave: () => void;
     onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    t: (key: string) => string;
 }) {
     const initials = profile.displayName
         ? profile.displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
@@ -469,8 +481,8 @@ function ProfileTab({ profile, setProfile, onSave, onFileUpload }: {
     return (
         <>
             <div className="bg-card mb-2 rounded-lg p-4 md:p-6 border">
-                <h2 className="text-lg font-semibold mb-2">Profile Picture</h2>
-                <p className="text-muted-foreground text-sm mb-4">Update your profile photo</p>
+                <h2 className="text-lg font-semibold mb-2">{t('profile.picture.title')}</h2>
+                <p className="text-muted-foreground text-sm mb-4">{t('profile.picture.subtitle')}</p>
 
                 <div className="flex items-center space-x-4">
                     <Avatar className="h-16 w-16">
@@ -491,19 +503,19 @@ function ProfileTab({ profile, setProfile, onSave, onFileUpload }: {
                             onClick={() => document.getElementById('profile-upload')?.click()}
                         >
                             <Upload className="h-4 w-4 mr-2" />
-                            Change Photo
+                            {t('profile.picture.change')}
                         </Button>
                     </div>
                 </div>
             </div>
 
             <div className="bg-card rounded-lg p-4 md:p-6 border">
-                <h2 className="text-lg font-semibold mb-2">Profile Information</h2>
-                <p className="text-muted-foreground text-sm mb-4">Update your public profile details</p>
+                <h2 className="text-lg font-semibold mb-2">{t('profile.title')}</h2>
+                <p className="text-muted-foreground text-sm mb-4">{t('profile.subtitle')}</p>
 
                 <div className="space-y-4">
                     <div>
-                        <Label htmlFor="displayName">Display Name</Label>
+                        <Label htmlFor="displayName">{t('profile.displayName')}</Label>
                         <Input
                             id="displayName"
                             value={profile.displayName}
@@ -513,71 +525,77 @@ function ProfileTab({ profile, setProfile, onSave, onFileUpload }: {
                     </div>
 
                     <div>
-                        <Label htmlFor="bio">Bio</Label>
+                        <Label htmlFor="bio">{t('profile.bio')}</Label>
                         <Textarea
                             id="bio"
                             value={profile.bio}
                             onChange={(e) => setProfile(prev => ({ ...prev, bio: e.target.value }))}
                             rows={4}
                             className="mt-1"
+                            placeholder={t('profile.bioPlaceholder')}
                         />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <Label htmlFor="location">Location</Label>
+                            <Label htmlFor="location">{t('profile.location')}</Label>
                             <Input
                                 id="location"
                                 value={profile.location}
                                 onChange={(e) => setProfile(prev => ({ ...prev, location: e.target.value }))}
                                 className="mt-1"
+                                placeholder={t('profile.locationPlaceholder')}
                             />
                         </div>
                         <div>
-                            <Label htmlFor="website">Website</Label>
+                            <Label htmlFor="website">{t('profile.website')}</Label>
                             <Input
                                 id="website"
                                 value={profile.website}
                                 onChange={(e) => setProfile(prev => ({ ...prev, website: e.target.value }))}
                                 className="mt-1"
+                                placeholder={t('profile.websitePlaceholder')}
                             />
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <Label htmlFor="github">GitHub Username</Label>
+                            <Label htmlFor="github">{t('profile.github')}</Label>
                             <Input
                                 id="github"
                                 value={profile.githubUsername}
                                 onChange={(e) => setProfile(prev => ({ ...prev, githubUsername: e.target.value }))}
                                 className="mt-1"
+                                placeholder={t('profile.githubPlaceholder')}
                             />
                         </div>
                         <div>
-                            <Label htmlFor="twitter">Twitter Handle</Label>
+                            <Label htmlFor="twitter">{t('profile.twitter')}</Label>
                             <Input
                                 id="twitter"
                                 value={profile.twitterHandle}
                                 onChange={(e) => setProfile(prev => ({ ...prev, twitterHandle: e.target.value }))}
                                 className="mt-1"
+                                placeholder={t('profile.twitterPlaceholder')}
                             />
                         </div>
                     </div>
 
                     <div>
-                        <Label htmlFor="skills">Skills (comma separated)</Label>
+                        <Label htmlFor="skills">{t('profile.skills')}</Label>
                         <Input
                             id="skills"
                             value={profile.skills}
                             onChange={(e) => setProfile(prev => ({ ...prev, skills: e.target.value }))}
                             className="mt-1"
+                            placeholder={t('profile.skillsPlaceholder')}
                         />
                     </div>
 
                     <Button onClick={onSave} className="bg-green-600 hover:bg-green-700 text-white">
                         <Save className="h-4 w-4 mr-2" />
-                        Save Profile
+                        {t('profile.save')}
                     </Button>
                 </div>
             </div>
@@ -585,21 +603,22 @@ function ProfileTab({ profile, setProfile, onSave, onFileUpload }: {
     );
 }
 
-function NotificationsTab({ notifications, setNotifications, onSave }: {
+function NotificationsTab({ notifications, setNotifications, onSave, t }: {
     notifications: NotificationSettings;
     setNotifications: React.Dispatch<React.SetStateAction<NotificationSettings>>;
     onSave: () => void;
+    t: (key: string) => string;
 }) {
     return (
         <div className="bg-card rounded-lg p-4 md:p-6 border">
-            < h2 className="text-lg font-semibold mb-2" > Notification Preferences</h2 >
-            <p className="text-muted-foreground text-sm mb-6">Control how you receive notifications</p>
+            <h2 className="text-lg font-semibold mb-2">{t('notifications.title')}</h2>
+            <p className="text-muted-foreground text-sm mb-6">{t('notifications.subtitle')}</p>
 
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h3 className="font-medium">Email Notifications</h3>
-                        <p className="text-sm text-muted-foreground">Receive email notifications</p>
+                        <h3 className="font-medium">{t('notifications.email.title')}</h3>
+                        <p className="text-sm text-muted-foreground">{t('notifications.email.description')}</p>
                     </div>
                     <Switch
                         checked={notifications.emailNotifications}
@@ -614,8 +633,8 @@ function NotificationsTab({ notifications, setNotifications, onSave }: {
 
                 <div className="flex items-center justify-between">
                     <div>
-                        <h3 className="font-medium">Push Notifications</h3>
-                        <p className="text-sm text-muted-foreground">Receive browser push notifications</p>
+                        <h3 className="font-medium">{t('notifications.push.title')}</h3>
+                        <p className="text-sm text-muted-foreground">{t('notifications.push.description')}</p>
                     </div>
                     <Switch
                         checked={notifications.pushNotifications}
@@ -630,8 +649,8 @@ function NotificationsTab({ notifications, setNotifications, onSave }: {
 
                 <div className="flex items-center justify-between">
                     <div>
-                        <h3 className="font-medium">Email for Replies</h3>
-                        <p className="text-sm text-muted-foreground">Get notified when someone replies to your posts</p>
+                        <h3 className="font-medium">{t('notifications.replies.title')}</h3>
+                        <p className="text-sm text-muted-foreground">{t('notifications.replies.description')}</p>
                     </div>
                     <Switch
                         checked={notifications.emailForReplies}
@@ -646,8 +665,8 @@ function NotificationsTab({ notifications, setNotifications, onSave }: {
 
                 <div className="flex items-center justify-between">
                     <div>
-                        <h3 className="font-medium">Email for Mentions</h3>
-                        <p className="text-sm text-muted-foreground">Get notified when someone mentions you</p>
+                        <h3 className="font-medium">{t('notifications.mentions.title')}</h3>
+                        <p className="text-sm text-muted-foreground">{t('notifications.mentions.description')}</p>
                     </div>
                     <Switch
                         checked={notifications.emailForMentions}
@@ -662,8 +681,8 @@ function NotificationsTab({ notifications, setNotifications, onSave }: {
 
                 <div className="flex items-center justify-between">
                     <div>
-                        <h3 className="font-medium">Weekly Digest</h3>
-                        <p className="text-sm text-muted-foreground">Receive a weekly summary of activity</p>
+                        <h3 className="font-medium">{t('notifications.digest.title')}</h3>
+                        <p className="text-sm text-muted-foreground">{t('notifications.digest.description')}</p>
                     </div>
                     <Switch
                         checked={notifications.weeklyDigest}
@@ -674,25 +693,53 @@ function NotificationsTab({ notifications, setNotifications, onSave }: {
                     />
                 </div>
             </div>
-        </div >
+        </div>
     );
 }
 
-function AppearanceTab({ appearance, setAppearance, theme, setTheme, onSave }: {
+function AppearanceTab({ appearance, setAppearance, theme, setTheme, onSave, language, setLanguage, t }: {
     appearance: AppearanceSettings;
     setAppearance: React.Dispatch<React.SetStateAction<AppearanceSettings>>;
     theme: 'light' | 'dark';
     setTheme: (theme: 'light' | 'dark') => void;
     onSave: () => void;
+    language: SupportedLanguage;
+    setLanguage: (lang: SupportedLanguage) => Promise<void>;
+    t: (key: string) => string;
 }) {
     return (
         <div className="bg-card rounded-lg p-4 md:p-6 border">
-            <h2 className="text-lg font-semibold mb-2">Appearance Settings</h2>
-            <p className="text-muted-foreground text-sm mb-6">Customize how the forum looks</p>
+            <h2 className="text-lg font-semibold mb-2">{t('appearance.title')}</h2>
+            <p className="text-muted-foreground text-sm mb-6">{t('appearance.subtitle')}</p>
 
             <div className="space-y-6">
                 <div>
-                    <Label htmlFor="theme">Theme</Label>
+                    <Label htmlFor="language" className="flex items-center gap-2">
+                        <Globe className="h-4 w-4" />
+                        {t('appearance.language.title')}
+                    </Label>
+                    <p className="text-sm text-muted-foreground mb-2">{t('appearance.language.description')}</p>
+                    <Select
+                        value={language}
+                        onValueChange={(value: SupportedLanguage) => setLanguage(value)}
+                    >
+                        <SelectTrigger className="w-full md:w-48 mt-1">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {SUPPORTED_LANGUAGES.map((lang) => (
+                                <SelectItem key={lang} value={lang}>
+                                    {LANGUAGE_NAMES[lang]}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <Separator />
+
+                <div>
+                    <Label htmlFor="theme">{t('appearance.theme.title')}</Label>
                     <Select
                         value={theme}
                         onValueChange={(value: 'light' | 'dark') => {
@@ -704,14 +751,14 @@ function AppearanceTab({ appearance, setAppearance, theme, setTheme, onSave }: {
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="light">Light</SelectItem>
-                            <SelectItem value="dark">Dark</SelectItem>
+                            <SelectItem value="light">{t('appearance.theme.light')}</SelectItem>
+                            <SelectItem value="dark">{t('appearance.theme.dark')}</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
 
                 <div>
-                    <Label htmlFor="fontSize">Font Size</Label>
+                    <Label htmlFor="fontSize">{t('appearance.fontSize.title')}</Label>
                     <Select
                         value={appearance.fontSize}
                         onValueChange={(value: 'small' | 'medium' | 'large') => {
@@ -723,17 +770,17 @@ function AppearanceTab({ appearance, setAppearance, theme, setTheme, onSave }: {
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="small">Small</SelectItem>
-                            <SelectItem value="medium">Medium</SelectItem>
-                            <SelectItem value="large">Large</SelectItem>
+                            <SelectItem value="small">{t('appearance.fontSize.small')}</SelectItem>
+                            <SelectItem value="medium">{t('appearance.fontSize.medium')}</SelectItem>
+                            <SelectItem value="large">{t('appearance.fontSize.large')}</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
 
                 <div className="flex items-center justify-between">
                     <div>
-                        <h3 className="font-medium">Compact Mode</h3>
-                        <p className="text-sm text-muted-foreground">Show more content with less spacing</p>
+                        <h3 className="font-medium">{t('appearance.compactMode.title')}</h3>
+                        <p className="text-sm text-muted-foreground">{t('appearance.compactMode.description')}</p>
                     </div>
                     <Switch
                         checked={appearance.compactMode}
@@ -748,55 +795,59 @@ function AppearanceTab({ appearance, setAppearance, theme, setTheme, onSave }: {
     );
 }
 
-function SecurityTab({ passwords, setPasswords, onSave, onDelete }: {
+function SecurityTab({ passwords, setPasswords, onSave, onDelete, t }: {
     passwords: { current: string; new: string; confirm: string };
     setPasswords: React.Dispatch<React.SetStateAction<{ current: string; new: string; confirm: string }>>;
     onSave: () => void;
     onDelete: () => void;
+    t: (key: string) => string;
 }) {
     return (
         <>
             <div className="bg-card mb-2 rounded-lg p-4 md:p-6 border">
-                <h2 className="text-lg font-semibold mb-2">Change Password</h2>
-                <p className="text-muted-foreground text-sm mb-4">Update your account password</p>
+                <h2 className="text-lg font-semibold mb-2">{t('security.changePassword.title')}</h2>
+                <p className="text-muted-foreground text-sm mb-4">{t('security.changePassword.subtitle')}</p>
 
                 <div className="space-y-4 max-w-full md:max-w-md">
                     <div>
-                        <Label htmlFor="currentPassword">Current Password</Label>
+                        <Label htmlFor="currentPassword">{t('security.changePassword.current')}</Label>
                         <Input
                             id="currentPassword"
                             type="password"
                             value={passwords.current}
                             onChange={(e) => setPasswords(prev => ({ ...prev, current: e.target.value }))}
                             className="mt-1"
+                            placeholder={t('security.changePassword.currentPlaceholder')}
                         />
                     </div>
 
                     <div>
-                        <Label htmlFor="newPassword">New Password</Label>
+                        <Label htmlFor="newPassword">{t('security.changePassword.new')}</Label>
                         <Input
                             id="newPassword"
                             type="password"
                             value={passwords.new}
                             onChange={(e) => setPasswords(prev => ({ ...prev, new: e.target.value }))}
                             className="mt-1"
+                            placeholder={t('security.changePassword.newPlaceholder')}
                         />
                     </div>
 
                     <div>
-                        <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                        <Label htmlFor="confirmPassword">{t('security.changePassword.confirm')}</Label>
                         <Input
                             id="confirmPassword"
                             type="password"
                             value={passwords.confirm}
                             onChange={(e) => setPasswords(prev => ({ ...prev, confirm: e.target.value }))}
                             className="mt-1"
+                            placeholder={t('security.changePassword.confirmPlaceholder')}
                         />
                     </div>
 
                     <Button onClick={onSave} className="bg-green-600 hover:bg-green-700 text-white">
                         <Shield className="h-4 w-4 mr-2" />
-                        Update Password
+                        {t('security.changePassword.update')}
                     </Button>
                 </div>
             </div>
@@ -804,9 +855,9 @@ function SecurityTab({ passwords, setPasswords, onSave, onDelete }: {
             <div className="bg-card border-destructive rounded-lg p-4 md:p-6 border">
                 <div className="flex items-center space-x-2 mb-2">
                     <AlertTriangle className="h-5 w-5 text-destructive" />
-                    <h2 className="font-semibold text-destructive flex items-center gap-2 text-base sm:text-lg">Danger Zone</h2>
+                    <h2 className="font-semibold text-destructive flex items-center gap-2 text-base sm:text-lg">{t('security.dangerZone.title')}</h2>
                 </div>
-                <p className="text-muted-foreground text-sm mb-4">Irreversible actions</p>
+                <p className="text-muted-foreground text-sm mb-4">{t('security.dangerZone.subtitle')}</p>
 
                 <Button
                     variant="destructive"
@@ -814,7 +865,7 @@ function SecurityTab({ passwords, setPasswords, onSave, onDelete }: {
                     className="bg-destructive hover:bg-destructive/90"
                 >
                     <Trash2 className="h-4 w-4 mr-2" />
-                    Delete Account
+                    {t('security.dangerZone.deleteAccount')}
                 </Button>
             </div>
         </>

@@ -1,0 +1,223 @@
+{
+  "title": "Admin Panel",
+  "subtitle": "Manage your forum",
+  "tabs": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "posts": "Posts",
+    "reports": "Reports",
+    "categories": "Categories",
+    "auditLog": "Audit Log"
+  },
+  "dashboard": {
+    "totalUsers": "Total Users",
+    "totalPosts": "Total Posts",
+    "pendingReports": "Pending Reports",
+    "categories": "Categories",
+    "banned": "{{count}} banned",
+    "locked": "{{count}} locked",
+    "totalReports": "{{count}} total reports",
+    "activeToday": "{{count}} active today",
+    "quickActions": "Quick Actions",
+    "reviewReports": "Review Reports",
+    "manageUsers": "Manage Users",
+    "moderatePosts": "Moderate Posts",
+    "addCategory": "Add Category",
+    "recentActivity": "Recent Activity",
+    "noRecentActivity": "No recent activity",
+    "target": "Target: {{target}}"
+  },
+  "users": {
+    "title": "User Management",
+    "subtitle": "Manage user accounts and permissions",
+    "search": "Search users...",
+    "noUsers": "No users found",
+    "columns": {
+      "user": "User",
+      "role": "Role",
+      "reputation": "Reputation",
+      "joined": "Joined",
+      "actions": "Actions"
+    },
+    "actions": {
+      "ban": "Ban User",
+      "unban": "Unban User",
+      "promote": "Promote User",
+      "demote": "Demote User",
+      "promoteToMod": "Promote to Moderator",
+      "demoteToUser": "Demote to User",
+      "viewProfile": "View Profile"
+    },
+    "pagination": {
+      "showing": "Showing {{from}} to {{to}} of {{total}} users",
+      "perPage": "{{count}} per page"
+    }
+  },
+  "posts": {
+    "title": "Post Management",
+    "subtitle": "Moderate and manage forum posts",
+    "search": "Search posts...",
+    "noPosts": "No posts found",
+    "columns": {
+      "post": "Post",
+      "author": "Author",
+      "status": "Status",
+      "created": "Created",
+      "actions": "Actions"
+    },
+    "actions": {
+      "pin": "Pin Post",
+      "unpin": "Unpin Post",
+      "lock": "Lock Post",
+      "unlock": "Unlock Post",
+      "delete": "Delete Post",
+      "view": "View Post"
+    },
+    "pagination": {
+      "showing": "Showing {{from}} to {{to}} of {{total}} posts",
+      "perPage": "{{count}} per page"
+    }
+  },
+  "reports": {
+    "title": "Report Management",
+    "subtitle": "Review and handle user reports",
+    "noReports": "No reports found",
+    "filterPlaceholder": "Filter reports",
+    "allReports": "All Reports",
+    "postReport": "Post Report",
+    "userReport": "User Report",
+    "byUser": "By {{username}}",
+    "status": {
+      "pending": "Pending",
+      "reviewed": "Reviewed",
+      "resolved": "Resolved",
+      "dismissed": "Dismissed"
+    },
+    "actions": {
+      "review": "Review",
+      "resolve": "Resolve",
+      "dismiss": "Dismiss"
+    }
+  },
+  "categories": {
+    "title": "Category Management",
+    "subtitle": "Organize forum topics",
+    "noCategories": "No categories found. Create your first category!",
+    "posts": "{{count}} posts",
+    "add": "Add Category",
+    "edit": "Edit Category",
+    "editSubtitle": "Update the category details below.",
+    "addSubtitle": "Create a new category for the forum.",
+    "form": {
+      "name": "Name",
+      "slug": "Slug",
+      "slugPlaceholder": "url-friendly-slug",
+      "slugHelp": "The slug will be used in URLs. Leave empty to auto-generate from name.",
+      "description": "Description",
+      "color": "Color",
+      "icon": "Icon"
+    },
+    "saveChanges": "Save Changes",
+    "create": "Create Category"
+  },
+  "auditLog": {
+    "title": "Audit Log",
+    "subtitle": "Track all admin actions",
+    "search": "Search audit log...",
+    "noEntries": "No audit log entries found",
+    "filterByUser": "Filter by user",
+    "selectUser": "Select user",
+    "searchUsers": "Search users...",
+    "noUsersFound": "No users found",
+    "columns": {
+      "action": "Action",
+      "admin": "Admin",
+      "date": "Date"
+    },
+    "pagination": {
+      "showing": "Showing {{from}} to {{to}} of {{total}} entries",
+      "perPage": "{{count}} per page"
+    }
+  },
+  "dialogs": {
+    "deletePost": {
+      "title": "Delete Post",
+      "description": "Are you sure you want to delete this post? This action cannot be undone.",
+      "byAuthor": "By {{author}}",
+      "cancel": "Cancel",
+      "delete": "Delete"
+    },
+    "userAction": {
+      "ban": {
+        "title": "Ban User",
+        "description": "This user will no longer be able to access the forum. This action can be reversed later.",
+        "confirm": "Ban User"
+      },
+      "unban": {
+        "title": "Unban User",
+        "description": "This user will regain access to the forum.",
+        "confirm": "Unban User"
+      },
+      "promote": {
+        "title": "Promote User",
+        "description": "This user will be promoted to moderator and gain additional permissions.",
+        "confirm": "Promote to Moderator"
+      },
+      "demote": {
+        "title": "Demote User",
+        "description": "This user will be demoted to a regular user and lose moderator permissions.",
+        "confirm": "Demote to User"
+      },
+      "currentRole": "Current role: {{role}}",
+      "banned": "(Banned)",
+      "cancel": "Cancel"
+    },
+    "deleteCategory": {
+      "confirm": "Are you sure you want to delete this category?"
+    }
+  },
+  "common": {
+    "cancel": "Cancel"
+  },
+  "toast": {
+    "userBanned": "User banned",
+    "userBannedDesc": "{{name}} has been banned from the forum.",
+    "userUnbanned": "User unbanned",
+    "userUnbannedDesc": "{{name}} can now access the forum.",
+    "userPromoted": "User promoted",
+    "userPromotedDesc": "{{name}} is now a moderator.",
+    "userDemoted": "User demoted",
+    "userDemotedDesc": "{{name}} is now a regular user.",
+    "postPinned": "Post pinned",
+    "postPinnedDesc": "The post will appear at the top of the forum.",
+    "postUnpinned": "Post unpinned",
+    "postUnpinnedDesc": "The post has been unpinned.",
+    "postLocked": "Post locked",
+    "postLockedDesc": "Comments have been disabled on this post.",
+    "postUnlocked": "Post unlocked",
+    "postUnlockedDesc": "Comments are now enabled on this post.",
+    "postDeleted": "Post deleted",
+    "postDeletedDesc": "The post has been permanently removed.",
+    "reportResolved": "Report resolved",
+    "reportResolvedDesc": "The report has been marked as resolved.",
+    "reportDismissed": "Report dismissed",
+    "reportDismissedDesc": "The report has been dismissed.",
+    "reportReviewed": "Report reviewed",
+    "reportReviewedDesc": "The report has been marked for review.",
+    "categoryCreated": "Category created",
+    "categoryCreatedDesc": "\"{{name}}\" has been created.",
+    "categoryUpdated": "Category updated",
+    "categoryUpdatedDesc": "\"{{name}}\" has been updated.",
+    "categoryDeleted": "Category deleted",
+    "categoryDeletedDesc": "The category has been permanently removed.",
+    "actionFailed": "Failed to {{action}}",
+    "actionFailedDesc": "The action could not be completed.",
+    "errorOccurred": "An error occurred.",
+    "saveCategoryFailed": "Failed to save category",
+    "saveCategoryFailedDesc": "The category could not be saved.",
+    "deleteCategoryFailed": "Failed to delete category",
+    "deleteCategoryFailedDesc": "The category could not be deleted.",
+    "deletePostFailed": "Failed to delete post",
+    "deletePostFailedDesc": "The post could not be deleted."
+  }
+}

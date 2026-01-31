@@ -1,0 +1,128 @@
+{
+  "header": {
+    "searchPlaceholder": "Search discussions...",
+    "newPost": "New Post",
+    "adminPanel": "Admin Panel",
+    "menuHint": "Use the menu to navigate categories"
+  },
+  "categories": {
+    "all": "All Categories",
+    "title": "Categories"
+  },
+  "filters": {
+    "recent": "Recent",
+    "popular": "Popular",
+    "trending": "Trending",
+    "mostReplies": "Most Replies",
+    "oldest": "Oldest",
+    "unanswered": "Unanswered"
+  },
+  "posts": {
+    "title": "All Discussions",
+    "categoryTitle": "Category Discussions",
+    "searchTitle": "Search results for \"{{query}}\"",
+    "count": "{{count}} posts",
+    "count_one": "{{count}} post",
+    "noResults": "No posts found",
+    "adminMode": "Admin Mode Active — You can pin, lock, edit, and delete posts",
+    "adminModeShort": "Admin Mode",
+    "create": {
+      "title": "Create a new post",
+      "subtitle": "Start a conversation with the community",
+      "titleLabel": "Title",
+      "titlePlaceholder": "What's on your mind?",
+      "categoryLabel": "Category",
+      "selectCategory": "Select a category",
+      "loadingCategories": "Loading categories...",
+      "noCategories": "No categories available",
+      "contentLabel": "Content",
+      "contentPlaceholder": "Share your thoughts, questions, or ideas...",
+      "tagsLabel": "Tags",
+      "tagsPlaceholder": "Search or create tags...",
+      "addMoreTags": "Add more tags...",
+      "loadingTags": "Loading tags...",
+      "noMatchingTags": "No matching tags",
+      "createTag": "Create \"{{tag}}\"",
+      "creatingTag": "Creating...",
+      "publish": "Publish post",
+      "publishing": "Publishing...",
+      "backToForum": "Back to forum"
+    },
+    "view": {
+      "backToForum": "Back to Forum",
+      "notFound": "Post not found",
+      "locked": "Locked",
+      "joinDiscussion": "Join the Discussion",
+      "signInToComment": "Sign in or create an account to comment on this post and engage with the community."
+    },
+    "actions": {
+      "pin": "Pin",
+      "unpin": "Unpin",
+      "lock": "Lock",
+      "unlock": "Unlock",
+      "delete": "Delete",
+      "edit": "Edit",
+      "report": "Report",
+      "share": "Share"
+    }
+  },
+  "comments": {
+    "title": "Comments",
+    "placeholder": "Write a reply...",
+    "editPlaceholder": "Edit your comment...",
+    "reply": "Reply",
+    "sending": "Sending...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "noComments": "No comments yet. Be the first to comment!",
+    "deleteConfirm": "Are you sure you want to delete this comment?",
+    "replies": "{{count}} replies",
+    "replies_one": "{{count}} reply"
+  },
+  "deletePost": {
+    "title": "Delete Post",
+    "confirmation": "Are you sure you want to delete this post? This action cannot be undone."
+  },
+  "stats": {
+    "title": "Forum Statistics",
+    "topContributors": "Top Contributors",
+    "trendingTags": "Trending Tags",
+    "totalPosts": "Total Posts",
+    "members": "Members",
+    "totalReplies": "Total Replies",
+    "onlineNow": "Online Now",
+    "repAndPosts": "{{rep}} rep • {{posts}} posts"
+  },
+  "toast": {
+    "postCreated": "Post published!",
+    "postCreatedDesc": "Your post has been shared with the community.",
+    "postDeleted": "Post deleted",
+    "postDeletedDesc": "The post has been permanently removed.",
+    "postPinned": "Post pinned",
+    "postPinnedDesc": "The post will now appear at the top.",
+    "postUnpinned": "Post unpinned",
+    "postUnpinnedDesc": "The post has been unpinned.",
+    "postLocked": "Post locked",
+    "postLockedDesc": "Comments have been disabled.",
+    "postUnlocked": "Post unlocked",
+    "postUnlockedDesc": "Users can now comment on this post.",
+    "tagCreated": "Tag created",
+    "tagCreatedDesc": "\"{{tag}}\" has been added to your post.",
+    "voteFailed": "Failed to vote",
+    "voteFailedDesc": "Could not process your vote.",
+    "createPostFailed": "Failed to create post",
+    "createPostFailedDesc": "An error occurred while creating your post.",
+    "createTagFailed": "Failed to create tag",
+    "createTagFailedDesc": "Could not create the tag.",
+    "updatePostFailed": "Failed to update post",
+    "updatePostFailedDesc": "Could not update the post.",
+    "deletePostFailed": "Failed to delete post",
+    "deletePostFailedDesc": "Could not delete the post."
+  },
+  "validation": {
+    "titleRequired": "Title is required",
+    "titleRequiredDesc": "Please enter a title for your post.",
+    "contentRequired": "Content is required",
+    "contentRequiredDesc": "Please add some content to your post."
+  }
+}
