@@ -9,7 +9,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Link, ExternalLink } from "lucide-react";
 
 interface LinkModalProps {
@@ -27,14 +26,12 @@ export function LinkModal({
 }: LinkModalProps) {
   const [linkText, setLinkText] = useState(selectedText);
   const [url, setUrl] = useState("");
-  const [openInNewTab, setOpenInNewTab] = useState(false);
   const [urlError, setUrlError] = useState("");
 
   useEffect(() => {
     if (open) {
       setLinkText(selectedText);
       setUrl("");
-      setOpenInNewTab(false);
       setUrlError("");
     }
   }, [open, selectedText]);
@@ -68,6 +65,13 @@ export function LinkModal({
     }
   };
 
+  const isExternalUrl = (value: string): boolean => {
+    if (value.startsWith("/") || value.startsWith("#") || value.startsWith("mailto:")) {
+      return false;
+    }
+    return true;
+  };
+
   const handleInsert = () => {
     if (!validateUrl(url)) return;
 
@@ -82,13 +86,7 @@ export function LinkModal({
     }
 
     const text = linkText.trim() || finalUrl;
-    let markdown = `[${text}](${finalUrl})`;
-    
-    // Note: Standard markdown doesn't support target="_blank", 
-    // but some renderers support attributes
-    if (openInNewTab) {
-      markdown = `[${text}](${finalUrl}){:target="_blank"}`;
-    }
+    const markdown = `[${text}](${finalUrl})`;
 
     onInsert(markdown);
     onOpenChange(false);
@@ -145,26 +143,18 @@ export function LinkModal({
             )}
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="new-tab"
-              checked={openInNewTab}
-              onCheckedChange={(checked) => setOpenInNewTab(checked === true)}
-            />
-            <Label htmlFor="new-tab" className="text-sm font-normal cursor-pointer">
-              <span className="flex items-center gap-1.5">
-                <ExternalLink className="h-3.5 w-3.5" />
-                Open in new tab
-              </span>
-            </Label>
-          </div>
+          {url && isExternalUrl(url) && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground p-2 rounded-md bg-muted/50">
+              <ExternalLink className="h-3.5 w-3.5" />
+              <span>External links will open in a new tab with a security warning</span>
+            </div>
+          )}
 
           {(linkText || url) && (
             <div className="p-3 rounded-lg bg-muted/50 border">
               <p className="text-xs text-muted-foreground mb-1">Preview:</p>
               <code className="text-sm break-all">
                 [{linkText || url || "link text"}]({url || "url"})
-                {openInNewTab && "{:target=\"_blank\"}"}
               </code>
             </div>
           )}
