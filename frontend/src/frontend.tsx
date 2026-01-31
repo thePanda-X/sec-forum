@@ -11,6 +11,7 @@ import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider, useTheme } from "./components/theme-provider";
+import { ExternalLinkProvider } from "./components/ExternalLinkProvider";
 import { App } from "./App";
 
 function AppWithToaster() {
@@ -40,7 +41,9 @@ const app = (
         <BrowserRouter>
             <ThemeProvider defaultTheme="dark">
                 <AuthProvider>
-                    <AppWithToaster />
+                    <ExternalLinkProvider>
+                        <AppWithToaster />
+                    </ExternalLinkProvider>
                 </AuthProvider>
             </ThemeProvider>
         </BrowserRouter>
