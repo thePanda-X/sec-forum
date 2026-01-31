@@ -192,6 +192,7 @@ export function CreatePostPage() {
       toast.success(t('toast.postCreated'), {
         description: t('toast.postCreatedDesc'),
       });
+      localStorage.removeItem("markdown-editor-content");
       navigate("/");
     } catch (err) {
       toast.error(t('toast.createPostFailed'), {
