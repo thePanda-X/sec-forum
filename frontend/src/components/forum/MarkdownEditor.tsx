@@ -27,6 +27,8 @@ import {
   Command,
   MoreHorizontal,
   SeparatorHorizontal,
+  Youtube,
+  Sigma,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { parseMarkdown } from "@/lib/markdown";
@@ -45,6 +47,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  LinkModal,
+  ImageModal,
+  TableModal,
+  CodeBlockModal,
+  YouTubeModal,
+  MathModal,
+} from "./modals";
 
 interface MarkdownEditorProps {
   value: string;
@@ -85,6 +95,15 @@ export function MarkdownEditor({
   const [replaceQuery, setReplaceQuery] = useState("");
   const [showMoreTools, setShowMoreTools] = useState(false);
   const [previewHtml, setPreviewHtml] = useState<string>("");
+  
+  // Modal states
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [showTableModal, setShowTableModal] = useState(false);
+  const [showCodeBlockModal, setShowCodeBlockModal] = useState(false);
+  const [showYouTubeModal, setShowYouTubeModal] = useState(false);
+  const [showMathModal, setShowMathModal] = useState(false);
+  const [selectedText, setSelectedText] = useState("");
   
   const editorRef = useRef<any>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
@@ -206,7 +225,7 @@ export function MarkdownEditor({
             break;
           case "k":
             e.preventDefault();
-            insertMarkdown("[", "](url)", "link text");
+            openModalWithSelection(setShowLinkModal);
             break;
           case "e":
             e.preventDefault();
@@ -329,6 +348,43 @@ export function MarkdownEditor({
     e.stopPropagation();
   }, []);
 
+  const getSelectedText = useCallback(() => {
+    const textarea = editorRef.current?.textarea;
+    if (!textarea) return "";
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    return value.substring(start, end);
+  }, [value]);
+
+  const insertMarkdownFromModal = useCallback((markdown: string) => {
+    const textarea = editorRef.current?.textarea;
+    if (!textarea) {
+      // Fallback: append to end
+      const newValue = value + markdown;
+      onChange(newValue);
+      addToHistory(newValue, newValue.length, newValue.length);
+      return;
+    }
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const newText = value.substring(0, start) + markdown + value.substring(end);
+
+    onChange(newText);
+    addToHistory(newText, start + markdown.length, start + markdown.length);
+
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = start + markdown.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  }, [value, onChange, addToHistory]);
+
+  const openModalWithSelection = useCallback((modalSetter: (open: boolean) => void) => {
+    setSelectedText(getSelectedText());
+    modalSetter(true);
+  }, [getSelectedText]);
+
   const handleEmojiSelect = useCallback((emoji: any) => {
     insertMarkdown(emoji.emoji, "", "");
     setShowEmojiPicker(false);
@@ -346,14 +402,16 @@ export function MarkdownEditor({
         insertMarkdown("### ", "", "");
         break;
       case "code":
-        insertMarkdown("```\n", "\n```", "code");
-        break;
+        setShowCommandPalette(false);
+        openModalWithSelection(setShowCodeBlockModal);
+        return;
       case "quote":
         insertMarkdown("> ", "", "");
         break;
       case "table":
-        insertMarkdown("| Header | Header |\n|--------|--------|\n| Cell   | Cell   |");
-        break;
+        setShowCommandPalette(false);
+        setShowTableModal(true);
+        return;
       case "list":
         insertMarkdown("- ", "", "");
         break;
@@ -364,17 +422,27 @@ export function MarkdownEditor({
         insertMarkdown("- [ ] ", "", "");
         break;
       case "link":
-        insertMarkdown("[", "](url)", "link text");
-        break;
+        setShowCommandPalette(false);
+        openModalWithSelection(setShowLinkModal);
+        return;
       case "image":
-        insertMarkdown("![", "](url)", "image alt text");
-        break;
+        setShowCommandPalette(false);
+        setShowImageModal(true);
+        return;
+      case "youtube":
+        setShowCommandPalette(false);
+        setShowYouTubeModal(true);
+        return;
+      case "math":
+        setShowCommandPalette(false);
+        openModalWithSelection(setShowMathModal);
+        return;
       case "horizontal-rule":
         insertMarkdown("\n---\n");
         break;
     }
     setShowCommandPalette(false);
-  }, [insertMarkdown]);
+  }, [insertMarkdown, openModalWithSelection]);
 
   const handleSearch = useCallback(() => {
     const textarea = editorRef.current?.textarea;
@@ -442,10 +510,12 @@ export function MarkdownEditor({
       { icon: CheckSquare, label: "Task List", action: () => handleCommandSelect("checklist") },
     ],
     insert: [
-      { icon: Link, label: "Link (Ctrl+K)", action: () => insertMarkdown("[", "](url)", "link text") },
-      { icon: Image, label: "Image", action: () => insertMarkdown("![", "](url)", "image alt text") },
-      { icon: Code2, label: "Code Block", action: () => handleCommandSelect("code") },
-      { icon: Table, label: "Table", action: () => handleCommandSelect("table") },
+      { icon: Link, label: "Link (Ctrl+K)", action: () => openModalWithSelection(setShowLinkModal) },
+      { icon: Image, label: "Image", action: () => setShowImageModal(true) },
+      { icon: Code2, label: "Code Block", action: () => openModalWithSelection(setShowCodeBlockModal) },
+      { icon: Table, label: "Table", action: () => setShowTableModal(true) },
+      { icon: Youtube, label: "YouTube Video", action: () => setShowYouTubeModal(true) },
+      { icon: Sigma, label: "Math Equation", action: () => openModalWithSelection(setShowMathModal) },
     ],
   };
 
@@ -453,14 +523,16 @@ export function MarkdownEditor({
     { id: "heading1", label: "Heading 1", description: "# Heading 1", shortcut: "#" },
     { id: "heading2", label: "Heading 2", description: "## Heading 2", shortcut: "##" },
     { id: "heading3", label: "Heading 3", description: "### Heading 3", shortcut: "###" },
-    { id: "code", label: "Code Block", description: "``` code ```", shortcut: "```" },
+    { id: "code", label: "Code Block", description: "Insert code with syntax highlighting", shortcut: "" },
     { id: "quote", label: "Blockquote", description: "> Quote", shortcut: ">" },
-    { id: "table", label: "Table", description: "Insert table", shortcut: "" },
+    { id: "table", label: "Table", description: "Insert a table", shortcut: "" },
     { id: "list", label: "Bullet List", description: "- Item", shortcut: "-" },
     { id: "numbered-list", label: "Numbered List", description: "1. Item", shortcut: "1." },
     { id: "checklist", label: "Task List", description: "- [ ] Task", shortcut: "- [ ]" },
-    { id: "link", label: "Link", description: "[text](url)", shortcut: "[" },
-    { id: "image", label: "Image", description: "![alt](url)", shortcut: "![" },
+    { id: "link", label: "Link", description: "Insert a hyperlink", shortcut: "" },
+    { id: "image", label: "Image", description: "Insert an image", shortcut: "" },
+    { id: "youtube", label: "YouTube Video", description: "Embed a YouTube video", shortcut: "" },
+    { id: "math", label: "Math Equation", description: "Insert LaTeX math", shortcut: "" },
     { id: "horizontal-rule", label: "Horizontal Rule", description: "---", shortcut: "---" },
   ];
 
@@ -779,6 +851,47 @@ export function MarkdownEditor({
           display: none !important;
         }
       `}</style>
+
+      {/* Markdown Import Modals */}
+      <LinkModal
+        open={showLinkModal}
+        onOpenChange={setShowLinkModal}
+        onInsert={insertMarkdownFromModal}
+        selectedText={selectedText}
+      />
+
+      <ImageModal
+        open={showImageModal}
+        onOpenChange={setShowImageModal}
+        onInsert={insertMarkdownFromModal}
+        onImageUpload={onImageUpload}
+      />
+
+      <TableModal
+        open={showTableModal}
+        onOpenChange={setShowTableModal}
+        onInsert={insertMarkdownFromModal}
+      />
+
+      <CodeBlockModal
+        open={showCodeBlockModal}
+        onOpenChange={setShowCodeBlockModal}
+        onInsert={insertMarkdownFromModal}
+        selectedText={selectedText}
+      />
+
+      <YouTubeModal
+        open={showYouTubeModal}
+        onOpenChange={setShowYouTubeModal}
+        onInsert={insertMarkdownFromModal}
+      />
+
+      <MathModal
+        open={showMathModal}
+        onOpenChange={setShowMathModal}
+        onInsert={insertMarkdownFromModal}
+        selectedText={selectedText}
+      />
     </div>
   );
 }
