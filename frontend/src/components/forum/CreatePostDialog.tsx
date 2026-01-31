@@ -179,6 +179,7 @@ export function CreatePostDialog({
       }
 
       toast.success("Post published", { description: "Your post has been published successfully" });
+      localStorage.removeItem("markdown-editor-content");
       setTitle("");
       setBody("");
       setSelectedTags([]);
