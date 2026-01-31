@@ -1,0 +1,27 @@
+{
+  "title": "Notificaciones",
+  "markAllRead": "Marcar todo como leído",
+  "markAsRead": "Marcar como leído",
+  "clearAll": "Limpiar todo",
+  "noNotifications": "Sin notificaciones",
+  "types": {
+    "reply": "Nueva respuesta",
+    "mention": "Te mencionaron",
+    "like": "Publicación gustada",
+    "achievement": "Logro desbloqueado",
+    "follow": "Nuevo seguidor",
+    "default": "Notificación"
+  },
+  "messages": {
+    "startedFollowing": "comenzó a seguirte",
+    "repliedToComment": "respondió a tu comentario",
+    "mentionedYou": "te mencionó en un comentario",
+    "likedPost": "le gustó tu publicación"
+  },
+  "toast": {
+    "markedAsRead": "Todas las notificaciones marcadas como leídas",
+    "cleared": "Todas las notificaciones limpiadas",
+    "markReadFailed": "Error al marcar notificaciones como leídas",
+    "clearFailed": "Error al limpiar notificaciones"
+  }
+}

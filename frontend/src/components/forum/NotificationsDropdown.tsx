@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   MessageSquare,
@@ -109,6 +110,7 @@ function formatRelativeTime(dateString: string): string {
 }
 
 export function NotificationsDropdown() {
+  const { t } = useTranslation('notifications');
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -174,13 +176,13 @@ export function NotificationsDropdown() {
 
       if (response.ok) {
         setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-        toast.success("All notifications marked as read");
+        toast.success(t('toast.markedAsRead'));
       } else {
-        toast.error("Failed to mark notifications as read");
+        toast.error(t('toast.markReadFailed'));
       }
     } catch (err) {
       console.error("Failed to mark all as read:", err);
-      toast.error("Failed to mark notifications as read");
+      toast.error(t('toast.markReadFailed'));
     }
   };
 
@@ -193,13 +195,13 @@ export function NotificationsDropdown() {
 
       if (response.ok) {
         setNotifications([]);
-        toast.success("All notifications cleared");
+        toast.success(t('toast.cleared'));
       } else {
-        toast.error("Failed to clear notifications");
+        toast.error(t('toast.clearFailed'));
       }
     } catch (err) {
       console.error("Failed to clear notifications:", err);
-      toast.error("Failed to clear notifications");
+      toast.error(t('toast.clearFailed'));
     }
   };
 
@@ -265,7 +267,7 @@ export function NotificationsDropdown() {
     <div className="flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
-        <h3 className="font-semibold">Notifications</h3>
+        <h3 className="font-semibold">{t('title')}</h3>
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -275,7 +277,7 @@ export function NotificationsDropdown() {
             disabled={notifications.every((n) => n.read)}
           >
             <Check className="h-3 w-3" />
-            Mark all read
+            {t('markAllRead')}
           </Button>
           <Button
             variant="ghost"
@@ -293,7 +295,7 @@ export function NotificationsDropdown() {
       <ScrollArea className="h-80">
         {notifications.length === 0 ? (
           <div className="flex items-center justify-center p-8 text-muted-foreground">
-            <p className="text-sm">No notifications</p>
+            <p className="text-sm">{t('noNotifications')}</p>
           </div>
         ) : (
           <div className="flex flex-col">
@@ -365,7 +367,7 @@ export function NotificationsDropdown() {
                       e.stopPropagation();
                       handleMarkRead(notification.id);
                     }}
-                    title="Mark as read"
+                    title={t('markAsRead')}
                   >
                     <Check className="h-4 w-4" />
                   </Button>

@@ -1,9 +1,10 @@
 import "reflect-metadata";
-import { Controller, Get, Put, Post, Delete } from "elysia-decorators";
+import { Controller, Get, Put, Post, Delete, Patch } from "elysia-decorators";
 import { db } from "../../db";
 import { userSettings, users, profiles } from "../../db/schema";
 import { verifyPassword, hashPassword } from "../../utils/auth";
 import { eq } from "drizzle-orm";
+import { I18N_KEYS } from "../../i18n/keys";
 
 @Controller("/settings")
 export class SettingsController {
@@ -43,6 +44,7 @@ export class SettingsController {
           theme: "light",
           fontSize: "medium",
           compactMode: false,
+          language: "en",
         })
         .returning();
       return {
@@ -63,6 +65,7 @@ export class SettingsController {
           compactMode: newSettings.compactMode,
           emailNotifications: newSettings.emailNotifications,
           pushNotifications: newSettings.pushNotifications,
+          language: newSettings.language,
         },
       };
     }
@@ -85,6 +88,7 @@ export class SettingsController {
         compactMode: settings.compactMode,
         emailNotifications: settings.emailNotifications,
         pushNotifications: settings.pushNotifications,
+        language: settings.language,
       },
     };
   }
@@ -476,5 +480,93 @@ export class SettingsController {
     cookie.auth_token.delete();
 
     return { message: "Account deleted successfully" };
+  }
+
+  @Get("/language", {
+    detail: {
+      tags: ["Settings"],
+      summary: "Get language preference",
+      description: "Retrieve the authenticated user's language preference",
+      responses: {
+        200: { description: "Language preference" },
+        401: { description: "Unauthorized" },
+      },
+    },
+  } as any)
+  async getLanguage({ user, set }: any) {
+    const currentUser = await user;
+    if (!currentUser) {
+      set.status = 401;
+      return { error: I18N_KEYS.ERROR.UNAUTHORIZED };
+    }
+
+    const settings = await db.query.userSettings.findFirst({
+      where: eq(userSettings.userId, currentUser.id),
+    });
+
+    if (!settings) {
+      return { language: "en" };
+    }
+
+    return { language: settings.language };
+  }
+
+  @Patch("/language", {
+    detail: {
+      tags: ["Settings"],
+      summary: "Update language preference",
+      description: "Update the authenticated user's language preference",
+      requestBody: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                language: { type: "string", enum: ["en", "es"] },
+              },
+              required: ["language"],
+            },
+          },
+        },
+      },
+      responses: {
+        200: { description: "Language preference updated" },
+        401: { description: "Unauthorized" },
+      },
+    },
+  } as any)
+  async updateLanguage({ body, user, set }: any) {
+    const currentUser = await user;
+    if (!currentUser) {
+      set.status = 401;
+      return { error: I18N_KEYS.ERROR.UNAUTHORIZED };
+    }
+
+    const validLanguages = ["en", "es"];
+    if (!validLanguages.includes(body.language)) {
+      set.status = 400;
+      return { error: "Invalid language. Supported languages: en, es" };
+    }
+
+    const settings = await db.query.userSettings.findFirst({
+      where: eq(userSettings.userId, currentUser.id),
+    });
+
+    if (!settings) {
+      await db.insert(userSettings).values({
+        userId: currentUser.id,
+        language: body.language,
+      });
+    } else {
+      await db
+        .update(userSettings)
+        .set({ language: body.language })
+        .where(eq(userSettings.id, settings.id));
+    }
+
+    return { 
+      message: I18N_KEYS.SUCCESS.LANGUAGE_UPDATED,
+      language: body.language 
+    };
   }
 }

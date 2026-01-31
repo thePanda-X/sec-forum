@@ -162,6 +162,9 @@ export const userSettings = sqliteTable("user_settings", {
   compactMode: integer("compact_mode", { mode: "boolean" })
     .notNull()
     .default(false),
+  language: text("language", { enum: ["en", "es"] })
+    .notNull()
+    .default("en"),
 });
 
 export const reports = sqliteTable("reports", {

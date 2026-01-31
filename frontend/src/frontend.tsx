@@ -10,9 +10,11 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthProvider } from "./contexts/AuthContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
 import { ThemeProvider, useTheme } from "./components/theme-provider";
 import { ExternalLinkProvider } from "./components/ExternalLinkProvider";
 import { App } from "./App";
+import "./i18n"; // Initialize i18n
 
 function AppWithToaster() {
     const { theme } = useTheme();
@@ -41,9 +43,11 @@ const app = (
         <BrowserRouter>
             <ThemeProvider defaultTheme="dark">
                 <AuthProvider>
-                    <ExternalLinkProvider>
-                        <AppWithToaster />
-                    </ExternalLinkProvider>
+                    <LanguageProvider>
+                        <ExternalLinkProvider>
+                            <AppWithToaster />
+                        </ExternalLinkProvider>
+                    </LanguageProvider>
                 </AuthProvider>
             </ThemeProvider>
         </BrowserRouter>

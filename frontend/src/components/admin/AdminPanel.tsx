@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/forum/Header';
@@ -366,6 +367,7 @@ interface AuditLogEntry {
 export function AdminPanel() {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const { t } = useTranslation('admin');
     const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
     const [isLoading, setIsLoading] = useState(true);
     const [stats, setStats] = useState<AdminStats>({
@@ -443,12 +445,12 @@ export function AdminPanel() {
     } : undefined;
 
     const tabs = [
-        { id: 'dashboard' as const, label: 'Dashboard', icon: Activity },
-        { id: 'users' as const, label: 'Users', icon: Users },
-        { id: 'posts' as const, label: 'Posts', icon: FileText },
-        { id: 'reports' as const, label: 'Reports', icon: Flag, badge: stats.pendingReports },
-        { id: 'categories' as const, label: 'Categories', icon: FolderTree },
-        { id: 'audit-log' as const, label: 'Audit Log', icon: History },
+        { id: 'dashboard' as const, label: t('tabs.dashboard'), icon: Activity },
+        { id: 'users' as const, label: t('tabs.users'), icon: Users },
+        { id: 'posts' as const, label: t('tabs.posts'), icon: FileText },
+        { id: 'reports' as const, label: t('tabs.reports'), icon: Flag, badge: stats.pendingReports },
+        { id: 'categories' as const, label: t('tabs.categories'), icon: FolderTree },
+        { id: 'audit-log' as const, label: t('tabs.auditLog'), icon: History },
     ];
 
     useEffect(() => {
@@ -596,10 +598,10 @@ export function AdminPanel() {
             if (response.ok) {
                 setUserActionModalOpen(false);
                 const actionMessages: Record<string, { title: string; description: string }> = {
-                    ban: { title: 'User banned', description: `${userToActOn.name || userToActOn.username} has been banned from the forum.` },
-                    unban: { title: 'User unbanned', description: `${userToActOn.name || userToActOn.username} can now access the forum.` },
-                    promote: { title: 'User promoted', description: `${userToActOn.name || userToActOn.username} is now a moderator.` },
-                    demote: { title: 'User demoted', description: `${userToActOn.name || userToActOn.username} is now a regular user.` },
+                    ban: { title: t('toast.userBanned'), description: t('toast.userBannedDesc', { name: userToActOn.name || userToActOn.username }) },
+                    unban: { title: t('toast.userUnbanned'), description: t('toast.userUnbannedDesc', { name: userToActOn.name || userToActOn.username }) },
+                    promote: { title: t('toast.userPromoted'), description: t('toast.userPromotedDesc', { name: userToActOn.name || userToActOn.username }) },
+                    demote: { title: t('toast.userDemoted'), description: t('toast.userDemotedDesc', { name: userToActOn.name || userToActOn.username }) },
                 };
                 toast.success(actionMessages[userAction].title, {
                     description: actionMessages[userAction].description,
@@ -609,14 +611,14 @@ export function AdminPanel() {
                 fetchUsers();
                 fetchAdminData();
             } else {
-                toast.error(`Failed to ${userAction} user`, {
-                    description: 'The action could not be completed.',
+                toast.error(t('toast.actionFailed', { action: userAction }), {
+                    description: t('toast.actionFailedDesc'),
                 });
             }
         } catch (error) {
             console.error(`Failed to ${userAction} user:`, error);
-            toast.error(`Failed to ${userAction} user`, {
-                description: 'An error occurred.',
+            toast.error(t('toast.actionFailed', { action: userAction }), {
+                description: t('toast.errorOccurred'),
             });
         }
     };
@@ -640,10 +642,10 @@ export function AdminPanel() {
 
             if (response.ok) {
                 const actionMessages: Record<string, { title: string; description: string }> = {
-                    pin: { title: 'Post pinned', description: 'The post will appear at the top of the forum.' },
-                    unpin: { title: 'Post unpinned', description: 'The post has been unpinned.' },
-                    lock: { title: 'Post locked', description: 'Comments have been disabled on this post.' },
-                    unlock: { title: 'Post unlocked', description: 'Comments are now enabled on this post.' },
+                    pin: { title: t('toast.postPinned'), description: t('toast.postPinnedDesc') },
+                    unpin: { title: t('toast.postUnpinned'), description: t('toast.postUnpinnedDesc') },
+                    lock: { title: t('toast.postLocked'), description: t('toast.postLockedDesc') },
+                    unlock: { title: t('toast.postUnlocked'), description: t('toast.postUnlockedDesc') },
                 };
                 toast.success(actionMessages[action].title, {
                     description: actionMessages[action].description,
@@ -651,14 +653,14 @@ export function AdminPanel() {
                 fetchPosts();
                 fetchAdminData();
             } else {
-                toast.error(`Failed to ${action} post`, {
-                    description: 'The action could not be completed.',
+                toast.error(t('toast.actionFailed', { action: `${action} post` }), {
+                    description: t('toast.actionFailedDesc'),
                 });
             }
         } catch (error) {
             console.error(`Failed to ${action} post:`, error);
-            toast.error(`Failed to ${action} post`, {
-                description: 'An error occurred.',
+            toast.error(t('toast.actionFailed', { action: `${action} post` }), {
+                description: t('toast.errorOccurred'),
             });
         }
     };
@@ -673,20 +675,20 @@ export function AdminPanel() {
             if (response.ok) {
                 setDeletePostModalOpen(false);
                 setPostToDelete(null);
-                toast.success('Post deleted', {
-                    description: 'The post has been permanently removed.',
+                toast.success(t('toast.postDeleted'), {
+                    description: t('toast.postDeletedDesc'),
                 });
                 fetchPosts();
                 fetchAdminData();
             } else {
-                toast.error('Failed to delete post', {
-                    description: 'The post could not be deleted.',
+                toast.error(t('toast.deletePostFailed'), {
+                    description: t('toast.deletePostFailedDesc'),
                 });
             }
         } catch (error) {
             console.error('Failed to delete post:', error);
-            toast.error('Failed to delete post', {
-                description: 'An error occurred.',
+            toast.error(t('toast.deletePostFailed'), {
+                description: t('toast.errorOccurred'),
             });
         }
     };
@@ -701,9 +703,9 @@ export function AdminPanel() {
 
             if (response.ok) {
                 const actionMessages: Record<string, { title: string; description: string }> = {
-                    resolve: { title: 'Report resolved', description: 'The report has been marked as resolved.' },
-                    dismiss: { title: 'Report dismissed', description: 'The report has been dismissed.' },
-                    review: { title: 'Report reviewed', description: 'The report has been marked for review.' },
+                    resolve: { title: t('toast.reportResolved'), description: t('toast.reportResolvedDesc') },
+                    dismiss: { title: t('toast.reportDismissed'), description: t('toast.reportDismissedDesc') },
+                    review: { title: t('toast.reportReviewed'), description: t('toast.reportReviewedDesc') },
                 };
                 toast.success(actionMessages[action].title, {
                     description: actionMessages[action].description,
@@ -711,14 +713,14 @@ export function AdminPanel() {
                 fetchReports();
                 fetchAdminData();
             } else {
-                toast.error(`Failed to ${action} report`, {
-                    description: 'The action could not be completed.',
+                toast.error(t('toast.actionFailed', { action: `${action} report` }), {
+                    description: t('toast.actionFailedDesc'),
                 });
             }
         } catch (error) {
             console.error(`Failed to ${action} report:`, error);
-            toast.error(`Failed to ${action} report`, {
-                description: 'An error occurred.',
+            toast.error(t('toast.actionFailed', { action: `${action} report` }), {
+                description: t('toast.errorOccurred'),
             });
         }
     };
@@ -740,30 +742,30 @@ export function AdminPanel() {
 
             if (response.ok) {
                 setCategoryDialogOpen(false);
-                toast.success(editingCategory ? 'Category updated' : 'Category created', {
+                toast.success(editingCategory ? t('toast.categoryUpdated') : t('toast.categoryCreated'), {
                     description: editingCategory
-                        ? `"${categoryForm.name}" has been updated.`
-                        : `"${categoryForm.name}" has been created.`,
+                        ? t('toast.categoryUpdatedDesc', { name: categoryForm.name })
+                        : t('toast.categoryCreatedDesc', { name: categoryForm.name }),
                 });
                 setEditingCategory(null);
                 setCategoryForm({ name: '', slug: '', description: '', color: '#10b981', icon: 'FolderTree' });
                 fetchCategories();
                 fetchAdminData();
             } else {
-                toast.error('Failed to save category', {
-                    description: 'The category could not be saved.',
+                toast.error(t('toast.saveCategoryFailed'), {
+                    description: t('toast.saveCategoryFailedDesc'),
                 });
             }
         } catch (error) {
             console.error('Failed to save category:', error);
-            toast.error('Failed to save category', {
-                description: 'An error occurred.',
+            toast.error(t('toast.saveCategoryFailed'), {
+                description: t('toast.errorOccurred'),
             });
         }
     };
 
     const handleDeleteCategory = async (categoryId: string) => {
-        if (!confirm('Are you sure you want to delete this category?')) return;
+        if (!confirm(t('dialogs.deleteCategory.confirm'))) return;
 
         try {
             const response = await fetch(`${API_BASE}/admin/categories/${categoryId}`, {
@@ -772,20 +774,20 @@ export function AdminPanel() {
             });
 
             if (response.ok) {
-                toast.success('Category deleted', {
-                    description: 'The category has been permanently removed.',
+                toast.success(t('toast.categoryDeleted'), {
+                    description: t('toast.categoryDeletedDesc'),
                 });
                 fetchCategories();
                 fetchAdminData();
             } else {
-                toast.error('Failed to delete category', {
-                    description: 'The category could not be deleted.',
+                toast.error(t('toast.deleteCategoryFailed'), {
+                    description: t('toast.deleteCategoryFailedDesc'),
                 });
             }
         } catch (error) {
             console.error('Failed to delete category:', error);
-            toast.error('Failed to delete category', {
-                description: 'An error occurred.',
+            toast.error(t('toast.deleteCategoryFailed'), {
+                description: t('toast.errorOccurred'),
             });
         }
     };
@@ -852,8 +854,8 @@ export function AdminPanel() {
                                 <Shield className="h-5 w-5 text-primary-foreground" />
                             </div>
                             <div>
-                                <h1 className="text-xl font-bold">Admin Panel</h1>
-                                <p className="text-sm text-muted-foreground">Manage your forum</p>
+                                <h1 className="text-xl font-bold">{t('title')}</h1>
+                                <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
                             </div>
                         </div>
                     </div>
@@ -976,17 +978,17 @@ export function AdminPanel() {
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>
-                            {editingCategory ? 'Edit Category' : 'Add Category'}
+                            {editingCategory ? t('categories.edit') : t('categories.add')}
                         </DialogTitle>
                         <DialogDescription>
                             {editingCategory
-                                ? 'Update the category details below.'
-                                : 'Create a new category for the forum.'}
+                                ? t('categories.editSubtitle')
+                                : t('categories.addSubtitle')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div>
-                            <Label htmlFor="name">Name</Label>
+                            <Label htmlFor="name">{t('categories.form.name')}</Label>
                             <Input
                                 id="name"
                                 value={categoryForm.name}
@@ -999,20 +1001,20 @@ export function AdminPanel() {
                             />
                         </div>
                         <div>
-                            <Label htmlFor="slug">Slug</Label>
+                            <Label htmlFor="slug">{t('categories.form.slug')}</Label>
                             <Input
                                 id="slug"
                                 value={categoryForm.slug}
                                 onChange={(e) => setCategoryForm(prev => ({ ...prev, slug: e.target.value }))}
                                 className="mt-1 font-mono text-sm"
-                                placeholder="url-friendly-slug"
+                                placeholder={t('categories.form.slugPlaceholder')}
                             />
                             <p className="text-xs text-muted-foreground mt-1">
-                                The slug will be used in URLs. Leave empty to auto-generate from name.
+                                {t('categories.form.slugHelp')}
                             </p>
                         </div>
                         <div>
-                            <Label htmlFor="description">Description</Label>
+                            <Label htmlFor="description">{t('categories.form.description')}</Label>
                             <Textarea
                                 id="description"
                                 value={categoryForm.description}
@@ -1022,7 +1024,7 @@ export function AdminPanel() {
                             />
                         </div>
                         <div>
-                            <Label htmlFor="color">Color</Label>
+                            <Label htmlFor="color">{t('categories.form.color')}</Label>
                             <div className="flex items-center gap-2 mt-1">
                                 <input
                                     type="color"
@@ -1039,7 +1041,7 @@ export function AdminPanel() {
                             </div>
                         </div>
                         <div>
-                            <Label htmlFor="icon">Icon</Label>
+                            <Label htmlFor="icon">{t('categories.form.icon')}</Label>
                             <div className="mt-1">
                                 <IconSelector
                                     value={categoryForm.icon}
@@ -1050,10 +1052,10 @@ export function AdminPanel() {
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setCategoryDialogOpen(false)}>
-                            Cancel
+                            {t('common.cancel')}
                         </Button>
                         <Button onClick={handleSaveCategory} className="bg-green-600 hover:bg-green-700 text-white">
-                            {editingCategory ? 'Save Changes' : 'Create Category'}
+                            {editingCategory ? t('categories.saveChanges') : t('categories.create')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -1065,10 +1067,10 @@ export function AdminPanel() {
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-destructive">
                             <Trash2 className="h-5 w-5" />
-                            Delete Post
+                            {t('dialogs.deletePost.title')}
                         </DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to delete this post? This action cannot be undone.
+                            {t('dialogs.deletePost.description')}
                         </DialogDescription>
                     </DialogHeader>
                     {postToDelete && (
@@ -1076,7 +1078,7 @@ export function AdminPanel() {
                             <div className="p-3 rounded-lg bg-muted">
                                 <p className="font-medium">{postToDelete.title}</p>
                                 <p className="text-sm text-muted-foreground mt-1">
-                                    By {postToDelete.author.name || postToDelete.author.username}
+                                    {t('dialogs.deletePost.byAuthor', { author: postToDelete.author.name || postToDelete.author.username })}
                                 </p>
                             </div>
                         </div>
@@ -1086,13 +1088,13 @@ export function AdminPanel() {
                             variant="outline"
                             onClick={() => setDeletePostModalOpen(false)}
                         >
-                            Cancel
+                            {t('dialogs.deletePost.cancel')}
                         </Button>
                         <Button
                             variant="destructive"
                             onClick={() => postToDelete && handleDeletePost(postToDelete.id)}
                         >
-                            Delete
+                            {t('dialogs.deletePost.delete')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -1107,16 +1109,16 @@ export function AdminPanel() {
                             {userAction === 'unban' && <Check className="h-5 w-5 text-green-500" />}
                             {userAction === 'promote' && <Shield className="h-5 w-5 text-blue-500" />}
                             {userAction === 'demote' && <Users className="h-5 w-5 text-yellow-500" />}
-                            {userAction === 'ban' && 'Ban User'}
-                            {userAction === 'unban' && 'Unban User'}
-                            {userAction === 'promote' && 'Promote User'}
-                            {userAction === 'demote' && 'Demote User'}
+                            {userAction === 'ban' && t('dialogs.userAction.ban.title')}
+                            {userAction === 'unban' && t('dialogs.userAction.unban.title')}
+                            {userAction === 'promote' && t('dialogs.userAction.promote.title')}
+                            {userAction === 'demote' && t('dialogs.userAction.demote.title')}
                         </DialogTitle>
                         <DialogDescription>
-                            {userAction === 'ban' && 'This user will no longer be able to access the forum. This action can be reversed later.'}
-                            {userAction === 'unban' && 'This user will regain access to the forum.'}
-                            {userAction === 'promote' && `This user will be promoted to moderator and gain additional permissions.`}
-                            {userAction === 'demote' && `This user will be demoted to a regular user and lose moderator permissions.`}
+                            {userAction === 'ban' && t('dialogs.userAction.ban.description')}
+                            {userAction === 'unban' && t('dialogs.userAction.unban.description')}
+                            {userAction === 'promote' && t('dialogs.userAction.promote.description')}
+                            {userAction === 'demote' && t('dialogs.userAction.demote.description')}
                         </DialogDescription>
                     </DialogHeader>
                     {userToActOn && (
@@ -1125,8 +1127,8 @@ export function AdminPanel() {
                                 <p className="font-medium">{userToActOn.name || userToActOn.username}</p>
                                 <p className="text-sm text-muted-foreground mt-1">{userToActOn.email}</p>
                                 <p className="text-xs text-muted-foreground mt-2">
-                                    Current role: {userToActOn.role.charAt(0).toUpperCase() + userToActOn.role.slice(1)}
-                                    {userToActOn.isBanned && ' (Banned)'}
+                                    {t('dialogs.userAction.currentRole', { role: userToActOn.role.charAt(0).toUpperCase() + userToActOn.role.slice(1) })}
+                                    {userToActOn.isBanned && ` ${t('dialogs.userAction.banned')}`}
                                 </p>
                             </div>
                         </div>
@@ -1136,17 +1138,17 @@ export function AdminPanel() {
                             variant="outline"
                             onClick={() => setUserActionModalOpen(false)}
                         >
-                            Cancel
+                            {t('dialogs.userAction.cancel')}
                         </Button>
                         <Button
                             variant={userAction === 'ban' ? 'destructive' : 'default'}
                             onClick={executeUserAction}
                             className={userAction === 'promote' ? 'bg-blue-600 hover:bg-blue-700 text-white' : ''}
                         >
-                            {userAction === 'ban' && 'Ban User'}
-                            {userAction === 'unban' && 'Unban User'}
-                            {userAction === 'promote' && 'Promote to Moderator'}
-                            {userAction === 'demote' && 'Demote to User'}
+                            {userAction === 'ban' && t('dialogs.userAction.ban.confirm')}
+                            {userAction === 'unban' && t('dialogs.userAction.unban.confirm')}
+                            {userAction === 'promote' && t('dialogs.userAction.promote.confirm')}
+                            {userAction === 'demote' && t('dialogs.userAction.demote.confirm')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -1165,36 +1167,38 @@ function DashboardTab({
     recentActivity: AuditLogEntry[];
     onNavigate: (tab: AdminTab) => void;
 }) {
+    const { t } = useTranslation('admin');
+    
     return (
         <div className="space-y-6">
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard
-                    label="Total Users"
+                    label={t('dashboard.totalUsers')}
                     value={(stats.totalUsers ?? 0).toString()}
-                    subLabel={`${stats.bannedUsers ?? 0} banned`}
+                    subLabel={t('dashboard.banned', { count: stats.bannedUsers ?? 0 })}
                     icon={<Users className="h-4 w-4" />}
                 />
                 <StatCard
-                    label="Total Posts"
+                    label={t('dashboard.totalPosts')}
                     value={(stats.totalPosts ?? 0).toString()}
-                    subLabel={`${stats.lockedPosts ?? 0} locked`}
+                    subLabel={t('dashboard.locked', { count: stats.lockedPosts ?? 0 })}
                     icon={<FileText className="h-4 w-4" />}
                     iconBg="bg-blue-500/10"
                     iconColor="text-blue-500"
                 />
                 <StatCard
-                    label="Pending Reports"
+                    label={t('dashboard.pendingReports')}
                     value={(stats.pendingReports ?? 0).toString()}
-                    subLabel={`${stats.totalReports ?? 0} total reports`}
+                    subLabel={t('dashboard.totalReports', { count: stats.totalReports ?? 0 })}
                     icon={<Flag className="h-4 w-4" />}
                     iconBg="bg-yellow-500/10"
                     iconColor="text-yellow-500"
                 />
                 <StatCard
-                    label="Categories"
+                    label={t('dashboard.categories')}
                     value={(stats.totalCategories ?? 0).toString()}
-                    subLabel={`${stats.activeToday ?? 0} active today`}
+                    subLabel={t('dashboard.activeToday', { count: stats.activeToday ?? 0 })}
                     icon={<FolderTree className="h-4 w-4" />}
                     iconBg="bg-green-500/10"
                     iconColor="text-green-500"
@@ -1205,7 +1209,7 @@ function DashboardTab({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Quick Actions */}
                 <div className="bg-card rounded-lg border p-4 md:p-6">
-                    <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+                    <h2 className="text-lg font-semibold mb-4">{t('dashboard.quickActions')}</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <Button
                             variant="outline"
@@ -1213,7 +1217,7 @@ function DashboardTab({
                             onClick={() => onNavigate('reports')}
                         >
                             <Flag className="h-4 w-4 mr-2 text-yellow-500" />
-                            Review Reports
+                            {t('dashboard.reviewReports')}
                         </Button>
                         <Button
                             variant="outline"
@@ -1221,7 +1225,7 @@ function DashboardTab({
                             onClick={() => onNavigate('users')}
                         >
                             <Users className="h-4 w-4 mr-2 text-blue-500" />
-                            Manage Users
+                            {t('dashboard.manageUsers')}
                         </Button>
                         <Button
                             variant="outline"
@@ -1229,7 +1233,7 @@ function DashboardTab({
                             onClick={() => onNavigate('posts')}
                         >
                             <FileText className="h-4 w-4 mr-2 text-purple-500" />
-                            Moderate Posts
+                            {t('dashboard.moderatePosts')}
                         </Button>
                         <Button
                             variant="outline"
@@ -1237,14 +1241,14 @@ function DashboardTab({
                             onClick={() => onNavigate('categories')}
                         >
                             <Plus className="h-4 w-4 mr-2 text-green-500" />
-                            Add Category
+                            {t('dashboard.addCategory')}
                         </Button>
                     </div>
                 </div>
 
                 {/* Recent Activity */}
                 <div className="bg-card rounded-lg border p-4 md:p-6">
-                    <h2 className="text-lg font-semibold mb-4">Recent Activity</h2>
+                    <h2 className="text-lg font-semibold mb-4">{t('dashboard.recentActivity')}</h2>
                     <div className="space-y-3">
                         {recentActivity.length > 0 ? (
                             recentActivity.slice(0, 5).map((activity) => (
@@ -1255,13 +1259,13 @@ function DashboardTab({
                                     <div className="flex-1 min-w-0">
                                         <p className="font-medium">{activity.action}</p>
                                         <p className="text-muted-foreground text-xs">
-                                            {activity.adminUsername} - Target: {activity.targetName || activity.targetId}
+                                            {activity.adminUsername} - {t('dashboard.target', { target: activity.targetName || activity.targetId })}
                                         </p>
                                     </div>
                                 </div>
                             ))
                         ) : (
-                            <p className="text-muted-foreground text-sm">No recent activity</p>
+                            <p className="text-muted-foreground text-sm">{t('dashboard.noRecentActivity')}</p>
                         )}
                     </div>
                 </div>
@@ -1316,6 +1320,7 @@ function UsersTab({
     formatDate: (date: string) => string;
     navigate: (path: string) => void;
 }) {
+    const { t } = useTranslation('admin');
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
@@ -1365,8 +1370,8 @@ function UsersTab({
     return (
         <div className="bg-card rounded-lg border overflow-hidden">
             <div className="p-4 md:p-6 border-b">
-                <h2 className="text-lg font-semibold">User Management</h2>
-                <p className="text-muted-foreground text-sm">Manage user accounts and permissions</p>
+                <h2 className="text-lg font-semibold">{t('users.title')}</h2>
+                <p className="text-muted-foreground text-sm">{t('users.subtitle')}</p>
             </div>
 
             <div className="p-4 md:p-6 border-b">
@@ -1375,7 +1380,7 @@ function UsersTab({
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
-                                placeholder="Search users..."
+                                placeholder={t('users.search')}
                                 value={searchQuery}
                                 onChange={(e) => {
                                     setSearchQuery(e.target.value);
@@ -1390,10 +1395,10 @@ function UsersTab({
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="10">10 per page</SelectItem>
-                            <SelectItem value="25">25 per page</SelectItem>
-                            <SelectItem value="50">50 per page</SelectItem>
-                            <SelectItem value="100">100 per page</SelectItem>
+                            <SelectItem value="10">{t('users.pagination.perPage', { count: 10 })}</SelectItem>
+                            <SelectItem value="25">{t('users.pagination.perPage', { count: 25 })}</SelectItem>
+                            <SelectItem value="50">{t('users.pagination.perPage', { count: 50 })}</SelectItem>
+                            <SelectItem value="100">{t('users.pagination.perPage', { count: 100 })}</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -1405,31 +1410,31 @@ function UsersTab({
                     className="col-span-4 cursor-pointer hover:text-foreground transition-colors flex items-center gap-1"
                     onClick={() => handleSort('name')}
                 >
-                    User
+                    {t('users.columns.user')}
                     {sortColumn === 'name' && (sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
                 </div>
                 <div
                     className="col-span-2 cursor-pointer hover:text-foreground transition-colors flex items-center gap-1"
                     onClick={() => handleSort('role')}
                 >
-                    Role
+                    {t('users.columns.role')}
                     {sortColumn === 'role' && (sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
                 </div>
                 <div
                     className="col-span-2 cursor-pointer hover:text-foreground transition-colors flex items-center gap-1"
                     onClick={() => handleSort('reputation')}
                 >
-                    Reputation
+                    {t('users.columns.reputation')}
                     {sortColumn === 'reputation' && (sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
                 </div>
                 <div
                     className="col-span-3 cursor-pointer hover:text-foreground transition-colors flex items-center gap-1"
                     onClick={() => handleSort('joined')}
                 >
-                    Joined
+                    {t('users.columns.joined')}
                     {sortColumn === 'joined' && (sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
                 </div>
-                <div className="col-span-1">Actions</div>
+                <div className="col-span-1">{t('users.columns.actions')}</div>
             </div>
 
             {/* Table rows */}
@@ -1452,7 +1457,7 @@ function UsersTab({
 
                         {/* Role */}
                         <div className="md:col-span-2 flex items-center">
-                            <span className="md:hidden text-muted-foreground text-sm mr-2">Role:</span>
+                            <span className="md:hidden text-muted-foreground text-sm mr-2">{t('users.columns.role')}:</span>
                             {u.isBanned ? (
                                 <div className="h-8 w-8 rounded-full flex items-center justify-center bg-destructive/20 text-destructive">
                                     <Ban className="h-4 w-4" />
@@ -1473,13 +1478,13 @@ function UsersTab({
 
                         {/* Reputation */}
                         <div className="md:col-span-2 flex items-center">
-                            <span className="md:hidden text-muted-foreground text-sm mr-2">Reputation:</span>
+                            <span className="md:hidden text-muted-foreground text-sm mr-2">{t('users.columns.reputation')}:</span>
                             <span className="font-medium">{u.reputation?.toLocaleString() || '0'}</span>
                         </div>
 
                         {/* Joined */}
                         <div className="md:col-span-3 flex items-center text-sm text-muted-foreground">
-                            <span className="md:hidden text-muted-foreground text-sm mr-2">Joined:</span>
+                            <span className="md:hidden text-muted-foreground text-sm mr-2">{t('users.columns.joined')}:</span>
                             {u.createdAt ? formatDate(u.createdAt) : '-'}
                         </div>
 
@@ -1497,7 +1502,7 @@ function UsersTab({
                                         onClick={() => navigate(`/profile/${u.username}`)}
                                     >
                                         <Eye className="mr-2 h-4 w-4" />
-                                        View Profile
+                                        {t('users.actions.viewProfile')}
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     {u.role !== 'admin' && (
@@ -1508,7 +1513,7 @@ function UsersTab({
                                                     onClick={() => onUserAction(u.id, 'promote')}
                                                 >
                                                     <Shield className="mr-2 h-4 w-4" />
-                                                    Promote to Moderator
+                                                    {t('users.actions.promoteToMod')}
                                                 </DropdownMenuItem>
                                             )}
                                             {u.role === 'moderator' && (
@@ -1517,7 +1522,7 @@ function UsersTab({
                                                     onClick={() => onUserAction(u.id, 'demote')}
                                                 >
                                                     <Users className="mr-2 h-4 w-4" />
-                                                    Demote to User
+                                                    {t('users.actions.demoteToUser')}
                                                 </DropdownMenuItem>
                                             )}
                                             <DropdownMenuSeparator />
@@ -1527,7 +1532,7 @@ function UsersTab({
                                                     onClick={() => onUserAction(u.id, 'unban')}
                                                 >
                                                     <Check className="mr-2 h-4 w-4" />
-                                                    Unban User
+                                                    {t('users.actions.unban')}
                                                 </DropdownMenuItem>
                                             ) : (
                                                 <DropdownMenuItem
@@ -1535,7 +1540,7 @@ function UsersTab({
                                                     onClick={() => onUserAction(u.id, 'ban')}
                                                 >
                                                     <Ban className="mr-2 h-4 w-4" />
-                                                    Ban User
+                                                    {t('users.actions.ban')}
                                                 </DropdownMenuItem>
                                             )}
                                         </>
@@ -1548,7 +1553,7 @@ function UsersTab({
 
                 {filteredAndSortedUsers.length === 0 && (
                     <div className="p-8 text-center text-muted-foreground">
-                        No users found
+                        {t('users.noUsers')}
                     </div>
                 )}
             </div>
@@ -1556,7 +1561,7 @@ function UsersTab({
             {filteredAndSortedUsers.length > 0 && (
                 <div className="p-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
                     <p className="text-sm text-muted-foreground">
-                        Showing {((currentPage - 1) * perPage) + 1} to {Math.min(currentPage * perPage, filteredAndSortedUsers.length)} of {filteredAndSortedUsers.length} users
+                        {t('users.pagination.showing', { from: ((currentPage - 1) * perPage) + 1, to: Math.min(currentPage * perPage, filteredAndSortedUsers.length), total: filteredAndSortedUsers.length })}
                     </p>
                     <div className="flex items-center gap-2">
                         <Button
@@ -1616,6 +1621,7 @@ function PostsTab({
     formatDate: (date: string) => string;
     navigate: (path: string) => void;
 }) {
+    const { t } = useTranslation('admin');
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
@@ -1681,8 +1687,8 @@ function PostsTab({
     return (
         <div className="bg-card rounded-lg border overflow-hidden">
             <div className="p-4 md:p-6 border-b">
-                <h2 className="text-lg font-semibold">Post Management</h2>
-                <p className="text-muted-foreground text-sm">Moderate and manage forum posts</p>
+                <h2 className="text-lg font-semibold">{t('posts.title')}</h2>
+                <p className="text-muted-foreground text-sm">{t('posts.subtitle')}</p>
             </div>
 
             <div className="p-4 md:p-6 border-b">
@@ -1691,7 +1697,7 @@ function PostsTab({
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
-                                placeholder="Search posts..."
+                                placeholder={t('posts.search')}
                                 value={searchQuery}
                                 onChange={(e) => {
                                     setSearchQuery(e.target.value);
@@ -1706,10 +1712,10 @@ function PostsTab({
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="10">10 per page</SelectItem>
-                            <SelectItem value="25">25 per page</SelectItem>
-                            <SelectItem value="50">50 per page</SelectItem>
-                            <SelectItem value="100">100 per page</SelectItem>
+                            <SelectItem value="10">{t('posts.pagination.perPage', { count: 10 })}</SelectItem>
+                            <SelectItem value="25">{t('posts.pagination.perPage', { count: 25 })}</SelectItem>
+                            <SelectItem value="50">{t('posts.pagination.perPage', { count: 50 })}</SelectItem>
+                            <SelectItem value="100">{t('posts.pagination.perPage', { count: 100 })}</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -1721,25 +1727,25 @@ function PostsTab({
                     className="col-span-5 cursor-pointer hover:text-foreground transition-colors flex items-center gap-1 truncate"
                     onClick={() => handleSort('title')}
                 >
-                    Post
+                    {t('posts.columns.post')}
                     {sortColumn === 'title' && (sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
                 </div>
                 <div
                     className="col-span-2 cursor-pointer hover:text-foreground transition-colors flex items-center gap-1 truncate"
                     onClick={() => handleSort('author')}
                 >
-                    Author
+                    {t('posts.columns.author')}
                     {sortColumn === 'author' && (sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
                 </div>
-                <div className="col-span-2 flex items-center truncate">Status</div>
+                <div className="col-span-2 flex items-center truncate">{t('posts.columns.status')}</div>
                 <div
                     className="col-span-2 cursor-pointer hover:text-foreground transition-colors flex items-center gap-1 truncate"
                     onClick={() => handleSort('created')}
                 >
-                    Created
+                    {t('posts.columns.created')}
                     {sortColumn === 'created' && (sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
                 </div>
-                <div className="col-span-1 flex items-center justify-end truncate">Actions</div>
+                <div className="col-span-1 flex items-center justify-end truncate">{t('posts.columns.actions')}</div>
             </div>
 
             {/* Table rows */}
@@ -1768,13 +1774,13 @@ function PostsTab({
 
                         {/* Status */}
                         <div className="md:col-span-2 flex items-center">
-                            <span className="md:hidden text-muted-foreground text-sm mr-2">Status:</span>
+                            <span className="md:hidden text-muted-foreground text-sm mr-2">{t('posts.columns.status')}:</span>
                             {getStatusBadge(post)}
                         </div>
 
                         {/* Created */}
                         <div className="md:col-span-2 flex items-center text-sm text-muted-foreground">
-                            <span className="md:hidden text-muted-foreground text-sm mr-2">Created:</span>
+                            <span className="md:hidden text-muted-foreground text-sm mr-2">{t('posts.columns.created')}:</span>
                             {post.createdAt ? formatDate(post.createdAt) : '-'}
                         </div>
 
@@ -1792,7 +1798,7 @@ function PostsTab({
                                         onClick={() => navigate(`/post/${post.id}`)}
                                     >
                                         <Eye className="mr-2 h-4 w-4" />
-                                        View Post
+                                        {t('posts.actions.view')}
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     {post.pinned ? (
@@ -1801,7 +1807,7 @@ function PostsTab({
                                             onClick={() => onPostAction(post.id, 'unpin')}
                                         >
                                             <Pin className="mr-2 h-4 w-4" />
-                                            Unpin Post
+                                            {t('posts.actions.unpin')}
                                         </DropdownMenuItem>
                                     ) : (
                                         <DropdownMenuItem
@@ -1809,7 +1815,7 @@ function PostsTab({
                                             onClick={() => onPostAction(post.id, 'pin')}
                                         >
                                             <Pin className="mr-2 h-4 w-4" />
-                                            Pin Post
+                                            {t('posts.actions.pin')}
                                         </DropdownMenuItem>
                                     )}
                                     {post.locked ? (
@@ -1818,7 +1824,7 @@ function PostsTab({
                                             onClick={() => onPostAction(post.id, 'unlock')}
                                         >
                                             <Unlock className="mr-2 h-4 w-4" />
-                                            Unlock Post
+                                            {t('posts.actions.unlock')}
                                         </DropdownMenuItem>
                                     ) : (
                                         <DropdownMenuItem
@@ -1826,7 +1832,7 @@ function PostsTab({
                                             onClick={() => onPostAction(post.id, 'lock')}
                                         >
                                             <Lock className="mr-2 h-4 w-4" />
-                                            Lock Post
+                                            {t('posts.actions.lock')}
                                         </DropdownMenuItem>
                                     )}
                                     <DropdownMenuSeparator />
@@ -1835,7 +1841,7 @@ function PostsTab({
                                         onClick={() => onPostAction(post.id, 'delete')}
                                     >
                                         <Trash2 className="mr-2 h-4 w-4" />
-                                        Delete Post
+                                        {t('posts.actions.delete')}
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
@@ -1845,7 +1851,7 @@ function PostsTab({
 
                 {filteredAndSortedPosts.length === 0 && (
                     <div className="p-8 text-center text-muted-foreground">
-                        No posts found
+                        {t('posts.noPosts')}
                     </div>
                 )}
             </div>
@@ -1853,7 +1859,7 @@ function PostsTab({
             {filteredAndSortedPosts.length > 0 && (
                 <div className="p-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
                     <p className="text-sm text-muted-foreground">
-                        Showing {((currentPage - 1) * perPage) + 1} to {Math.min(currentPage * perPage, filteredAndSortedPosts.length)} of {filteredAndSortedPosts.length} posts
+                        {t('posts.pagination.showing', { from: ((currentPage - 1) * perPage) + 1, to: Math.min(currentPage * perPage, filteredAndSortedPosts.length), total: filteredAndSortedPosts.length })}
                     </p>
                     <div className="flex items-center gap-2">
                         <Button
@@ -1915,23 +1921,25 @@ function ReportsTab({
     onReportAction: (reportId: string, action: 'resolve' | 'dismiss' | 'review') => void;
     formatDate: (date: string) => string;
 }) {
+    const { t } = useTranslation('admin');
+    
     return (
         <div className="bg-card rounded-lg border">
             <div className="p-4 md:p-6 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h2 className="text-lg font-semibold">Report Management</h2>
-                    <p className="text-muted-foreground text-sm">Review and handle user reports</p>
+                    <h2 className="text-lg font-semibold">{t('reports.title')}</h2>
+                    <p className="text-muted-foreground text-sm">{t('reports.subtitle')}</p>
                 </div>
                 <Select value={reportFilter} onValueChange={setReportFilter}>
                     <SelectTrigger className="w-full sm:w-40">
-                        <SelectValue placeholder="Filter reports" />
+                        <SelectValue placeholder={t('reports.filterPlaceholder')} />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">All Reports</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="reviewed">Reviewed</SelectItem>
-                        <SelectItem value="resolved">Resolved</SelectItem>
-                        <SelectItem value="dismissed">Dismissed</SelectItem>
+                        <SelectItem value="all">{t('reports.allReports')}</SelectItem>
+                        <SelectItem value="pending">{t('reports.status.pending')}</SelectItem>
+                        <SelectItem value="reviewed">{t('reports.status.reviewed')}</SelectItem>
+                        <SelectItem value="resolved">{t('reports.status.resolved')}</SelectItem>
+                        <SelectItem value="dismissed">{t('reports.status.dismissed')}</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -1944,7 +1952,7 @@ function ReportsTab({
                                 <div className="flex items-center gap-2 mb-2">
                                     <AlertTriangle className="h-4 w-4 text-yellow-500" />
                                     <Badge variant="outline" className="text-xs">
-                                        {report.type === 'post' ? 'Post Report' : 'User Report'}
+                                        {report.type === 'post' ? t('reports.postReport') : t('reports.userReport')}
                                     </Badge>
                                     {report.status !== 'pending' && (
                                         <Badge
@@ -1957,7 +1965,7 @@ function ReportsTab({
                                             )}
                                         >
                                             {report.status === 'resolved' && <Check className="h-3 w-3 mr-1" />}
-                                            {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
+                                            {t(`reports.status.${report.status}`)}
                                         </Badge>
                                     )}
                                 </div>
@@ -1966,7 +1974,7 @@ function ReportsTab({
                                     <p className="text-sm text-muted-foreground mt-1">{report.description}</p>
                                 )}
                                 <p className="text-xs text-muted-foreground mt-2">
-                                    By {report.reportedBy?.username || 'Anonymous'} - {formatDate(report.createdAt)}
+                                    {t('reports.byUser', { username: report.reportedBy?.username || 'Anonymous' })} - {formatDate(report.createdAt)}
                                 </p>
                             </div>
 
@@ -1979,7 +1987,7 @@ function ReportsTab({
                                         className="text-blue-500 border-blue-500/50 hover:bg-blue-500/10"
                                     >
                                         <Eye className="h-4 w-4 mr-1" />
-                                        Review
+                                        {t('reports.actions.review')}
                                     </Button>
                                     <Button
                                         variant="outline"
@@ -1988,7 +1996,7 @@ function ReportsTab({
                                         className="text-green-500 border-green-500/50 hover:bg-green-500/10"
                                     >
                                         <Check className="h-4 w-4 mr-1" />
-                                        Resolve
+                                        {t('reports.actions.resolve')}
                                     </Button>
                                     <Button
                                         variant="outline"
@@ -1997,7 +2005,7 @@ function ReportsTab({
                                         className="text-muted-foreground"
                                     >
                                         <X className="h-4 w-4 mr-1" />
-                                        Dismiss
+                                        {t('reports.actions.dismiss')}
                                     </Button>
                                 </div>
                             ) : (
@@ -2010,7 +2018,7 @@ function ReportsTab({
                                     )}
                                 >
                                     {report.status === 'resolved' && <Check className="h-3 w-3 mr-1" />}
-                                    {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
+                                    {t(`reports.status.${report.status}`)}
                                 </Badge>
                             )}
                         </div>
@@ -2019,7 +2027,7 @@ function ReportsTab({
 
                 {reports.length === 0 && (
                     <div className="p-8 text-center text-muted-foreground">
-                        No reports found
+                        {t('reports.noReports')}
                     </div>
                 )}
             </div>
@@ -2039,12 +2047,14 @@ function CategoriesTab({
     onDeleteCategory: (categoryId: string) => void;
     onNewCategory: () => void;
 }) {
+    const { t } = useTranslation('admin');
+    
     return (
         <div className="bg-card rounded-lg border">
             <div className="p-4 md:p-6 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h2 className="text-lg font-semibold">Category Management</h2>
-                    <p className="text-muted-foreground text-sm">Organize forum topics</p>
+                    <h2 className="text-lg font-semibold">{t('categories.title')}</h2>
+                    <p className="text-muted-foreground text-sm">{t('categories.subtitle')}</p>
                 </div>
                 <Button
                     type="button"
@@ -2055,7 +2065,7 @@ function CategoriesTab({
                     className="bg-white hover:bg-gray-100 text-black"
                 >
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Category
+                    {t('categories.add')}
                 </Button>
             </div>
 
@@ -2090,7 +2100,7 @@ function CategoriesTab({
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                         <FileText className="h-4 w-4" />
-                                        {category.postCount} posts
+                                        {t('categories.posts', { count: category.postCount })}
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <Button
@@ -2117,7 +2127,7 @@ function CategoriesTab({
 
                     {categories.length === 0 && (
                         <div className="col-span-full p-8 text-center text-muted-foreground">
-                            No categories found. Create your first category!
+                            {t('categories.noCategories')}
                         </div>
                     )}
                 </div>
@@ -2142,6 +2152,7 @@ function AuditLogTab({
     onFilterChange?: (userId?: string) => void;
     users?: AdminUser[];
 }) {
+    const { t } = useTranslation('admin');
     const [searchQuery, setSearchQuery] = useState('');
     const [userSearch, setUserSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -2191,8 +2202,8 @@ function AuditLogTab({
     return (
         <div className="bg-card rounded-lg border">
             <div className="p-4 md:p-6 border-b">
-                <h2 className="text-lg font-semibold">Audit Log</h2>
-                <p className="text-muted-foreground text-sm">Track all admin actions</p>
+                <h2 className="text-lg font-semibold">{t('auditLog.title')}</h2>
+                <p className="text-muted-foreground text-sm">{t('auditLog.subtitle')}</p>
             </div>
 
             <div className="p-4 md:p-6 border-b">
@@ -2201,7 +2212,7 @@ function AuditLogTab({
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
-                                placeholder="Search audit log..."
+                                placeholder={t('auditLog.search')}
                                 value={searchQuery}
                                 onChange={(e) => {
                                     setSearchQuery(e.target.value);
@@ -2217,8 +2228,8 @@ function AuditLogTab({
                                 <Button variant="outline" className="w-full sm:w-64 justify-between">
                                     <span className="truncate">
                                         {userFilter
-                                            ? users?.find(u => u.id === userFilter)?.name || users?.find(u => u.id === userFilter)?.username || 'Select user'
-                                            : 'Filter by user'}
+                                            ? users?.find(u => u.id === userFilter)?.name || users?.find(u => u.id === userFilter)?.username || t('auditLog.selectUser')
+                                            : t('auditLog.filterByUser')}
                                     </span>
                                     <ChevronDown className="h-4 w-4 opacity-50" />
                                 </Button>
@@ -2226,7 +2237,7 @@ function AuditLogTab({
                             <PopoverContent className="w-full sm:w-80 p-0" align="start">
                                 <div className="p-3">
                                     <Input
-                                        placeholder="Search users..."
+                                        placeholder={t('auditLog.searchUsers')}
                                         value={userSearch}
                                         onChange={(e) => setUserSearch(e.target.value)}
                                     />
@@ -2273,7 +2284,7 @@ function AuditLogTab({
                                         u.email?.toLowerCase().includes(userSearch.toLowerCase())
                                     ).length === 0 && (
                                         <div className="p-4 text-center text-sm text-muted-foreground">
-                                            No users found
+                                            {t('auditLog.noUsersFound')}
                                         </div>
                                     )}
                                 </ScrollArea>
@@ -2285,10 +2296,10 @@ function AuditLogTab({
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="10">10 per page</SelectItem>
-                            <SelectItem value="25">25 per page</SelectItem>
-                            <SelectItem value="50">50 per page</SelectItem>
-                            <SelectItem value="100">100 per page</SelectItem>
+                            <SelectItem value="10">{t('auditLog.pagination.perPage', { count: 10 })}</SelectItem>
+                            <SelectItem value="25">{t('auditLog.pagination.perPage', { count: 25 })}</SelectItem>
+                            <SelectItem value="50">{t('auditLog.pagination.perPage', { count: 50 })}</SelectItem>
+                            <SelectItem value="100">{t('auditLog.pagination.perPage', { count: 100 })}</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -2300,21 +2311,21 @@ function AuditLogTab({
                     className="col-span-5 cursor-pointer hover:text-foreground transition-colors flex items-center gap-1"
                     onClick={() => handleSort('action')}
                 >
-                    Action
+                    {t('auditLog.columns.action')}
                     {sortColumn === 'action' && (sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
                 </div>
                 <div
                     className="col-span-4 cursor-pointer hover:text-foreground transition-colors flex items-center gap-1"
                     onClick={() => handleSort('admin')}
                 >
-                    Admin
+                    {t('auditLog.columns.admin')}
                     {sortColumn === 'admin' && (sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
                 </div>
                 <div
                     className="col-span-3 cursor-pointer hover:text-foreground transition-colors flex items-center gap-1"
                     onClick={() => handleSort('date')}
                 >
-                    Date
+                    {t('auditLog.columns.date')}
                     {sortColumn === 'date' && (sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
                 </div>
             </div>
@@ -2337,11 +2348,11 @@ function AuditLogTab({
                             </div>
                         </div>
                         <div className="md:col-span-4 hidden md:flex items-center text-sm">
-                            <span className="md:hidden text-muted-foreground text-sm mr-2">Admin:</span>
+                            <span className="md:hidden text-muted-foreground text-sm mr-2">{t('auditLog.columns.admin')}:</span>
                             {entry.adminUsername}
                         </div>
                         <div className="md:col-span-3 hidden md:flex items-center text-sm text-muted-foreground">
-                            <span className="md:hidden text-muted-foreground text-sm mr-2">Date:</span>
+                            <span className="md:hidden text-muted-foreground text-sm mr-2">{t('auditLog.columns.date')}:</span>
                             {formatDate(entry.createdAt)}
                         </div>
                     </div>
@@ -2349,7 +2360,7 @@ function AuditLogTab({
 
                 {filteredAndSortedLog.length === 0 && (
                     <div className="p-8 text-center text-muted-foreground">
-                        No audit log entries found
+                        {t('auditLog.noEntries')}
                     </div>
                 )}
             </div>
@@ -2357,7 +2368,7 @@ function AuditLogTab({
             {filteredAndSortedLog.length > 0 && (
                 <div className="p-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
                     <p className="text-sm text-muted-foreground">
-                        Showing {((currentPage - 1) * perPage) + 1} to {Math.min(currentPage * perPage, filteredAndSortedLog.length)} of {filteredAndSortedLog.length} entries
+                        {t('auditLog.pagination.showing', { from: ((currentPage - 1) * perPage) + 1, to: Math.min(currentPage * perPage, filteredAndSortedLog.length), total: filteredAndSortedLog.length })}
                     </p>
                     <div className="flex items-center gap-2">
                         <Button

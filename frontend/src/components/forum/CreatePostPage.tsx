@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2, Plus, Sparkles, X, Tag as TagIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ interface Category {
 }
 
 export function CreatePostPage() {
+  const { t } = useTranslation(['forum', 'common']);
   const navigate = useNavigate();
   const { user } = useAuth();
   const [title, setTitle] = useState("");
@@ -131,19 +133,19 @@ export function CreatePostPage() {
         setTags((prev) => [...prev, data.tag]);
         setSelectedTags((prev) => [...prev, data.tag.id]);
         setTagSearch("");
-        toast.success("Tag created", {
-          description: `"${tagName}" has been added to your post.`,
+        toast.success(t('toast.tagCreated'), {
+          description: t('toast.tagCreatedDesc', { tag: tagName }),
         });
       } else {
         const data = await response.json();
-        toast.error("Failed to create tag", {
-          description: data.error || "Could not create the tag.",
+        toast.error(t('toast.createTagFailed'), {
+          description: data.error || t('toast.createTagFailedDesc'),
         });
       }
     } catch (err) {
       console.error("Failed to create tag:", err);
-      toast.error("Failed to create tag", {
-        description: "An error occurred while creating the tag.",
+      toast.error(t('toast.createTagFailed'), {
+        description: t('toast.createTagFailedDesc'),
       });
     } finally {
       setIsCreatingTag(false);
@@ -154,15 +156,15 @@ export function CreatePostPage() {
     e.preventDefault();
 
     if (!title.trim()) {
-      toast.error("Title is required", {
-        description: "Please enter a title for your post.",
+      toast.error(t('validation.titleRequired'), {
+        description: t('validation.titleRequiredDesc'),
       });
       return;
     }
 
     if (!body.trim()) {
-      toast.error("Content is required", {
-        description: "Please add some content to your post.",
+      toast.error(t('validation.contentRequired'), {
+        description: t('validation.contentRequiredDesc'),
       });
       return;
     }
@@ -187,13 +189,13 @@ export function CreatePostPage() {
         throw new Error(data.message || "Failed to create post");
       }
 
-      toast.success("Post published!", {
-        description: "Your post has been shared with the community.",
+      toast.success(t('toast.postCreated'), {
+        description: t('toast.postCreatedDesc'),
       });
       navigate("/");
     } catch (err) {
-      toast.error("Failed to create post", {
-        description: err instanceof Error ? err.message : "An error occurred.",
+      toast.error(t('toast.createPostFailed'), {
+        description: err instanceof Error ? err.message : t('toast.createPostFailedDesc'),
       });
     } finally {
       setIsLoading(false);
@@ -230,7 +232,7 @@ export function CreatePostPage() {
           className="group flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
         >
           <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-          <span className="text-sm font-medium">Back to forum</span>
+          <span className="text-sm font-medium">{t('posts.create.backToForum')}</span>
         </button>
 
         <div className="mb-8">
@@ -238,10 +240,10 @@ export function CreatePostPage() {
             <div className="p-2 bg-primary/10 rounded-lg">
               <Sparkles className="h-5 w-5 text-primary" />
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold">Create a new post</h1>
+            <h1 className="text-2xl md:text-3xl font-bold">{t('posts.create.title')}</h1>
           </div>
           <p className="text-muted-foreground ml-11">
-            Start a conversation with the community
+            {t('posts.create.subtitle')}
           </p>
         </div>
 
@@ -249,12 +251,12 @@ export function CreatePostPage() {
           <div className="p-6 md:p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="title" className="text-sm font-semibold">Title</Label>
+                <Label htmlFor="title" className="text-sm font-semibold">{t('posts.create.titleLabel')}</Label>
                 <Input
                   id="title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="What's on your mind?"
+                  placeholder={t('posts.create.titlePlaceholder')}
                   disabled={isLoading}
                   maxLength={200}
                   className="text-base h-12"
@@ -265,18 +267,18 @@ export function CreatePostPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category" className="text-sm font-semibold">Category</Label>
+                <Label htmlFor="category" className="text-sm font-semibold">{t('posts.create.categoryLabel')}</Label>
                 <Select 
                   value={selectedCategoryId} 
                   onValueChange={handleCategoryChange} 
                   disabled={isLoading || isFetchingCategories}
                 >
                   <SelectTrigger id="category">
-                    <SelectValue placeholder={isFetchingCategories ? "Loading categories..." : "Select a category"} />
+                    <SelectValue placeholder={isFetchingCategories ? t('posts.create.loadingCategories') : t('posts.create.selectCategory')} />
                   </SelectTrigger>
                   <SelectContent>
                     {categories.length === 0 ? (
-                      <div className="py-2 px-3 text-sm text-muted-foreground">No categories available</div>
+                      <div className="py-2 px-3 text-sm text-muted-foreground">{t('posts.create.noCategories')}</div>
                     ) : (
                       categories.map((category) => (
                         <SelectItem key={category.id} value={category.id}>
@@ -294,11 +296,11 @@ export function CreatePostPage() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-semibold">Content</Label>
+                <Label className="text-sm font-semibold">{t('posts.create.contentLabel')}</Label>
                 <MarkdownEditor
                   value={body}
                   onChange={setBody}
-                  placeholder="Share your thoughts, questions, or ideas..."
+                  placeholder={t('posts.create.contentPlaceholder')}
                   minHeight="300px"
                 />
               </div>
@@ -311,7 +313,7 @@ export function CreatePostPage() {
                   <div className="flex items-center gap-2">
                     <Label className="text-sm font-semibold cursor-pointer flex items-center gap-2">
                       <TagIcon className="h-4 w-4" />
-                      Tags
+                      {t('posts.create.tagsLabel')}
                       {selectedTags.length > 0 && (
                         <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
                           {selectedTags.length}
@@ -361,7 +363,7 @@ export function CreatePostPage() {
                             onClick={clearAllTags}
                             className="text-xs text-muted-foreground hover:text-destructive transition-colors px-2 py-1.5"
                           >
-                            Clear all
+                            {t('common:clearAll')}
                           </button>
                         )}
                       </div>
@@ -370,7 +372,7 @@ export function CreatePostPage() {
                     <Input
                       value={tagSearch}
                       onChange={(e) => setTagSearch(e.target.value)}
-                      placeholder={selectedTagsList.length === 0 ? "Search or create tags..." : "Add more tags..."}
+                      placeholder={selectedTagsList.length === 0 ? t('posts.create.tagsPlaceholder') : t('posts.create.addMoreTags')}
                       maxLength={50}
                       disabled={isCreatingTag}
                     />
@@ -378,12 +380,12 @@ export function CreatePostPage() {
                     {isFetchingTags ? (
                       <div className="flex items-center justify-center py-8 text-muted-foreground">
                         <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                        Loading tags...
+                        {t('posts.create.loadingTags')}
                       </div>
                     ) : (
                       <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
                         {filteredTags.length === 0 && !showCreateOption && tagSearch && (
-                          <p className="text-sm text-muted-foreground py-2">No matching tags</p>
+                          <p className="text-sm text-muted-foreground py-2">{t('posts.create.noMatchingTags')}</p>
                         )}
                         {filteredTags.map((tag) => (
                           <button
@@ -409,12 +411,12 @@ export function CreatePostPage() {
                             {isCreatingTag ? (
                               <>
                                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                Creating...
+                                {t('posts.create.creatingTag')}
                               </>
                             ) : (
                               <>
                                 <Plus className="h-3.5 w-3.5" />
-                                Create "{tagSearch}"
+                                {t('posts.create.createTag', { tag: tagSearch })}
                               </>
                             )}
                           </button>
@@ -430,12 +432,12 @@ export function CreatePostPage() {
                   {isLoading ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Publishing...
+                      {t('posts.create.publishing')}
                     </>
                   ) : (
                     <>
                       <Sparkles className="h-4 w-4 mr-2" />
-                      Publish post
+                      {t('posts.create.publish')}
                     </>
                   )}
                 </Button>
@@ -446,7 +448,7 @@ export function CreatePostPage() {
                   disabled={isLoading}
                   size="lg"
                 >
-                  Cancel
+                  {t('common:cancel')}
                 </Button>
               </div>
             </form>

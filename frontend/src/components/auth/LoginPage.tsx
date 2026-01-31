@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { translateApiKey } from "@/i18n";
 import { Shield, Eye, EyeOff, Loader2 } from "lucide-react";
 
 export function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { t } = useTranslation(['auth', 'errors']);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -20,13 +24,14 @@ export function LoginPage() {
 
     try {
       await login(email, password);
-      toast.success("Welcome back!", {
-        description: "You have successfully signed in.",
+      toast.success(t('auth:toast.loginSuccess'), {
+        description: t('auth:toast.loginSuccessDesc'),
       });
       navigate("/");
     } catch (err) {
-      toast.error("Login failed", {
-        description: err instanceof Error ? err.message : "Invalid credentials",
+      const errorMessage = err instanceof Error ? err.message : "error.invalidCredentials";
+      toast.error(t('auth:toast.loginFailed'), {
+        description: translateApiKey(errorMessage),
       });
     } finally {
       setIsLoading(false);
@@ -35,14 +40,17 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher />
+      </div>
       <div className="w-full max-w-md">
         <div className="text-center mb-6 md:mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full bg-primary/10 mb-3 md:mb-4">
             <Shield className="w-6 h-6 md:w-8 md:h-8 text-primary" />
           </div>
-          <h1 className="text-xl md:text-2xl font-bold text-foreground">Welcome Back</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-foreground">{t('auth:login.title')}</h1>
           <p className="text-sm text-muted-foreground mt-1 md:mt-2">
-            Sign in to access the security forum
+            {t('auth:login.subtitle')}
           </p>
         </div>
 
@@ -53,12 +61,12 @@ export function LoginPage() {
                 htmlFor="email"
                 className="text-sm font-medium text-foreground"
               >
-                Email
+                {t('auth:login.email')}
               </label>
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder={t('auth:login.emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -72,13 +80,13 @@ export function LoginPage() {
                 htmlFor="password"
                 className="text-sm font-medium text-foreground"
               >
-                Password
+                {t('auth:login.password')}
               </label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
+                  placeholder={t('auth:login.passwordPlaceholder')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -107,13 +115,13 @@ export function LoginPage() {
                   type="checkbox"
                   className="rounded border-border bg-background"
                 />
-                <span className="text-muted-foreground">Remember me</span>
+                <span className="text-muted-foreground">{t('auth:login.rememberMe')}</span>
               </label>
               <Link
                 to="/forgot-password"
                 className="text-primary hover:underline"
               >
-                Forgot password?
+                {t('auth:login.forgotPassword')}
               </Link>
             </div>
 
@@ -121,24 +129,24 @@ export function LoginPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Signing in...
+                  {t('auth:login.signingIn')}
                 </>
               ) : (
-                "Sign In"
+                t('auth:login.signIn')
               )}
             </Button>
           </form>
 
           <div className="mt-4 md:mt-6 text-center text-sm text-muted-foreground">
-            Don't have an account?{" "}
+            {t('auth:login.noAccount')}{" "}
             <Link to="/register" className="text-primary hover:underline">
-              Create one
+              {t('auth:login.createOne')}
             </Link>
           </div>
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-4 md:mt-6 px-2">
-          By signing in, you agree to our Terms of Service and Privacy Policy
+          {t('auth:login.termsAgreement')}
         </p>
       </div>
     </div>

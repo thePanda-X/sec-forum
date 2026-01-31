@@ -1,0 +1,128 @@
+{
+  "header": {
+    "searchPlaceholder": "Buscar discusiones...",
+    "newPost": "Nueva publicación",
+    "adminPanel": "Panel de administración",
+    "menuHint": "Usa el menú para navegar por las categorías"
+  },
+  "categories": {
+    "all": "Todas las categorías",
+    "title": "Categorías"
+  },
+  "filters": {
+    "recent": "Recientes",
+    "popular": "Populares",
+    "trending": "Tendencias",
+    "mostReplies": "Más respuestas",
+    "oldest": "Más antiguos",
+    "unanswered": "Sin respuesta"
+  },
+  "posts": {
+    "title": "Todas las discusiones",
+    "categoryTitle": "Discusiones de la categoría",
+    "searchTitle": "Resultados de búsqueda para \"{{query}}\"",
+    "count": "{{count}} publicaciones",
+    "count_one": "{{count}} publicación",
+    "noResults": "No se encontraron publicaciones",
+    "adminMode": "Modo administrador activo — Puedes fijar, bloquear, editar y eliminar publicaciones",
+    "adminModeShort": "Modo Admin",
+    "create": {
+      "title": "Crear una nueva publicación",
+      "subtitle": "Inicia una conversación con la comunidad",
+      "titleLabel": "Título",
+      "titlePlaceholder": "¿Qué tienes en mente?",
+      "categoryLabel": "Categoría",
+      "selectCategory": "Selecciona una categoría",
+      "loadingCategories": "Cargando categorías...",
+      "noCategories": "No hay categorías disponibles",
+      "contentLabel": "Contenido",
+      "contentPlaceholder": "Comparte tus pensamientos, preguntas o ideas...",
+      "tagsLabel": "Etiquetas",
+      "tagsPlaceholder": "Buscar o crear etiquetas...",
+      "addMoreTags": "Agregar más etiquetas...",
+      "loadingTags": "Cargando etiquetas...",
+      "noMatchingTags": "No hay etiquetas coincidentes",
+      "createTag": "Crear \"{{tag}}\"",
+      "creatingTag": "Creando...",
+      "publish": "Publicar",
+      "publishing": "Publicando...",
+      "backToForum": "Volver al foro"
+    },
+    "view": {
+      "backToForum": "Volver al foro",
+      "notFound": "Publicación no encontrada",
+      "locked": "Bloqueado",
+      "joinDiscussion": "Únete a la discusión",
+      "signInToComment": "Inicia sesión o crea una cuenta para comentar en esta publicación e interactuar con la comunidad."
+    },
+    "actions": {
+      "pin": "Fijar",
+      "unpin": "Desfijar",
+      "lock": "Bloquear",
+      "unlock": "Desbloquear",
+      "delete": "Eliminar",
+      "edit": "Editar",
+      "report": "Reportar",
+      "share": "Compartir"
+    }
+  },
+  "comments": {
+    "title": "Comentarios",
+    "placeholder": "Escribe una respuesta...",
+    "editPlaceholder": "Edita tu comentario...",
+    "reply": "Responder",
+    "sending": "Enviando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "noComments": "Aún no hay comentarios. ¡Sé el primero en comentar!",
+    "deleteConfirm": "¿Estás seguro de que quieres eliminar este comentario?",
+    "replies": "{{count}} respuestas",
+    "replies_one": "{{count}} respuesta"
+  },
+  "deletePost": {
+    "title": "Eliminar publicación",
+    "confirmation": "¿Estás seguro de que quieres eliminar esta publicación? Esta acción no se puede deshacer."
+  },
+  "stats": {
+    "title": "Estadísticas del foro",
+    "topContributors": "Principales contribuidores",
+    "trendingTags": "Etiquetas populares",
+    "totalPosts": "Total de publicaciones",
+    "members": "Miembros",
+    "totalReplies": "Total de respuestas",
+    "onlineNow": "En línea ahora",
+    "repAndPosts": "{{rep}} rep • {{posts}} publicaciones"
+  },
+  "toast": {
+    "postCreated": "¡Publicación creada!",
+    "postCreatedDesc": "Tu publicación ha sido compartida con la comunidad.",
+    "postDeleted": "Publicación eliminada",
+    "postDeletedDesc": "La publicación ha sido eliminada permanentemente.",
+    "postPinned": "Publicación fijada",
+    "postPinnedDesc": "La publicación ahora aparecerá en la parte superior.",
+    "postUnpinned": "Publicación desfijada",
+    "postUnpinnedDesc": "La publicación ha sido desfijada.",
+    "postLocked": "Publicación bloqueada",
+    "postLockedDesc": "Los comentarios han sido deshabilitados.",
+    "postUnlocked": "Publicación desbloqueada",
+    "postUnlockedDesc": "Los usuarios ahora pueden comentar en esta publicación.",
+    "tagCreated": "Etiqueta creada",
+    "tagCreatedDesc": "\"{{tag}}\" ha sido añadida a tu publicación.",
+    "voteFailed": "Error al votar",
+    "voteFailedDesc": "No se pudo procesar tu voto.",
+    "createPostFailed": "Error al crear publicación",
+    "createPostFailedDesc": "Ocurrió un error al crear tu publicación.",
+    "createTagFailed": "Error al crear etiqueta",
+    "createTagFailedDesc": "No se pudo crear la etiqueta.",
+    "updatePostFailed": "Error al actualizar publicación",
+    "updatePostFailedDesc": "No se pudo actualizar la publicación.",
+    "deletePostFailed": "Error al eliminar publicación",
+    "deletePostFailedDesc": "No se pudo eliminar la publicación."
+  },
+  "validation": {
+    "titleRequired": "El título es requerido",
+    "titleRequiredDesc": "Por favor ingresa un título para tu publicación.",
+    "contentRequired": "El contenido es requerido",
+    "contentRequiredDesc": "Por favor agrega contenido a tu publicación."
+  }
+}

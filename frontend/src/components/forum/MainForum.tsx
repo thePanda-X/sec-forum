@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Plus, Shield, Loader2, Trash2, Menu, X, ChevronLeft, ChevronRight, LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ const sortMap: Record<SortOption, string> = {
 };
 
 export function MainForum() {
+    const { t } = useTranslation(['forum', 'common']);
     const { user } = useAuth();
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -171,19 +173,19 @@ export function MainForum() {
             if (response.ok) {
                 const post = posts.find(p => p.id === postId);
                 const isPinned = post?.isPinned;
-                toast.success(isPinned ? "Post unpinned" : "Post pinned", {
-                    description: isPinned ? "The post has been unpinned." : "The post will now appear at the top.",
+                toast.success(isPinned ? t('toast.postUnpinned') : t('toast.postPinned'), {
+                    description: isPinned ? t('toast.postUnpinnedDesc') : t('toast.postPinnedDesc'),
                 });
                 fetchPosts();
             } else {
-                toast.error("Failed to update post", {
-                    description: "Could not change pin status.",
+                toast.error(t('toast.updatePostFailed'), {
+                    description: t('toast.updatePostFailedDesc'),
                 });
             }
         } catch (err) {
             console.error("Failed to pin post:", err);
-            toast.error("Failed to update post", {
-                description: "An error occurred while pinning the post.",
+            toast.error(t('toast.updatePostFailed'), {
+                description: t('toast.updatePostFailedDesc'),
             });
         }
     };
@@ -198,19 +200,19 @@ export function MainForum() {
             if (response.ok) {
                 const post = posts.find(p => p.id === postId);
                 const isLocked = post?.isLocked;
-                toast.success(isLocked ? "Post unlocked" : "Post locked", {
-                    description: isLocked ? "Users can now comment on this post." : "Comments have been disabled.",
+                toast.success(isLocked ? t('toast.postUnlocked') : t('toast.postLocked'), {
+                    description: isLocked ? t('toast.postUnlockedDesc') : t('toast.postLockedDesc'),
                 });
                 fetchPosts();
             } else {
-                toast.error("Failed to update post", {
-                    description: "Could not change lock status.",
+                toast.error(t('toast.updatePostFailed'), {
+                    description: t('toast.updatePostFailedDesc'),
                 });
             }
         } catch (err) {
             console.error("Failed to lock post:", err);
-            toast.error("Failed to update post", {
-                description: "An error occurred while locking the post.",
+            toast.error(t('toast.updatePostFailed'), {
+                description: t('toast.updatePostFailedDesc'),
             });
         }
     };
@@ -225,19 +227,19 @@ export function MainForum() {
             if (response.ok) {
                 setDeleteModalOpen(false);
                 setPostToDelete(null);
-                toast.success("Post deleted", {
-                    description: "The post has been permanently removed.",
+                toast.success(t('toast.postDeleted'), {
+                    description: t('toast.postDeletedDesc'),
                 });
                 fetchPosts();
             } else {
-                toast.error("Failed to delete post", {
-                    description: "Could not delete the post.",
+                toast.error(t('toast.deletePostFailed'), {
+                    description: t('toast.deletePostFailedDesc'),
                 });
             }
         } catch (err) {
             console.error("Failed to delete post:", err);
-            toast.error("Failed to delete post", {
-                description: "An error occurred while deleting the post.",
+            toast.error(t('toast.deletePostFailed'), {
+                description: t('toast.deletePostFailedDesc'),
             });
         }
     };
@@ -259,14 +261,14 @@ export function MainForum() {
                 toast.success(data.message);
                 fetchPosts();
             } else {
-                toast.error("Failed to vote", {
-                    description: "Could not upvote the post.",
+                toast.error(t('toast.voteFailed'), {
+                    description: t('toast.voteFailedDesc'),
                 });
             }
         } catch (err) {
             console.error("Failed to upvote post:", err);
-            toast.error("Failed to vote", {
-                description: "An error occurred while voting.",
+            toast.error(t('toast.voteFailed'), {
+                description: t('toast.voteFailedDesc'),
             });
         }
     };
@@ -288,14 +290,14 @@ export function MainForum() {
                 toast.success(data.message);
                 fetchPosts();
             } else {
-                toast.error("Failed to vote", {
-                    description: "Could not downvote the post.",
+                toast.error(t('toast.voteFailed'), {
+                    description: t('toast.voteFailedDesc'),
                 });
             }
         } catch (err) {
             console.error("Failed to downvote post:", err);
-            toast.error("Failed to vote", {
-                description: "An error occurred while voting.",
+            toast.error(t('toast.voteFailed'), {
+                description: t('toast.voteFailedDesc'),
             });
         }
     };
@@ -335,7 +337,7 @@ export function MainForum() {
                                 className="gap-2"
                             >
                                 <Menu className="h-4 w-4" />
-                                Categories
+                                {t('categories.title')}
                             </Button>
                             <Button
                                 variant="outline"
@@ -343,7 +345,7 @@ export function MainForum() {
                                 onClick={() => setMobileStatsOpen(true)}
                                 className="gap-2"
                             >
-                                Stats
+                                {t('stats.title')}
                             </Button>
                         </div>
 
@@ -351,10 +353,10 @@ export function MainForum() {
                             <div className="flex items-center gap-2 mb-4 p-3 rounded-lg border border-border bg-card">
                                 <Shield className="h-4 w-4 text-muted-foreground" />
                                 <span className="text-sm text-muted-foreground hidden sm:inline">
-                                    Admin Mode Active — You can pin, lock, edit, and delete posts
+                                    {t('posts.adminMode')}
                                 </span>
                                 <span className="text-sm text-muted-foreground sm:hidden">
-                                    Admin Mode Active
+                                    {t('posts.adminModeShort', 'Admin Mode')}
                                 </span>
                             </div>
                         )}
@@ -362,10 +364,10 @@ export function MainForum() {
                         <div className="flex items-center justify-between mb-6">
                             <div>
                                 <h1 className="text-xl md:text-2xl font-bold">
-                                    {searchQuery ? `Search results for "${searchQuery}"` : selectedTag ? `#${selectedTag}` : selectedCategory ? "Category Discussions" : "All Discussions"}
+                                    {searchQuery ? t('posts.searchTitle', { query: searchQuery }) : selectedTag ? `#${selectedTag}` : selectedCategory ? t('posts.categoryTitle') : t('posts.title')}
                                 </h1>
                                 <p className="text-sm text-muted-foreground">
-                                    {totalPosts} posts
+                                    {t('posts.count', { count: totalPosts })}
                                 </p>
                             </div>
                             <div className="flex items-center gap-2">
@@ -381,7 +383,7 @@ export function MainForum() {
                                             setSearchParams(params);
                                         }}
                                     >
-                                        Clear Filters
+                                        {t('common:clearAll')}
                                     </Button>
                                 )}
                                 <FilterDropdown
@@ -403,7 +405,7 @@ export function MainForum() {
                                     }}
                                 >
                                     <Plus className="h-4 w-4" />
-                                    <span className="hidden sm:inline">New Post</span>
+                                    <span className="hidden sm:inline">{t('header.newPost')}</span>
                                 </Button>
                             </div>
                         </div>
@@ -420,12 +422,12 @@ export function MainForum() {
                                     onClick={fetchPosts}
                                     className="mt-4"
                                 >
-                                    Try Again
+                                    {t('common:tryAgain')}
                                 </Button>
                             </div>
                         ) : posts.length === 0 ? (
                             <div className="text-center py-12">
-                                <p className="text-muted-foreground">No posts found</p>
+                                <p className="text-muted-foreground">{t('posts.noResults')}</p>
                             </div>
                         ) : (
                             <div className="space-y-4">
@@ -469,10 +471,10 @@ export function MainForum() {
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-destructive">
                             <Trash2 className="h-5 w-5" />
-                            Delete Post
+                            {t('deletePost.title')}
                         </DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to delete this post? This action cannot be undone.
+                            {t('deletePost.confirmation')}
                         </DialogDescription>
                     </DialogHeader>
                     {postToDelete && (
@@ -490,13 +492,13 @@ export function MainForum() {
                             variant="outline"
                             onClick={() => setDeleteModalOpen(false)}
                         >
-                            Cancel
+                            {t('common:cancel')}
                         </Button>
                         <Button
                             variant="destructive"
                             onClick={() => postToDelete && handleDeletePost(postToDelete.id)}
                         >
-                            Delete
+                            {t('common:delete')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -505,7 +507,7 @@ export function MainForum() {
             <Dialog open={mobileCategoriesOpen} onOpenChange={setMobileCategoriesOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Categories</DialogTitle>
+                        <DialogTitle>{t('categories.title')}</DialogTitle>
                     </DialogHeader>
                     <CategorySidebar
                         selectedCategory={selectedCategory}
@@ -526,7 +528,7 @@ export function MainForum() {
             <Dialog open={mobileStatsOpen} onOpenChange={setMobileStatsOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Forum Stats</DialogTitle>
+                        <DialogTitle>{t('stats.title')}</DialogTitle>
                     </DialogHeader>
                     <ForumStatsSidebar
                         selectedTag={selectedTag}

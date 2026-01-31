@@ -1,8 +1,9 @@
 import "reflect-metadata";
 import { Controller, Post, Get } from "elysia-decorators";
 import { db } from "../../db";
-import { users, profiles } from "../../db/schema";
+import { users, profiles, userSettings } from "../../db/schema";
 import { eq } from "drizzle-orm";
+import { I18N_KEYS } from "../../i18n/keys";
 
 @Controller("/auth")
 export class AuthController {
@@ -43,8 +44,13 @@ export class AuthController {
 
     if (!isValidPassword) {
       set.status = 401;
-      return { message: "Invalid email or password" };
+      return { message: I18N_KEYS.ERROR.INVALID_CREDENTIALS };
     }
+
+    // Get user settings for language preference
+    const settings = await db.query.userSettings.findFirst({
+      where: eq(userSettings.userId, user.id),
+    });
 
     // Generate JWT token
     const token = await jwt.sign({
@@ -71,6 +77,7 @@ export class AuthController {
         username: user.profile?.username,
         role: user.role.toLowerCase(),
         avatar: user.profile?.avatar || undefined,
+        language: settings?.language || "en",
       },
     };
   }
@@ -102,8 +109,13 @@ export class AuthController {
 
     if (!fullUser) {
       set.status = 401;
-      return { message: "User not found" };
+      return { message: I18N_KEYS.ERROR.USER_NOT_FOUND };
     }
+
+    // Get user settings for language preference
+    const settings = await db.query.userSettings.findFirst({
+      where: eq(userSettings.userId, fullUser.id),
+    });
 
     return {
       user: {
@@ -113,6 +125,7 @@ export class AuthController {
         username: fullUser.profile?.username,
         role: fullUser.role.toLowerCase(),
         avatar: fullUser.profile?.avatar || undefined,
+        language: settings?.language || "en",
       },
     };
   }

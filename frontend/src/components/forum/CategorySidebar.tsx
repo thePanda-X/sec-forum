@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
   Terminal,
@@ -51,6 +52,7 @@ export function CategorySidebar({
   onSelectCategory,
   className,
 }: CategorySidebarProps) {
+  const { t } = useTranslation('forum');
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -110,7 +112,7 @@ export function CategorySidebar({
               : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
           )}
         >
-          <span>All Categories</span>
+          <span>{t('categories.all')}</span>
         </button>
 
         {categories.map((category) => (

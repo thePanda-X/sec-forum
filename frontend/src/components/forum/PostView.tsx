@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, Calendar, User, Tag, MessageSquare, Eye, Loader2, FolderTree, Lock, MessageCircle, ArrowUp, ArrowDown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -53,6 +54,7 @@ interface Post {
 }
 
 export function PostView() {
+    const { t } = useTranslation(['forum', 'auth', 'common']);
     const { postId } = useParams<{ postId: string }>();
     const navigate = useNavigate();
     const { user } = useAuth();
@@ -153,14 +155,14 @@ export function PostView() {
                 toast.success(data.message);
                 fetchPost();
             } else {
-                toast.error("Failed to vote", {
-                    description: "Could not upvote the post.",
+                toast.error(t('toast.voteFailed'), {
+                    description: t('toast.voteFailedDesc'),
                 });
             }
         } catch (err) {
             console.error("Failed to upvote post:", err);
-            toast.error("Failed to vote", {
-                description: "An error occurred while voting.",
+            toast.error(t('toast.voteFailed'), {
+                description: t('toast.voteFailedDesc'),
             });
         }
     };
@@ -184,14 +186,14 @@ export function PostView() {
                 toast.success(data.message);
                 fetchPost();
             } else {
-                toast.error("Failed to vote", {
-                    description: "Could not downvote the post.",
+                toast.error(t('toast.voteFailed'), {
+                    description: t('toast.voteFailedDesc'),
                 });
             }
         } catch (err) {
             console.error("Failed to downvote post:", err);
-            toast.error("Failed to vote", {
-                description: "An error occurred while voting.",
+            toast.error(t('toast.voteFailed'), {
+                description: t('toast.voteFailedDesc'),
             });
         }
     };
@@ -226,14 +228,14 @@ export function PostView() {
                 <Header user={headerUser} />
                 <div className="container mx-auto px-4 py-6">
                     <div className="text-center py-12">
-                        <p className="text-destructive">{error || "Post not found"}</p>
+                        <p className="text-destructive">{error || t('posts.view.notFound')}</p>
                         <Button
                             variant="outline"
                             onClick={() => navigate("/")}
                             className="mt-4"
                         >
                             <ArrowLeft className="h-4 w-4 mr-2" />
-                            Back to Forum
+                            {t('posts.view.backToForum')}
                         </Button>
                     </div>
                 </div>
@@ -256,7 +258,7 @@ export function PostView() {
                             className="mb-4 gap-2"
                         >
                             <ArrowLeft className="h-4 w-4" />
-                            Back to Forum
+                            {t('posts.view.backToForum')}
                         </Button>
 
                         <article className="bg-card border border-border rounded-lg">
@@ -298,7 +300,7 @@ export function PostView() {
                                                 {post.locked && (
                                                     <Badge variant="secondary" className="text-xs gap-1">
                                                         <Lock className="h-3 w-3" />
-                                                        Locked
+                                                        {t('posts.view.locked')}
                                                     </Badge>
                                                 )}
                                                 {post.category && (
@@ -387,16 +389,16 @@ export function PostView() {
                         {!user && (
                             <div className="mt-6 p-6 bg-muted/50 rounded-lg text-center border border-border">
                                 <MessageCircle className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
-                                <h3 className="text-lg font-semibold mb-2">Join the Discussion</h3>
+                                <h3 className="text-lg font-semibold mb-2">{t('posts.view.joinDiscussion')}</h3>
                                 <p className="text-sm text-muted-foreground mb-4">
-                                    Sign in or create an account to comment on this post and engage with the community.
+                                    {t('posts.view.signInToComment')}
                                 </p>
                                 <div className="flex items-center justify-center gap-2">
                                     <Button variant="outline" onClick={() => navigate("/login")} className="gap-2">
-                                        Sign In
+                                        {t('auth:login.signIn')}
                                     </Button>
                                     <Button onClick={() => setLoginModalOpen(true)} className="gap-2">
-                                        Create Account
+                                        {t('auth:register.createAccount')}
                                     </Button>
                                 </div>
                             </div>
