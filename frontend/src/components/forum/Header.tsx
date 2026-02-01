@@ -22,6 +22,7 @@ import {
 import { NotificationsDropdown } from "./NotificationsDropdown";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { SideSheet } from "@/components/ui/SideSheet";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDebounce } from "@/hooks/useDebounce";
 import { cn } from "@/lib/utils";
@@ -48,6 +49,7 @@ export function Header({ user }: HeaderProps) {
   const [notificationCount, setNotificationCount] = useState(0);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [sideSheetOpen, setSideSheetOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
@@ -169,77 +171,180 @@ export function Header({ user }: HeaderProps) {
           </Popover>
 
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 hover:bg-secondary rounded-md p-1 pr-2 transition-colors">
+            <>
+              <div className="md:hidden">
+                <button
+                  onClick={() => setSideSheetOpen(true)}
+                  className="flex items-center gap-2 hover:bg-secondary rounded-md p-1 pr-2 transition-colors"
+                >
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={user.avatar} />
                     <AvatarFallback className="bg-teal-600 text-white">
                       {user.name.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="hidden md:flex flex-col text-left">
-                    <div className="flex items-center gap-1">
-                      <span className="text-sm font-medium">{user.name}</span>
-                      {user.isAdmin && (
-                        <svg
-                          className="h-3 w-3 text-amber-500"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                        >
-                          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-                        </svg>
-                      )}
-                    </div>
-                    <Badge
-                      variant="secondary"
-                      className={`text-[10px] px-1.5 py-0 h-4 w-fit ${
-                        user.isAdmin
-                          ? "bg-primary text-primary-foreground"
-                          : ""
-                      }`}
-                    >
-                      {user.role}
-                    </Badge>
-                  </div>
                 </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>{t('auth:myAccount')}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="cursor-pointer"
-                  onClick={() => user.username && navigate(`/profile/${user.username}`)}
+
+                <SideSheet
+                  open={sideSheetOpen}
+                  onOpenChange={setSideSheetOpen}
+                  title={t('auth:myAccount')}
                 >
-                  <User className="mr-2 h-4 w-4" />
-                  {t('auth:profile')}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="cursor-pointer"
-                  onClick={() => navigate("/settings")}
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  {t('auth:settings')}
-                </DropdownMenuItem>
-                {(user.isAdmin || user.isModerator) && (
+                  <div className="flex items-center gap-3 p-4 bg-secondary/30 rounded-lg mb-4">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={user.avatar} />
+                      <AvatarFallback className="bg-teal-600 text-white text-lg">
+                        {user.name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="flex items-center gap-1">
+                        <span className="font-semibold">{user.name}</span>
+                        {user.isAdmin && (
+                          <svg
+                            className="h-4 w-4 text-amber-500"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                          >
+                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+                          </svg>
+                        )}
+                      </div>
+                      <Badge
+                        variant="secondary"
+                        className={`text-xs mt-1 ${
+                          user.isAdmin ? "bg-primary text-primary-foreground" : ""
+                        }`}
+                      >
+                        {user.role}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => {
+                        if (user.username) navigate(`/profile/${user.username}`);
+                        setSideSheetOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary transition-colors text-left"
+                    >
+                      <User className="h-5 w-5" />
+                      <span>{t('auth:profile')}</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        navigate("/settings");
+                        setSideSheetOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary transition-colors text-left"
+                    >
+                      <Settings className="h-5 w-5" />
+                      <span>{t('auth:settings')}</span>
+                    </button>
+
+                    {(user.isAdmin || user.isModerator) && (
+                      <button
+                        onClick={() => {
+                          navigate("/admin");
+                          setSideSheetOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary transition-colors text-primary text-left"
+                      >
+                        <Shield className="h-5 w-5" />
+                        <span>{t('forum:header.adminPanel')}</span>
+                      </button>
+                    )}
+
+                    <div className="border-t border-border my-2" />
+
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setSideSheetOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors text-left"
+                    >
+                      <LogOut className="h-5 w-5" />
+                      <span>{t('auth:logout')}</span>
+                    </button>
+                  </div>
+                </SideSheet>
+              </div>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="hidden md:flex items-center gap-2 hover:bg-secondary rounded-md p-1 pr-2 transition-colors">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.avatar} />
+                      <AvatarFallback className="bg-teal-600 text-white">
+                        {user.name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col text-left">
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm font-medium">{user.name}</span>
+                        {user.isAdmin && (
+                          <svg
+                            className="h-3 w-3 text-amber-500"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                          >
+                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+                          </svg>
+                        )}
+                      </div>
+                      <Badge
+                        variant="secondary"
+                        className={`text-[10px] px-1.5 py-0 h-4 w-fit ${
+                          user.isAdmin
+                            ? "bg-primary text-primary-foreground"
+                            : ""
+                        }`}
+                      >
+                        {user.role}
+                      </Badge>
+                    </div>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel>{t('auth:myAccount')}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => user.username && navigate(`/profile/${user.username}`)}
+                  >
+                    <User className="mr-2 h-4 w-4" />
+                    {t('auth:profile')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => navigate("/settings")}
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    {t('auth:settings')}
+                  </DropdownMenuItem>
+                  {(user.isAdmin || user.isModerator) && (
+                    <DropdownMenuItem
+                      className="cursor-pointer text-primary focus:text-primary"
+                      onClick={() => navigate("/admin")}
+                    >
+                      <Shield className="mr-2 h-4 w-4" />
+                      {t('forum:header.adminPanel')}
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem
                     className="cursor-pointer text-primary focus:text-primary"
-                    onClick={() => navigate("/admin")}
+                    onClick={handleLogout}
                   >
-                    <Shield className="mr-2 h-4 w-4" />
-                    {t('forum:header.adminPanel')}
+                    <LogOut className="mr-2 h-4 w-4" />
+                    {t('auth:logout')}
                   </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="cursor-pointer text-primary focus:text-primary"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  {t('auth:logout')}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           ) : (
             <div className="flex items-center gap-2">
               <Button
