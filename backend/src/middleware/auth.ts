@@ -38,6 +38,7 @@ export const authPlugin = (app: Elysia) =>
             });
 
             if (dbUser && !dbUser.isBanned) {
+              await db.update(users).set({ lastSeen: new Date() }).where(eq(users.id, dbUser.id));
               const role = isValidRole(dbUser.role) ? dbUser.role : "USER";
               user = {
                 id: dbUser.id,

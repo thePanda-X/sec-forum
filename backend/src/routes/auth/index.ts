@@ -191,6 +191,7 @@ export class AuthController {
         email,
         password: hashedPassword,
         role: "USER",
+        lastSeen: new Date(),
       })
       .returning();
 

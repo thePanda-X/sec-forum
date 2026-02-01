@@ -110,7 +110,7 @@ export async function seed(silent: boolean = false) {
       log("✓ Admin user already exists, updating password...");
       await db
         .update(users)
-        .set({ password: hashedPassword, updatedAt: new Date() })
+        .set({ password: hashedPassword, updatedAt: new Date(), lastSeen: new Date() })
         .where(eq(users.id, existingAdmin.id));
       log("✓ Admin password updated!");
     } else {
@@ -120,6 +120,7 @@ export async function seed(silent: boolean = false) {
           email: adminEmail,
           password: hashedPassword,
           role: "ADMIN",
+          lastSeen: new Date(),
         })
         .returning({ id: users.id, email: users.email });
 
