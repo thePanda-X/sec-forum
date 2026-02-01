@@ -292,7 +292,7 @@ export function NotificationsDropdown() {
       </div>
 
       {/* Notifications List */}
-      <ScrollArea className="h-80">
+      <ScrollArea className="h-[50vh] md:h-80">
         {notifications.length === 0 ? (
           <div className="flex items-center justify-center p-8 text-muted-foreground">
             <p className="text-sm">{t('noNotifications')}</p>

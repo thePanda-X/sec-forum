@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Plus, Shield, Loader2, Trash2, Menu, X, ChevronLeft, ChevronRight, LogIn, UserPlus } from "lucide-react";
+import { Plus, Shield, Loader2, Trash2, ChevronLeft, ChevronRight, LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -18,6 +18,9 @@ import { PostCard, type Post } from "./PostCard";
 import { ForumStatsSidebar } from "./ForumStatsSidebar";
 import { FilterDropdown, type SortOption } from "./FilterDropdown";
 import { LoginModal } from "@/components/auth/LoginModal";
+import { MobileBottomNav } from "@/components/ui/MobileBottomNav";
+import { BottomSheet } from "@/components/ui/BottomSheet";
+import { NotificationsDropdown } from "./NotificationsDropdown";
 import { useAuth } from "@/contexts/AuthContext";
 
 const API_BASE = "/api/v1";
@@ -53,6 +56,7 @@ export function MainForum() {
     const [showStats, setShowStats] = useState(true);
     const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
     const [mobileStatsOpen, setMobileStatsOpen] = useState(false);
+    const [mobileNotificationsOpen, setMobileNotificationsOpen] = useState(false);
     const [loginModalOpen, setLoginModalOpen] = useState(false);
 
     const isAdmin = user?.role === "admin";
@@ -328,27 +332,7 @@ export function MainForum() {
                         className={`${showCategories ? "md:block" : "hidden"} hidden lg:block shrink-0 lg:w-64`}
                     />
 
-                    <main className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-4 md:hidden">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setMobileCategoriesOpen(true)}
-                                className="gap-2"
-                            >
-                                <Menu className="h-4 w-4" />
-                                {t('categories.title')}
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setMobileStatsOpen(true)}
-                                className="gap-2"
-                            >
-                                {t('stats.title')}
-                            </Button>
-                        </div>
-
+                    <main className="flex-1 min-w-0 pb-16 md:pb-6">
                         {isAdmin && (
                             <div className="flex items-center gap-2 mb-4 p-3 rounded-lg border border-border bg-card">
                                 <Shield className="h-4 w-4 text-muted-foreground" />
@@ -504,42 +488,55 @@ export function MainForum() {
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={mobileCategoriesOpen} onOpenChange={setMobileCategoriesOpen}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>{t('categories.title')}</DialogTitle>
-                    </DialogHeader>
-                    <CategorySidebar
-                        selectedCategory={selectedCategory}
-                        onSelectCategory={(category) => {
-                            const params = new URLSearchParams(searchParams);
-                            if (category) {
-                                params.set('category', category);
-                            } else {
-                                params.delete('category');
-                            }
-                            setSearchParams(params);
-                            setMobileCategoriesOpen(false);
-                        }}
-                    />
-                </DialogContent>
-            </Dialog>
+            <BottomSheet
+                open={mobileCategoriesOpen}
+                onOpenChange={setMobileCategoriesOpen}
+                title={t('categories.title')}
+            >
+                <CategorySidebar
+                    selectedCategory={selectedCategory}
+                    onSelectCategory={(category) => {
+                        const params = new URLSearchParams(searchParams);
+                        if (category) {
+                            params.set('category', category);
+                        } else {
+                            params.delete('category');
+                        }
+                        setSearchParams(params);
+                        setMobileCategoriesOpen(false);
+                    }}
+                    isBottomSheet={true}
+                />
+            </BottomSheet>
 
-            <Dialog open={mobileStatsOpen} onOpenChange={setMobileStatsOpen}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>{t('stats.title')}</DialogTitle>
-                    </DialogHeader>
-                    <ForumStatsSidebar
-                        selectedTag={selectedTag}
-                        onTagClick={(tagName) => {
-                            const params = new URLSearchParams(searchParams);
-                            params.set('tag', tagName);
-                            setSearchParams(params);
-                        }}
-                    />
-                </DialogContent>
-            </Dialog>
+            <BottomSheet
+                open={mobileStatsOpen}
+                onOpenChange={setMobileStatsOpen}
+                title={t('stats.title')}
+            >
+                <ForumStatsSidebar
+                    selectedTag={selectedTag}
+                    onTagClick={(tagName) => {
+                        const params = new URLSearchParams(searchParams);
+                        params.set('tag', tagName);
+                        setSearchParams(params);
+                    }}
+                    isBottomSheet={true}
+                />
+            </BottomSheet>
+
+            <BottomSheet
+                open={mobileNotificationsOpen}
+                onOpenChange={setMobileNotificationsOpen}
+                title={t('notifications.title')}
+            >
+                <NotificationsDropdown />
+            </BottomSheet>
+
+            <MobileBottomNav
+                onCategoriesClick={() => setMobileCategoriesOpen(true)}
+                onNotificationsClick={() => setMobileNotificationsOpen(true)}
+            />
 
             <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} />
         </div>

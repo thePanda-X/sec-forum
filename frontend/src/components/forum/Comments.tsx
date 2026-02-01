@@ -241,7 +241,7 @@ export function Comments({ postId, postLocked }: CommentsProps) {
                                 />
 
                                 {isEditing && (
-                                    <div className="ml-12 mt-3 space-y-2">
+                                    <div className="ml-4 md:ml-12 mt-3 space-y-2">
                                         <textarea
                                             value={editContent}
                                             onChange={(e) => setEditContent(e.target.value)}
@@ -266,7 +266,7 @@ export function Comments({ postId, postLocked }: CommentsProps) {
                                 )}
 
                                 {replyingToId === comment.id && (
-                                    <div className="ml-12 mt-3 space-y-2">
+                                    <div className="ml-4 md:ml-12 mt-3 space-y-2">
                                         <ReplyForm
                                             postId={postId}
                                             parentId={comment.id}
@@ -295,7 +295,7 @@ export function Comments({ postId, postLocked }: CommentsProps) {
                                                         isEditing={isReplyEditing}
                                                     />
                                                     {isReplyEditing && (
-                                                        <div className="ml-12 mt-3 space-y-2">
+                                                        <div className="ml-4 md:ml-12 mt-3 space-y-2">
                                                             <textarea
                                                                 value={editContent}
                                                                 onChange={(e) => setEditContent(e.target.value)}
@@ -319,7 +319,7 @@ export function Comments({ postId, postLocked }: CommentsProps) {
                                                         </div>
                                                     )}
                                                     {replyingToId === reply.id && (
-                                                        <div className="ml-12 mt-3 space-y-2">
+                                                        <div className="ml-4 md:ml-12 mt-3 space-y-2">
                                                             <ReplyForm
                                                                 postId={postId}
                                                                 parentId={reply.id}

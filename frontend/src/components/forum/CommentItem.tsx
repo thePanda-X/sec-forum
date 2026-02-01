@@ -47,7 +47,7 @@ export function CommentItem({ comment, currentUser, onEdit, onDelete, onReply, i
     const isEdited = new Date(comment.updatedAt).getTime() > new Date(comment.createdAt).getTime() + 1000;
 
     return (
-        <div className={`${isReply ? "ml-12 mt-3" : ""}`}>
+        <div className={`${isReply ? "ml-4 md:ml-12 mt-3" : ""}`}>
             <div className="flex gap-3">
                 <div
                     onClick={() => {

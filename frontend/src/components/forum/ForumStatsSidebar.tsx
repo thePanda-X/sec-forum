@@ -56,9 +56,10 @@ interface ForumStatsSidebarProps {
     className?: string;
     selectedTag?: string;
     onTagClick?: (tagName: string) => void;
+    isBottomSheet?: boolean;
 }
 
-export function ForumStatsSidebar({ className, selectedTag, onTagClick }: ForumStatsSidebarProps) {
+export function ForumStatsSidebar({ className, selectedTag, onTagClick, isBottomSheet = false }: ForumStatsSidebarProps) {
     const { t } = useTranslation('forum');
     const [stats, setStats] = useState<ForumStats>({
         totalPosts: 0,
@@ -117,7 +118,11 @@ export function ForumStatsSidebar({ className, selectedTag, onTagClick }: ForumS
     }, []);
 
     if (isLoading) {
-        return (
+        return isBottomSheet ? (
+            <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+        ) : (
             <aside className={className || "w-72 shrink-0 space-y-8"}>
                 <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -127,7 +132,11 @@ export function ForumStatsSidebar({ className, selectedTag, onTagClick }: ForumS
     }
 
     if (error) {
-        return (
+        return isBottomSheet ? (
+            <div className="rounded-lg border border-border bg-card p-4">
+                <p className="text-sm text-destructive">{error}</p>
+            </div>
+        ) : (
             <aside className={className || "w-72 shrink-0 space-y-8"}>
                 <div className="rounded-lg border border-border bg-card p-4">
                     <p className="text-sm text-destructive">{error}</p>
@@ -136,8 +145,8 @@ export function ForumStatsSidebar({ className, selectedTag, onTagClick }: ForumS
         );
     }
 
-    return (
-        <aside className={className || "w-72 shrink-0 space-y-8"}>
+    const content = (
+        <div className={isBottomSheet ? "space-y-6" : "space-y-8"}>
             {/* Forum Statistics */}
             <div className="rounded-lg border border-border bg-card p-4 mb-3">
                 <h3 className="flex items-center gap-2 font-semibold mb-4">
@@ -237,6 +246,16 @@ export function ForumStatsSidebar({ className, selectedTag, onTagClick }: ForumS
                     </div>
                 </div>
             )}
+        </div>
+    );
+
+    if (isBottomSheet) {
+        return content;
+    }
+
+    return (
+        <aside className={className || "w-72 shrink-0"}>
+            {content}
         </aside>
     );
 }
