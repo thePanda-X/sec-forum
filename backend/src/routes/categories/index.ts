@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { Controller, Get, Post } from "elysia-decorators";
 import { db } from "../../db";
 import { categories, posts, postTags, tags, comments, users, profiles } from "../../db/schema";
-import { eq, desc, count, sql } from "drizzle-orm";
+import { eq, desc, count, sql, gt } from "drizzle-orm";
 
 @Controller("/categories")
 export class CategoriesController {
@@ -65,6 +65,14 @@ export class StatsController {
     const [commentsCount] = await db.select({ count: count() }).from(comments);
     const [tagsCount] = await db.select({ count: count() }).from(tags);
 
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+    const [onlineCount] = await db
+      .select({ count: count() })
+      .from(users)
+      .where(
+        gt(users.lastSeen, fifteenMinutesAgo)
+      );
+
     const postCounts = await db
       .select({
         tagId: postTags.tagId,
@@ -118,7 +126,7 @@ export class StatsController {
       totalPosts: postsCount?.count || 0,
       members: usersCount?.count || 0,
       totalReplies: commentsCount?.count || 0,
-      onlineNow: 0,
+      onlineNow: onlineCount?.count || 0,
       trendingTags,
       topContributors: enrichedContributors,
     };
