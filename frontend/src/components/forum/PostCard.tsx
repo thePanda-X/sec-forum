@@ -102,59 +102,13 @@ export function PostCard({
       onClick={onPostClick}
     >
       <div className="flex gap-3">
-        <div className="flex flex-col items-center gap-1 shrink-0">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onUpvote?.();
-            }}
-            className={`p-1 rounded transition-colors ${
-              post.userVote === 1
-                ? 'text-green-500 hover:bg-green-500/10'
-                : 'text-muted-foreground hover:text-green-500 hover:bg-green-500/10'
-            }`}
-            title="Upvote"
-          >
-            <ArrowUp className="h-5 w-5" />
-          </button>
-          <span className="text-sm font-medium min-w-[1.5rem] text-center">
-            {post.totalVotes}
-          </span>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDownvote?.();
-            }}
-            className={`p-1 rounded transition-colors ${
-              post.userVote === -1
-                ? 'text-red-500 hover:bg-red-500/10'
-                : 'text-muted-foreground hover:text-red-500 hover:bg-red-500/10'
-            }`}
-            title="Downvote"
-          >
-            <ArrowDown className="h-5 w-5" />
-          </button>
-        </div>
-
-        <div
-          onClick={handleAuthorClick}
-          className="shrink-0 hidden sm:block cursor-pointer"
-        >
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={post.author.avatar} />
-            <AvatarFallback className="bg-teal-600 text-white">
-              {post.author.name?.charAt(0).toUpperCase() || "?"}
-            </AvatarFallback>
-          </Avatar>
-        </div>
-
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             {post.category && (
-              <Badge 
-                variant="outline" 
+              <Badge
+                variant="outline"
                 className="text-xs gap-1"
-                style={{ 
+                style={{
                   borderColor: post.category.color,
                   color: post.category.color,
                   backgroundColor: `${post.category.color}10`
@@ -176,7 +130,7 @@ export function PostCard({
             )}
           </div>
 
-          <h3 
+          <h3
             className="text-base font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2"
             dangerouslySetInnerHTML={{
               __html: highlightText(post.title, searchQuery || "")
@@ -187,9 +141,9 @@ export function PostCard({
             <span className="flex items-center gap-1">
               <div
                 onClick={handleAuthorClick}
-                className="sm:hidden cursor-pointer"
+                className="cursor-pointer"
               >
-                <Avatar className="h-5 w-5">
+                <Avatar className="h-5 w-5 hidden sm:block">
                   <AvatarImage src={post.author.avatar} />
                   <AvatarFallback className="bg-teal-600 text-white text-xs">
                     {post.author.name?.charAt(0).toUpperCase() || "?"}
@@ -204,7 +158,7 @@ export function PostCard({
                 }}
               />
               {post.author.username && (
-                <span 
+                <span
                   className="text-xs text-muted-foreground"
                   dangerouslySetInnerHTML={{
                     __html: highlightText(`(@${post.author.username})`, searchQuery || "")
@@ -223,14 +177,14 @@ export function PostCard({
             <span className="text-xs">{post.createdAt}</span>
           </div>
 
-          <p 
+          <p
             className="text-sm text-muted-foreground mt-2 line-clamp-2 markdown-preview-excerpt"
             dangerouslySetInnerHTML={{
               __html: parsedExcerpt
             }}
           />
 
-          <div className="flex items-center justify-between mt-3 gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-3 gap-2">
             <div className="flex flex-wrap gap-1.5">
               {post.tags.slice(0, 3).map((tag) => (
                 <Badge
@@ -255,13 +209,11 @@ export function PostCard({
             <div className="flex items-center gap-3 text-sm text-muted-foreground shrink-0">
               <div className="flex items-center gap-1">
                 <MessageSquare className="h-4 w-4" />
-                <span className="hidden sm:inline">{post.replyCount}</span>
-                <span className="sm:hidden">{post.replyCount}</span>
+                <span>{post.replyCount}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Eye className="h-4 w-4" />
-                <span className="hidden sm:inline">{post.viewCount}</span>
-                <span className="sm:hidden">{post.viewCount}</span>
+                <span>{post.viewCount}</span>
               </div>
             </div>
           </div>
@@ -315,6 +267,87 @@ export function PostCard({
               </Button>
             </div>
           )}
+        </div>
+
+        <div className="flex flex-col items-center gap-1 shrink-0">
+          <div
+            onClick={handleAuthorClick}
+            className="cursor-pointer hidden sm:block"
+          >
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={post.author.avatar} />
+              <AvatarFallback className="bg-teal-600 text-white">
+                {post.author.name?.charAt(0).toUpperCase() || "?"}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+          <div className="hidden sm:block flex flex-col items-center gap-1 mt-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onUpvote?.();
+              }}
+              className={`p-1 rounded transition-colors ${
+                post.userVote === 1
+                  ? 'text-green-500 hover:bg-green-500/10'
+                  : 'text-muted-foreground hover:text-green-500 hover:bg-green-500/10'
+              }`}
+              title="Upvote"
+            >
+              <ArrowUp className="h-5 w-5" />
+            </button>
+            <span className="text-sm font-medium min-w-[1.5rem] text-center">
+              {post.totalVotes}
+            </span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDownvote?.();
+              }}
+              className={`p-1 rounded transition-colors ${
+                post.userVote === -1
+                  ? 'text-red-500 hover:bg-red-500/10'
+                  : 'text-muted-foreground hover:text-red-500 hover:bg-red-500/10'
+              }`}
+              title="Downvote"
+            >
+              <ArrowDown className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center gap-1 shrink-0 sm:hidden">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onUpvote?.();
+            }}
+            className={`p-1.5 rounded transition-colors ${
+              post.userVote === 1
+                ? 'text-green-500 hover:bg-green-500/10'
+                : 'text-muted-foreground hover:text-green-500 hover:bg-green-500/10'
+            }`}
+            title="Upvote"
+          >
+            <ArrowUp className="h-5 w-5" />
+          </button>
+          <span className="text-sm font-medium min-w-[1.5rem] text-center">
+            {post.totalVotes}
+          </span>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDownvote?.();
+            }}
+            className={`p-1.5 rounded transition-colors ${
+              post.userVote === -1
+                ? 'text-red-500 hover:bg-red-500/10'
+                : 'text-muted-foreground hover:text-red-500 hover:bg-red-500/10'
+            }`}
+            title="Downvote"
+          >
+            <ArrowDown className="h-5 w-5" />
+          </button>
         </div>
       </div>
     </div>

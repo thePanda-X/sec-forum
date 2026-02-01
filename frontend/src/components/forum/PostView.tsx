@@ -251,7 +251,7 @@ export function PostView() {
                 <div className="flex gap-6">
                     <CategorySidebar className="hidden lg:block shrink-0 lg:w-64" />
 
-                    <main className="flex-1 min-w-0">
+                    <main className="flex-1 min-w-0 pb-16 md:pb-6">
                         <Button
                             variant="ghost"
                             onClick={() => navigate("/")}
@@ -263,66 +263,64 @@ export function PostView() {
 
                         <article className="bg-card border border-border rounded-lg">
                             <div className="p-4 md:p-6 border-b border-border">
-                                <div className="flex items-start justify-between gap-4 mb-4">
+                                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
                                     <div className="flex-1 min-w-0">
                                         <h1 className="text-xl md:text-2xl font-bold text-foreground mb-3">
                                             {post.title}
                                         </h1>
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex items-center gap-1">
-                                                <button
-                                                    onClick={handleUpvote}
-                                                    className={`p-1.5 rounded transition-colors ${
-                                                        post.userVote === 1
-                                                            ? 'text-green-500 hover:bg-green-500/10'
-                                                            : 'text-muted-foreground hover:text-green-500 hover:bg-green-500/10'
-                                                    }`}
-                                                    title="Upvote"
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            {post.locked && (
+                                                <Badge variant="secondary" className="text-xs gap-1">
+                                                    <Lock className="h-3 w-3" />
+                                                    {t('posts.view.locked')}
+                                                </Badge>
+                                            )}
+                                            {post.category && (
+                                                <Badge
+                                                    variant="outline"
+                                                    className="text-xs gap-1 shrink-0"
+                                                    style={{
+                                                        borderColor: post.category.color,
+                                                        color: post.category.color,
+                                                        backgroundColor: `${post.category.color}10`
+                                                    }}
                                                 >
-                                                    <ArrowUp className="h-5 w-5" />
-                                                </button>
-                                                <span className="text-sm font-medium min-w-[2rem] text-center">
-                                                    {post.totalVotes}
-                                                </span>
-                                                <button
-                                                    onClick={handleDownvote}
-                                                    className={`p-1.5 rounded transition-colors ${
-                                                        post.userVote === -1
-                                                            ? 'text-red-500 hover:bg-red-500/10'
-                                                            : 'text-muted-foreground hover:text-red-500 hover:bg-red-500/10'
-                                                    }`}
-                                                    title="Downvote"
-                                                >
-                                                    <ArrowDown className="h-5 w-5" />
-                                                </button>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                {post.locked && (
-                                                    <Badge variant="secondary" className="text-xs gap-1">
-                                                        <Lock className="h-3 w-3" />
-                                                        {t('posts.view.locked')}
-                                                    </Badge>
-                                                )}
-                                                {post.category && (
-                                                    <Badge
-                                                        variant="outline"
-                                                        className="text-xs gap-1 shrink-0"
-                                                        style={{
-                                                            borderColor: post.category.color,
-                                                            color: post.category.color,
-                                                            backgroundColor: `${post.category.color}10`
-                                                        }}
-                                                    >
-                                                        {post.category.icon === "FolderTree" ? (
-                                                            <FolderTree className="h-3 w-3" />
-                                                        ) : (
-                                                            <FolderTree className="h-3 w-3" />
-                                                        )}
-                                                        {post.category.name}
-                                                    </Badge>
-                                                )}
-                                            </div>
+                                                    {post.category.icon === "FolderTree" ? (
+                                                        <FolderTree className="h-3 w-3" />
+                                                    ) : (
+                                                        <FolderTree className="h-3 w-3" />
+                                                    )}
+                                                    {post.category.name}
+                                                </Badge>
+                                            )}
                                         </div>
+                                    </div>
+                                    <div className="flex items-center gap-1 shrink-0">
+                                        <button
+                                            onClick={handleUpvote}
+                                            className={`p-1.5 rounded transition-colors ${
+                                                post.userVote === 1
+                                                    ? 'text-green-500 hover:bg-green-500/10'
+                                                    : 'text-muted-foreground hover:text-green-500 hover:bg-green-500/10'
+                                            }`}
+                                            title="Upvote"
+                                        >
+                                            <ArrowUp className="h-5 w-5" />
+                                        </button>
+                                        <span className="text-sm font-medium min-w-[2rem] text-center">
+                                            {post.totalVotes}
+                                        </span>
+                                        <button
+                                            onClick={handleDownvote}
+                                            className={`p-1.5 rounded transition-colors ${
+                                                post.userVote === -1
+                                                    ? 'text-red-500 hover:bg-red-500/10'
+                                                    : 'text-muted-foreground hover:text-red-500 hover:bg-red-500/10'
+                                            }`}
+                                            title="Downvote"
+                                        >
+                                            <ArrowDown className="h-5 w-5" />
+                                        </button>
                                     </div>
                                 </div>
 

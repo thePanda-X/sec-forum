@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Bell, User, Settings, Shield, LogOut, Menu, X, LogIn, UserPlus } from "lucide-react";
+import { Search, Bell, User, Settings, Shield, LogOut, LogIn, UserPlus, X } from "lucide-react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
@@ -47,8 +47,6 @@ export function Header({ user }: HeaderProps) {
   const { t } = useTranslation(['forum', 'auth', 'common']);
   const [notificationCount, setNotificationCount] = useState(0);
   const [popoverOpen, setPopoverOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
@@ -128,10 +126,7 @@ export function Header({ user }: HeaderProps) {
         </button>
 
         {shouldShowSearch && (
-          <div className={cn(
-            "flex-1 max-w-xl mx-4 transition-all duration-300",
-            searchOpen ? "flex" : "hidden md:flex"
-          )}>
+          <div className="flex-1 max-w-xl mx-4">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -155,13 +150,6 @@ export function Header({ user }: HeaderProps) {
         )}
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setSearchOpen(!searchOpen)}
-            className="md:hidden p-2 hover:bg-secondary rounded-md transition-colors"
-          >
-            <Search className="h-5 w-5 text-muted-foreground" />
-          </button>
-
           <LanguageSwitcher />
 
           <Popover open={popoverOpen} onOpenChange={handlePopoverChange}>
@@ -272,55 +260,10 @@ export function Header({ user }: HeaderProps) {
                 <span className="hidden sm:inline">{t('auth:register.title')}</span>
                 <span className="sm:hidden">{t('auth:register.title')}</span>
               </Button>
-            </div>
-          )}
-
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 hover:bg-secondary rounded-md transition-colors"
-          >
-            {mobileMenuOpen ? (
-              <X className="h-5 w-5 text-muted-foreground" />
-            ) : (
-              <Menu className="h-5 w-5 text-muted-foreground" />
-            )}
-          </button>
+             </div>
+           )}
         </div>
       </div>
-
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-border bg-background px-4 py-4">
-          <div className="flex flex-col gap-4">
-            {!user && (
-              <>
-                <button
-                  onClick={() => {
-                    setLoginModalOpen(true);
-                    setMobileMenuOpen(false);
-                  }}
-                  className="flex items-center justify-center gap-2 w-full py-2 bg-primary text-primary-foreground rounded-md font-medium"
-                >
-                  <UserPlus className="h-4 w-4" />
-                  {t('auth:register.title')}
-                </button>
-                <button
-                  onClick={() => {
-                    navigate("/login");
-                    setMobileMenuOpen(false);
-                  }}
-                  className="flex items-center justify-center gap-2 w-full py-2 bg-secondary text-secondary-foreground rounded-md font-medium"
-                >
-                  <LogIn className="h-4 w-4" />
-                  {t('auth:login.signIn')}
-                </button>
-              </>
-            )}
-            <div className="text-sm text-muted-foreground text-center">
-              {t('forum:header.menuHint')}
-            </div>
-          </div>
-        </div>
-      )}
 
       <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} />
     </header>

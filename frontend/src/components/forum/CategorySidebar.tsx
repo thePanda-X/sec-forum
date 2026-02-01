@@ -43,6 +43,7 @@ interface CategorySidebarProps {
   selectedCategory?: string;
   onSelectCategory?: (categoryId: string | undefined) => void;
   className?: string;
+  isBottomSheet?: boolean;
 }
 
 export type { Category };
@@ -51,6 +52,7 @@ export function CategorySidebar({
   selectedCategory,
   onSelectCategory,
   className,
+  isBottomSheet = false,
 }: CategorySidebarProps) {
   const { t } = useTranslation('forum');
   const [categories, setCategories] = useState<Category[]>([]);
@@ -83,7 +85,11 @@ export function CategorySidebar({
   }, []);
 
   if (isLoading) {
-    return (
+    return isBottomSheet ? (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    ) : (
       <aside className={className || "w-64 shrink-0"}>
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -93,55 +99,65 @@ export function CategorySidebar({
   }
 
   if (error) {
-    return (
+    return isBottomSheet ? (
+      <p className="text-sm text-destructive p-3">{error}</p>
+    ) : (
       <aside className={className || "w-64 shrink-0"}>
         <p className="text-sm text-destructive p-3">{error}</p>
       </aside>
     );
   }
 
-  return (
-    <aside className={className || "w-64 shrink-0"}>
-      <nav className="space-y-1">
+  const navContent = (
+    <nav className="space-y-1">
+      <button
+        onClick={() => onSelectCategory?.(undefined)}
+        className={cn(
+          "w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium transition-colors",
+          !selectedCategory
+            ? "bg-secondary text-foreground"
+            : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+        )}
+      >
+        <span>{t('categories.all')}</span>
+      </button>
+
+      {categories.map((category) => (
         <button
-          onClick={() => onSelectCategory?.(undefined)}
+          key={category.id}
+          onClick={() => onSelectCategory?.(String(category.id))}
           className={cn(
-            "w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium transition-colors",
-            !selectedCategory
+            "w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors",
+            selectedCategory === String(category.id)
               ? "bg-secondary text-foreground"
               : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
           )}
         >
-          <span>{t('categories.all')}</span>
+          <div className="flex items-center gap-2">
+            <span
+              className={cn(
+                selectedCategory === (category.slug || category.id)
+                  ? "text-primary"
+                  : "text-muted-foreground"
+              )}
+            >
+              {getCategoryIcon(category)}
+            </span>
+            <span>{category.name}</span>
+          </div>
+          <span className="text-xs">{category.postCount ?? category.count ?? 0}</span>
         </button>
+      ))}
+    </nav>
+  );
 
-        {categories.map((category) => (
-          <button
-            key={category.id}
-            onClick={() => onSelectCategory?.(String(category.id))}
-            className={cn(
-              "w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors",
-              selectedCategory === String(category.id)
-                ? "bg-secondary text-foreground"
-                : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
-            )}
-          >
-            <div className="flex items-center gap-2">
-              <span
-                className={cn(
-                  selectedCategory === (category.slug || category.id)
-                    ? "text-primary"
-                    : "text-muted-foreground"
-                )}
-              >
-                {getCategoryIcon(category)}
-              </span>
-              <span>{category.name}</span>
-            </div>
-            <span className="text-xs">{category.postCount ?? category.count ?? 0}</span>
-          </button>
-        ))}
-      </nav>
+  if (isBottomSheet) {
+    return navContent;
+  }
+
+  return (
+    <aside className={className || "w-64 shrink-0"}>
+      {navContent}
     </aside>
   );
 }
