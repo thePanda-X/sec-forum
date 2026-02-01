@@ -25,7 +25,7 @@ const API_BASE = "/api/v1";
 const sortMap: Record<SortOption, string> = {
     recent: "recent",
     popular: "popular",
-    "most-replies": "replies",
+    "most-replies": "most-replies",
     oldest: "oldest",
     trending: "trending",
     unanswered: "unanswered",
