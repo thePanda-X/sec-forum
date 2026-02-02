@@ -13,8 +13,8 @@ import { logger } from "../utils/logger";
 // S3 Configuration from environment
 const S3_ENDPOINT = process.env.S3_ENDPOINT || "http://localhost:9000";
 const S3_PUBLIC_ENDPOINT = process.env.S3_PUBLIC_ENDPOINT || "http://localhost:9000";
-const S3_ACCESS_KEY = process.env.S3_ACCESS_KEY || "minioadmin";
-const S3_SECRET_KEY = process.env.S3_SECRET_KEY || "minioadmin";
+const S3_ACCESS_KEY = process.env.S3_ACCESS_KEY || process.env.MINIO_ROOT_USER || "minioadmin";
+const S3_SECRET_KEY = process.env.S3_SECRET_KEY || process.env.MINIO_ROOT_PASSWORD || "minioadmin";
 const S3_BUCKET = process.env.S3_BUCKET || "secforum-uploads";
 const S3_REGION = process.env.S3_REGION || "us-east-1";
 

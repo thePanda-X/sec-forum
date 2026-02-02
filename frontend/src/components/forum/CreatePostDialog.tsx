@@ -165,16 +165,21 @@ export function CreatePostDialog({
     setIsLoading(true);
 
     try {
+      const requestBody: any = {
+        title: title.trim(),
+        body: body.trim(),
+        tagIds: selectedTags,
+      };
+
+      if (selectedCategoryId && selectedCategoryId.trim()) {
+        requestBody.categoryId = selectedCategoryId;
+      }
+
       const response = await fetch(`${API_BASE}/posts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          title: title.trim(),
-          body: body.trim(),
-          tagIds: selectedTags,
-          categoryId: selectedCategoryId,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {

@@ -293,14 +293,19 @@ export class PostsController {
             return { error: "Body exceeds maximum length", message: `Body must be ${POST_LIMITS.BODY_MAX_LENGTH} characters or less.` };
         }
 
+        const postValues: any = {
+            authorId: currentUser.id,
+            title: body.title,
+            body: body.body,
+        };
+
+        if (body.categoryId && body.categoryId !== "") {
+            postValues.categoryId = Number(body.categoryId);
+        }
+
         const [post] = await db
             .insert(posts)
-            .values({
-                authorId: currentUser.id,
-                categoryId: body.categoryId,
-                title: body.title,
-                body: body.body,
-            })
+            .values(postValues)
             .returning({ id: posts.id });
 
         if (body.tagIds && body.tagIds.length > 0) {
@@ -561,14 +566,25 @@ export class PostsController {
             return { error: "Body exceeds maximum length", message: `Body must be ${POST_LIMITS.BODY_MAX_LENGTH} characters or less.` };
         }
 
+        const updateValues: any = {
+            updatedAt: new Date(),
+        };
+
+        if (body.title) {
+            updateValues.title = body.title;
+        }
+
+        if (body.body) {
+            updateValues.body = body.body;
+        }
+
+        if (body.categoryId !== undefined && body.categoryId !== "") {
+            updateValues.categoryId = Number(body.categoryId);
+        }
+
         await db
             .update(posts)
-            .set({
-                ...(body.title && { title: body.title }),
-                ...(body.body && { body: body.body }),
-                ...(body.categoryId !== undefined && { categoryId: body.categoryId }),
-                updatedAt: new Date(),
-            })
+            .set(updateValues)
             .where(eq(posts.id, Number(params.id)));
 
         return { message: "Post updated" };
