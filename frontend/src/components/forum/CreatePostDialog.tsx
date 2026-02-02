@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { createImageUploader } from "@/hooks/useImageUpload";
 
 const API_BASE = "/api/v1";
 
@@ -58,6 +59,9 @@ export function CreatePostDialog({
   const [tagSearch, setTagSearch] = useState("");
   const [isCreatingTag, setIsCreatingTag] = useState(false);
   const [isTagSectionExpanded, setIsTagSectionExpanded] = useState(false);
+
+  // Create image uploader for posts
+  const handleImageUpload = useCallback(createImageUploader('posts'), []);
 
   const filteredTags = tags.filter((tag) =>
     tag.name.toLowerCase().includes(tagSearch.toLowerCase())
@@ -282,6 +286,7 @@ export function CreatePostDialog({
                 minHeight="250px"
                 maxLength={4500}
                 className="w-full"
+                onImageUpload={handleImageUpload}
               />
             </div>
 
