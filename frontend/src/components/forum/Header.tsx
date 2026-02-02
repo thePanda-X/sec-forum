@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Bell, User, Settings, Shield, LogOut, LogIn, UserPlus, X } from "lucide-react";
+import { Search, Bell, User, Settings, Shield, LogOut, LogIn, UserPlus, X, Menu } from "lucide-react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,7 @@ import { NotificationsDropdown } from "./NotificationsDropdown";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { SideSheet } from "@/components/ui/SideSheet";
+import { ForumStatsSidebar } from "./ForumStatsSidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDebounce } from "@/hooks/useDebounce";
 import { cn } from "@/lib/utils";
@@ -156,7 +157,7 @@ export function Header({ user }: HeaderProps) {
 
           <Popover open={popoverOpen} onOpenChange={handlePopoverChange}>
             <PopoverTrigger asChild>
-              <button className="relative p-2 hover:bg-secondary rounded-md transition-colors">
+              <button className="hidden md:flex relative p-2 hover:bg-secondary rounded-md transition-colors">
                 <Bell className="h-5 w-5 text-muted-foreground" />
                 {notificationCount > 0 && (
                   <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-primary">
@@ -188,7 +189,7 @@ export function Header({ user }: HeaderProps) {
                 <SideSheet
                   open={sideSheetOpen}
                   onOpenChange={setSideSheetOpen}
-                  title={t('auth:myAccount')}
+                  title={t('common:menu')}
                 >
                   <div className="flex items-center gap-3 p-4 bg-secondary/30 rounded-lg mb-4">
                     <Avatar className="h-12 w-12">
@@ -221,7 +222,7 @@ export function Header({ user }: HeaderProps) {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 mb-6">
                     <button
                       onClick={() => {
                         if (user.username) navigate(`/profile/${user.username}`);
@@ -270,6 +271,17 @@ export function Header({ user }: HeaderProps) {
                       <span>{t('auth:logout')}</span>
                     </button>
                   </div>
+
+                  <div className="border-t border-border my-4" />
+
+                  <ForumStatsSidebar
+                    selectedTag={location.pathname === '/' ? (searchParams.get('tag') || undefined) : undefined}
+                    onTagClick={(tagName) => {
+                      navigate(`/?tag=${tagName}`);
+                      setSideSheetOpen(false);
+                    }}
+                    isBottomSheet={true}
+                  />
                 </SideSheet>
               </div>
 
@@ -347,6 +359,13 @@ export function Header({ user }: HeaderProps) {
             </>
           ) : (
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSideSheetOpen(true)}
+                className="md:hidden p-2 hover:bg-secondary rounded-md transition-colors"
+                aria-label="Menu"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
               <Button
                 variant="ghost"
                 size="sm"
@@ -371,6 +390,23 @@ export function Header({ user }: HeaderProps) {
       </div>
 
       <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} />
+
+      {!user && (
+        <SideSheet
+          open={sideSheetOpen}
+          onOpenChange={setSideSheetOpen}
+          title={t('common:menu')}
+        >
+          <ForumStatsSidebar
+            selectedTag={location.pathname === '/' ? (searchParams.get('tag') || undefined) : undefined}
+            onTagClick={(tagName) => {
+              navigate(`/?tag=${tagName}`);
+              setSideSheetOpen(false);
+            }}
+            isBottomSheet={true}
+          />
+        </SideSheet>
+      )}
     </header>
   );
 }
