@@ -236,11 +236,11 @@ export function CreatePostDialog({
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="What's on your mind?"
                 disabled={isLoading}
-                maxLength={200}
+                maxLength={100}
                 className="text-base h-12"
               />
               <p className="text-xs text-muted-foreground text-right">
-                {title.length}/200
+                {title.length}/100
               </p>
               </div>
 
@@ -280,6 +280,7 @@ export function CreatePostDialog({
                 onChange={setBody}
                 placeholder="Share your thoughts, questions, or ideas..."
                 minHeight="250px"
+                maxLength={4500}
                 className="w-full"
               />
             </div>

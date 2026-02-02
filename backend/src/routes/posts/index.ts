@@ -5,6 +5,7 @@ import { posts, postTags, comments, notifications, users, profiles, postVotes, p
 import { hasRole } from "../../utils/auth";
 import type { UserRoleType } from "../../db/schema";
 import { eq, desc, sql, asc, and, not, sum, count, or } from "drizzle-orm";
+import { POST_LIMITS } from "../../constants/postLimits";
 
 @Controller("/posts")
 export class PostsController {
@@ -258,8 +259,8 @@ export class PostsController {
                         schema: {
                             type: "object",
                             properties: {
-                                title: { type: "string" },
-                                body: { type: "string" },
+                                title: { type: "string", maxLength: POST_LIMITS.TITLE_MAX_LENGTH },
+                                body: { type: "string", maxLength: POST_LIMITS.BODY_MAX_LENGTH },
                                 categoryId: { type: "number" },
                                 tagIds: { type: "array", items: { type: "number" } },
                             },
@@ -270,6 +271,7 @@ export class PostsController {
             },
             responses: {
                 201: { description: "Post created successfully" },
+                400: { description: "Invalid input - title must be 100 characters or less, body must be 4500 characters or less" },
                 401: { description: "Unauthorized" },
             },
         },
@@ -279,6 +281,16 @@ export class PostsController {
         if (!currentUser) {
             set.status = 401;
             return { error: "Unauthorized" };
+        }
+
+        if (body.title && body.title.length > POST_LIMITS.TITLE_MAX_LENGTH) {
+            set.status = 400;
+            return { error: "Title exceeds maximum length", message: `Title must be ${POST_LIMITS.TITLE_MAX_LENGTH} characters or less.` };
+        }
+
+        if (body.body && body.body.length > POST_LIMITS.BODY_MAX_LENGTH) {
+            set.status = 400;
+            return { error: "Body exceeds maximum length", message: `Body must be ${POST_LIMITS.BODY_MAX_LENGTH} characters or less.` };
         }
 
         const [post] = await db
@@ -498,8 +510,8 @@ export class PostsController {
                         schema: {
                             type: "object",
                             properties: {
-                                title: { type: "string" },
-                                body: { type: "string" },
+                                title: { type: "string", maxLength: POST_LIMITS.TITLE_MAX_LENGTH },
+                                body: { type: "string", maxLength: POST_LIMITS.BODY_MAX_LENGTH },
                                 categoryId: { type: "number" },
                             },
                         },
@@ -508,6 +520,7 @@ export class PostsController {
             },
             responses: {
                 200: { description: "Post updated" },
+                400: { description: "Invalid input - title must be 100 characters or less, body must be 4500 characters or less" },
                 401: { description: "Unauthorized" },
                 403: { description: "Forbidden" },
                 404: { description: "Post not found" },
@@ -536,6 +549,16 @@ export class PostsController {
         if (!canEdit) {
             set.status = 403;
             return { error: "Forbidden" };
+        }
+
+        if (body.title && body.title.length > POST_LIMITS.TITLE_MAX_LENGTH) {
+            set.status = 400;
+            return { error: "Title exceeds maximum length", message: `Title must be ${POST_LIMITS.TITLE_MAX_LENGTH} characters or less.` };
+        }
+
+        if (body.body && body.body.length > POST_LIMITS.BODY_MAX_LENGTH) {
+            set.status = 400;
+            return { error: "Body exceeds maximum length", message: `Body must be ${POST_LIMITS.BODY_MAX_LENGTH} characters or less.` };
         }
 
         await db

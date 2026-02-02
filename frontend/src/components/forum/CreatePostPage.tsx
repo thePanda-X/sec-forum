@@ -259,11 +259,11 @@ export function CreatePostPage() {
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder={t('posts.create.titlePlaceholder')}
                   disabled={isLoading}
-                  maxLength={200}
+                  maxLength={100}
                   className="text-base h-12"
                 />
                 <p className="text-xs text-muted-foreground text-right">
-                  {title.length}/200
+                  {title.length}/100
                 </p>
               </div>
 
@@ -303,6 +303,7 @@ export function CreatePostPage() {
                   onChange={setBody}
                   placeholder={t('posts.create.contentPlaceholder')}
                   minHeight="300px"
+                  maxLength={4500}
                 />
               </div>
 

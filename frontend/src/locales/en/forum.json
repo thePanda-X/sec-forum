@@ -122,7 +122,11 @@
   "validation": {
     "titleRequired": "Title is required",
     "titleRequiredDesc": "Please enter a title for your post.",
+    "titleTooLong": "Title is too long",
+    "titleTooLongDesc": "Title must be 100 characters or less.",
     "contentRequired": "Content is required",
-    "contentRequiredDesc": "Please add some content to your post."
+    "contentRequiredDesc": "Please add some content to your post.",
+    "contentTooLong": "Content is too long",
+    "contentTooLongDesc": "Content must be 4500 characters or less."
   }
 }
