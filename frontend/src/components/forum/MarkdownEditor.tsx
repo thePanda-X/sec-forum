@@ -64,6 +64,7 @@ interface MarkdownEditorProps {
   minHeight?: string;
   onImageUpload?: (file: File) => Promise<string>;
   storageKey?: string;
+  maxLength?: number;
 }
 
 interface HistoryState {
@@ -82,6 +83,7 @@ export function MarkdownEditor({
   minHeight = "400px",
   onImageUpload,
   storageKey = "markdown-editor-content",
+  maxLength,
 }: MarkdownEditorProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("write");
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -762,6 +764,9 @@ export function MarkdownEditor({
               value={value}
               onChange={(val) => {
                 const newValue = val || "";
+                if (maxLength && newValue.length > maxLength) {
+                  return;
+                }
                 onChange(newValue);
                 addToHistory(newValue, 0, 0);
               }}
@@ -836,7 +841,13 @@ export function MarkdownEditor({
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <span className="hidden sm:inline">{wordCount} words</span>
             <span className="hidden sm:inline">{readingTime} min read</span>
-            <span>{value.length} {value.length === 1 ? 'character' : 'characters'}</span>
+            <span className={cn(
+              maxLength && value.length > maxLength * 0.9 && "text-amber-600",
+              maxLength && value.length >= maxLength && "text-red-600 font-semibold"
+            )}>
+              {value.length} {value.length === 1 ? 'character' : 'characters'}
+              {maxLength && ` / ${maxLength}`}
+            </span>
           </div>
         </div>
       </div>
