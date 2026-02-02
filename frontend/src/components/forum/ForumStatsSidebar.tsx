@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import {
     TrendingUp,
     MessageSquare,
@@ -61,6 +62,7 @@ interface ForumStatsSidebarProps {
 
 export function ForumStatsSidebar({ className, selectedTag, onTagClick, isBottomSheet = false }: ForumStatsSidebarProps) {
     const { t } = useTranslation('forum');
+    const navigate = useNavigate();
     const [stats, setStats] = useState<ForumStats>({
         totalPosts: 0,
         members: 0,
@@ -187,7 +189,22 @@ export function ForumStatsSidebar({ className, selectedTag, onTagClick, isBottom
                     </h3>
                     <div className="space-y-3">
                         {topContributors.map((contributor) => (
-                            <div key={contributor.id} className="flex items-center gap-3">
+                            <div
+                                key={contributor.id}
+                                onClick={() => contributor.username && navigate(`/profile/${contributor.username}`)}
+                                role="button"
+                                tabIndex={contributor.username ? 0 : -1}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && contributor.username) {
+                                        navigate(`/profile/${contributor.username}`);
+                                    }
+                                }}
+                                className={`flex items-center gap-3 rounded-lg p-2 transition-colors ${
+                                    contributor.username
+                                        ? 'cursor-pointer hover:bg-accent'
+                                        : 'cursor-default'
+                                }`}
+                            >
                                 <span className="text-sm text-muted-foreground w-4">
                                     {contributor.rank}
                                 </span>
