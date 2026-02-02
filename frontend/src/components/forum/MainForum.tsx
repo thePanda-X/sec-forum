@@ -429,7 +429,11 @@ export function MainForum() {
                                         onDownvote={() => handleDownvote(post.id)}
                                         onTagClick={(tagName) => {
                                             const params = new URLSearchParams(searchParams);
-                                            params.set('tag', tagName);
+                                            if (selectedTag === tagName) {
+                                                params.delete('tag');
+                                            } else {
+                                                params.set('tag', tagName);
+                                            }
                                             setSearchParams(params);
                                         }}
                                     />
@@ -443,7 +447,11 @@ export function MainForum() {
                         selectedTag={selectedTag}
                         onTagClick={(tagName) => {
                             const params = new URLSearchParams(searchParams);
-                            params.set('tag', tagName);
+                            if (selectedTag === tagName) {
+                                params.delete('tag');
+                            } else {
+                                params.set('tag', tagName);
+                            }
                             setSearchParams(params);
                         }}
                     />
