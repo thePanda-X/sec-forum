@@ -12,7 +12,9 @@
     "picture": {
       "title": "Foto de perfil",
       "subtitle": "Actualiza tu foto de perfil",
-      "change": "Cambiar foto"
+      "change": "Cambiar foto",
+      "uploading": "Subiendo...",
+      "cropTitle": "Recortar foto de perfil"
     },
     "displayName": "Nombre para mostrar",
     "bio": "Biografía",

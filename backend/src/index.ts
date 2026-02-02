@@ -12,6 +12,14 @@ config({ path: join(process.cwd(), "../.env") });
 await import("./db/migrate");
 await import("./db/auto-seed").then((m) => m.autoSeed());
 
+// Initialize S3 bucket
+import { initializeS3Bucket } from "./services/s3";
+try {
+  await initializeS3Bucket();
+} catch (error) {
+  console.error("Warning: Failed to initialize S3 bucket. File uploads may not work.", error);
+}
+
 config({ path: join(process.cwd(), "../.env") });
 
 import { UsersController } from "./routes/users";
@@ -25,6 +33,7 @@ import { ReportsController } from "./routes/reports";
 import { AdminController } from "./routes/admin";
 import { CategoriesController, StatsController } from "./routes/categories";
 import { UsersController as ProfileController } from "./routes/users/profile";
+import { UploadsController } from "./routes/uploads";
 import { authPlugin } from "./middleware/auth";
 import { loggingPlugin } from "./middleware/logging";
 import { logger } from "./utils/logger";
@@ -51,6 +60,7 @@ const app = new Elysia({ prefix: "/api/v1" })
                 CategoriesController,
                 StatsController,
                 ProfileController,
+                UploadsController,
             ],
         })
     )

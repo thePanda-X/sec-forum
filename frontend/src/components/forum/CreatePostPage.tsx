@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { MarkdownEditor } from "@/components/forum/MarkdownEditor";
 import { Header } from "@/components/forum/Header";
 import { useAuth } from "@/contexts/AuthContext";
+import { createImageUploader } from "@/hooks/useImageUpload";
 import {
   Select,
   SelectContent,
@@ -50,6 +51,9 @@ export function CreatePostPage() {
   const [tagSearch, setTagSearch] = useState("");
   const [isCreatingTag, setIsCreatingTag] = useState(false);
   const [isTagSectionExpanded, setIsTagSectionExpanded] = useState(false);
+
+  // Create image uploader for posts
+  const handleImageUpload = useCallback(createImageUploader('posts'), []);
 
   const filteredTags = tags.filter((tag) =>
     tag.name.toLowerCase().includes(tagSearch.toLowerCase())
@@ -304,6 +308,7 @@ export function CreatePostPage() {
                   placeholder={t('posts.create.contentPlaceholder')}
                   minHeight="300px"
                   maxLength={4500}
+                  onImageUpload={handleImageUpload}
                 />
               </div>
 

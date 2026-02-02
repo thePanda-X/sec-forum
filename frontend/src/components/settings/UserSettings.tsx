@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/components/theme-provider';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useImageUpload } from '@/hooks/useImageUpload';
 import { SUPPORTED_LANGUAGES, LANGUAGE_NAMES, type SupportedLanguage } from '@/i18n';
 import { Header } from '@/components/forum/Header';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { ImageCropModal } from '@/components/ui/image-crop-modal';
 import { User, Bell, Palette, Shield, Upload, Loader2, ArrowLeft, Save, ChevronDown, Trash2, AlertTriangle, Globe } from 'lucide-react';
 
 const API_BASE = '/api/v1';
@@ -88,6 +90,12 @@ export function UserSettings() {
         new: '',
         confirm: '',
     });
+
+    // Image crop modal state
+    const [cropModalOpen, setCropModalOpen] = useState(false);
+    const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
+
+    const { uploadImage, isUploading: isUploadingAvatar } = useImageUpload();
 
     const tabs = [
         { id: 'profile' as const, label: t('tabs.profile'), icon: User },
@@ -324,19 +332,41 @@ export function UserSettings() {
         const file = event.target.files?.[0];
         if (!file) return;
 
-        const formData = new FormData();
-        formData.append('avatar', file);
+        // Create a URL for the selected image and open crop modal
+        const imageUrl = URL.createObjectURL(file);
+        setSelectedImageSrc(imageUrl);
+        setCropModalOpen(true);
+        
+        // Reset the input so the same file can be selected again
+        event.target.value = '';
+    };
+
+    const handleCropComplete = async (croppedBlob: Blob) => {
+        // Clean up the object URL
+        if (selectedImageSrc) {
+            URL.revokeObjectURL(selectedImageSrc);
+            setSelectedImageSrc(null);
+        }
 
         try {
+            // Create a File from the Blob for upload
+            const croppedFile = new File([croppedBlob], 'avatar.jpg', { type: 'image/jpeg' });
+            
+            // Upload to S3/MinIO through backend proxy
+            const publicUrl = await uploadImage(croppedFile, 'avatars');
+            
+            // Update avatar URL in backend
             const response = await fetch(`${API_BASE}/settings/avatar`, {
                 method: 'PUT',
                 credentials: 'include',
-                body: formData,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ avatar: publicUrl }),
             });
 
             if (response.ok) {
-                const data = await response.json();
-                setProfile(prev => ({ ...prev, avatar: data.avatar }));
+                setProfile(prev => ({ ...prev, avatar: publicUrl }));
                 toast.success(t('toast.avatarUpdated'), {
                     description: t('toast.avatarUpdatedDesc'),
                 });
@@ -346,9 +376,18 @@ export function UserSettings() {
                 });
             }
         } catch (error) {
+            console.error('Failed to upload avatar:', error);
             toast.error(t('toast.avatarFailed'), {
-                description: t('toast.avatarFailedDesc'),
+                description: error instanceof Error ? error.message : t('toast.avatarFailedDesc'),
             });
+        }
+    };
+
+    const handleCropModalClose = () => {
+        setCropModalOpen(false);
+        if (selectedImageSrc) {
+            URL.revokeObjectURL(selectedImageSrc);
+            setSelectedImageSrc(null);
         }
     };
 
@@ -431,6 +470,7 @@ export function UserSettings() {
                                     setProfile={setProfile}
                                     onSave={handleSaveProfile}
                                     onFileUpload={handleFileUpload}
+                                    isUploading={isUploadingAvatar}
                                     t={t}
                                 />
                             )}
@@ -470,15 +510,29 @@ export function UserSettings() {
                     </div>
                 </div>
             </div>
+
+            {/* Image Crop Modal */}
+            {selectedImageSrc && (
+                <ImageCropModal
+                    isOpen={cropModalOpen}
+                    onClose={handleCropModalClose}
+                    imageSrc={selectedImageSrc}
+                    onCropComplete={handleCropComplete}
+                    aspectRatio={1}
+                    circularCrop={true}
+                    title={t('profile.picture.cropTitle') || 'Crop Profile Picture'}
+                />
+            )}
         </div>
     );
 }
 
-function ProfileTab({ profile, setProfile, onSave, onFileUpload, t }: {
+function ProfileTab({ profile, setProfile, onSave, onFileUpload, isUploading, t }: {
     profile: UserProfile;
     setProfile: React.Dispatch<React.SetStateAction<UserProfile>>;
     onSave: () => void;
     onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    isUploading: boolean;
     t: (key: string) => string;
 }) {
     const initials = profile.displayName
@@ -503,14 +557,25 @@ function ProfileTab({ profile, setProfile, onSave, onFileUpload, t }: {
                             onChange={onFileUpload}
                             className="hidden"
                             id="profile-upload"
+                            disabled={isUploading}
                         />
                         <Button
                             variant="outline"
                             size="sm"
                             onClick={() => document.getElementById('profile-upload')?.click()}
+                            disabled={isUploading}
                         >
-                            <Upload className="h-4 w-4 mr-2" />
-                            {t('profile.picture.change')}
+                            {isUploading ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    {t('profile.picture.uploading') || 'Uploading...'}
+                                </>
+                            ) : (
+                                <>
+                                    <Upload className="h-4 w-4 mr-2" />
+                                    {t('profile.picture.change')}
+                                </>
+                            )}
                         </Button>
                     </div>
                 </div>
