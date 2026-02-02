@@ -7,7 +7,8 @@
     "build": "tsc",
     "start": "bun run src/index.ts",
     "db:migrate": "bun run src/db/migrate.ts",
-    "db:push": "bun run src/db/push.ts",
+    "db:push": "bunx drizzle-kit push",
+    "db:generate": "bunx drizzle-kit generate",
     "db:studio": "bun run src/db/studio.ts",
     "db:seed": "bun run src/db/seed.ts"
   },
@@ -20,6 +21,7 @@
     "drizzle-orm": "^0.33.0",
     "elysia": "^1.4.19",
     "elysia-decorators": "^1.0.2",
+    "postgres": "^3.4.4",
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
