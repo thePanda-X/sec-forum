@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -53,6 +53,7 @@ export function UserSettings() {
     const { theme, setTheme } = useTheme();
     const { language, setLanguage } = useLanguage();
     const navigate = useNavigate();
+    const location = useLocation();
     const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
     const [isLoading, setIsLoading] = useState(true);
 
@@ -98,6 +99,12 @@ export function UserSettings() {
     useEffect(() => {
         fetchSettings();
     }, []);
+
+    useEffect(() => {
+        if (location.pathname === '/settings') {
+            setActiveTab('profile');
+        }
+    }, [location.key]);
 
     const fetchSettings = async () => {
         try {
