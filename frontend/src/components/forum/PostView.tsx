@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { parseMarkdown } from "@/lib/markdown";
 import { Header } from "./Header";
-import { CategorySidebar } from "./CategorySidebar";
 import { Comments } from "./Comments";
 import { CommentForm } from "./CommentForm";
 import { LoginModal } from "@/components/auth/LoginModal";
@@ -249,8 +248,6 @@ export function PostView() {
 
             <div className="container mx-auto px-4 py-6">
                 <div className="flex gap-6">
-                    <CategorySidebar className="hidden lg:block shrink-0 lg:w-64" />
-
                     <main className="flex-1 min-w-0 pb-16 md:pb-6">
                         <Button
                             variant="ghost"
