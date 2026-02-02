@@ -8,6 +8,13 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
     ArrowLeft,
     Calendar,
     MapPin,
@@ -21,6 +28,8 @@ import {
     MessageSquare,
     Shield,
     Eye,
+    Users,
+    Activity,
 } from 'lucide-react';
 
 const API_BASE = '/api/v1';
@@ -78,6 +87,13 @@ export function UserProfile() {
     const [isFollowing, setIsFollowing] = useState(false);
     const [followLoading, setFollowLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const tabs = [
+        { id: 'posts' as const, label: t('tabs.posts'), icon: FileText },
+        { id: 'followers' as const, label: t('tabs.followers'), icon: Users },
+        { id: 'following' as const, label: t('tabs.following'), icon: UserPlus },
+        { id: 'activity' as const, label: t('tabs.activity'), icon: Activity },
+    ];
 
     const isOwnProfile = currentUser && profile && String(currentUser.id) === String(profile.id);
 
@@ -531,7 +547,7 @@ export function UserProfile() {
 
                     {/* Tabs */}
                     <div className="bg-card border border-border rounded-lg overflow-hidden">
-                        <div className="flex border-b border-border">
+                        <div className="hidden md:flex border-b border-border">
                             <TabButton
                                 active={activeTab === 'posts'}
                                 onClick={() => setActiveTab('posts')}
@@ -559,6 +575,38 @@ export function UserProfile() {
                             >
                                 {t('tabs.activity')}
                             </TabButton>
+                        </div>
+                        <div className="md:hidden p-4 border-b border-border">
+                            <Select value={activeTab} onValueChange={(value) => setActiveTab(value as ProfileTab)}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder={t('tabs.posts')} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {tabs.map((tab) => {
+                                        const Icon = tab.icon;
+                                        const count = tab.id === 'posts' 
+                                            ? posts.length 
+                                            : tab.id === 'followers' 
+                                            ? profile.followersCount 
+                                            : tab.id === 'following' 
+                                            ? profile.followingCount 
+                                            : undefined;
+                                        return (
+                                            <SelectItem key={tab.id} value={tab.id}>
+                                                <div className="flex items-center justify-between w-full">
+                                                    <div className="flex items-center space-x-2">
+                                                        <Icon className="h-4 w-4" />
+                                                        <span>{tab.label}</span>
+                                                    </div>
+                                                    {count !== undefined && (
+                                                        <span className="text-muted-foreground text-sm">({count})</span>
+                                                    )}
+                                                </div>
+                                            </SelectItem>
+                                        );
+                                    })}
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         <div className="p-4">
