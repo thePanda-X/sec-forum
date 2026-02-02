@@ -113,10 +113,32 @@ export class UploadsController {
         url,
         key,
       };
-    } catch (error) {
-      logger.error("Failed to upload file:", { error: String(error) });
+    } catch (error: any) {
+      logger.error("Failed to upload file:", { 
+        error: String(error),
+        message: error.message,
+        code: error.code,
+        statusCode: error.$metadata?.httpStatusCode,
+        userId: currentUser.id,
+        fileType: file.type,
+        fileSize: file.size
+      });
+      
+      let errorMessage = "Failed to upload file";
+      if (error.code === "InvalidAccessKeyId") {
+        errorMessage = "S3 access key is invalid. Check S3_ACCESS_KEY environment variable.";
+      } else if (error.code === "SignatureDoesNotMatch") {
+        errorMessage = "S3 secret key is invalid. Check S3_SECRET_KEY environment variable.";
+      } else if (error.code === "NoSuchBucket") {
+        errorMessage = `S3 bucket '${s3Config.bucket}' does not exist. Please initialize S3 bucket.`;
+      } else if (error.name === "ECONNREFUSED") {
+        errorMessage = "Cannot connect to S3 server. Please check if S3_ENDPOINT is correct and S3 server is running.";
+      } else if (error.message) {
+        errorMessage = `Upload failed: ${error.message}`;
+      }
+      
       set.status = 500;
-      return { error: "Failed to upload file" };
+      return { error: errorMessage };
     }
   }
 
