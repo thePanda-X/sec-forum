@@ -1,0 +1,48 @@
+# Dependencies - MUST be excluded so Docker builds native modules for Linux
+node_modules
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Logs
+*.log
+logs
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+*.test.ts
+*.spec.ts
+__tests__
+coverage
+
+# Documentation
+*.md
+
+# Lock files are handled by bun
+package-lock.json
+
+# Misc
+.editorconfig
+.prettierrc
+.eslintrc*
+tsconfig.tsbuildinfo

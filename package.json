@@ -4,14 +4,18 @@
   "description": "Security Forum - Full Stack Application",
   "private": true,
   "type": "module",
-  "scripts": {
+"scripts": {
     "dev": "concurrently -n \"backend,frontend\" -c \"blue,magenta\" \"cd backend && bun run dev\" \"cd frontend && bun run dev\"",
     "dev:backend": "cd backend && bun run dev",
     "dev:frontend": "cd frontend && bun run dev",
     "install:all": "cd backend && bun install && cd ../frontend && bun install",
-    "deploy": "bun run deploy.ts"
-  },
-  "devDependencies": {
-    "concurrently": "^9.1.2"
+    "deploy": "bun run deploy.ts",
+    "docker:init": "bun run docker-init.ts",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:build": "docker-compose build",
+    "docker:restart": "docker-compose restart",
+    "docker:prod": "docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d"
   }
 }
