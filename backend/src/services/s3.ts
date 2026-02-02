@@ -28,7 +28,7 @@ export const ALLOWED_IMAGE_TYPES = [
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 // Upload types for organizing files
-export type UploadType = "avatars" | "posts";
+export type UploadType = "avatars" | "posts" | "banners";
 
 // S3 Client instance
 export const s3Client = new S3Client({

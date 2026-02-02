@@ -9,6 +9,18 @@
   "profile": {
     "title": "Profile Information",
     "subtitle": "Update your public profile details",
+    "banner": {
+      "title": "Banner",
+      "subtitle": "Customize your profile banner with an image or gradient",
+      "changeImage": "Change Image",
+      "useGradient": "Use Gradient",
+      "remove": "Remove Banner",
+      "gradientTitle": "Choose Gradient Colors",
+      "gradientStart": "Gradient Start Color",
+      "gradientEnd": "Gradient End Color",
+      "preview": "Preview",
+      "cropTitle": "Crop Banner Image"
+    },
     "picture": {
       "title": "Profile Picture",
       "subtitle": "Update your profile photo",
@@ -107,6 +119,12 @@
     "avatarUpdatedDesc": "Your profile picture has been changed.",
     "avatarFailed": "Failed to upload avatar",
     "avatarFailedDesc": "Could not update profile picture.",
+    "bannerUpdated": "Banner updated",
+    "bannerUpdatedDesc": "Your profile banner has been changed.",
+    "bannerFailed": "Failed to update banner",
+    "bannerFailedDesc": "Could not update profile banner.",
+    "bannerRemoved": "Banner removed",
+    "bannerRemovedDesc": "Your profile banner has been removed.",
     "appearanceUpdated": "Appearance updated",
     "appearanceUpdatedDesc": "Your appearance settings have been saved.",
     "notificationsUpdated": "Notifications updated",

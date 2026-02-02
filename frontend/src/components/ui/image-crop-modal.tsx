@@ -62,11 +62,21 @@ async function getCroppedImg(
   const pixelCropWidth = crop.width * scaleX;
   const pixelCropHeight = crop.height * scaleY;
 
-  // Set canvas size to the cropped area size
-  // Use a reasonable output size (e.g., 400x400 for avatars)
-  const outputSize = Math.min(400, Math.max(pixelCropWidth, pixelCropHeight));
-  canvas.width = outputSize;
-  canvas.height = outputSize;
+  // Set canvas size to match crop aspect ratio
+  // Use a reasonable maximum dimension while preserving aspect ratio
+  const maxDimension = 800;
+  let outputWidth, outputHeight;
+
+  if (pixelCropWidth > pixelCropHeight) {
+    outputWidth = maxDimension;
+    outputHeight = maxDimension * (pixelCropHeight / pixelCropWidth);
+  } else {
+    outputHeight = maxDimension;
+    outputWidth = maxDimension * (pixelCropWidth / pixelCropHeight);
+  }
+
+  canvas.width = outputWidth;
+  canvas.height = outputHeight;
 
   // Calculate the center of rotation
   const centerX = canvas.width / 2;
@@ -89,8 +99,8 @@ async function getCroppedImg(
     pixelCropHeight,
     0,
     0,
-    outputSize,
-    outputSize
+    outputWidth,
+    outputHeight
   );
 
   ctx.restore();

@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 
 const API_BASE = '/api/v1';
 
-type UploadType = 'avatars' | 'posts';
+type UploadType = 'avatars' | 'posts' | 'banners';
 
 interface UploadConfig {
   maxFileSize: number;

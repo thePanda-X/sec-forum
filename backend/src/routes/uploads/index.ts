@@ -27,10 +27,10 @@ export class UploadsController {
               type: "object",
               properties: {
                 file: { type: "string", format: "binary", description: "Image file to upload" },
-                type: { 
-                  type: "string", 
-                  enum: ["avatars", "posts"],
-                  description: "Upload type for organizing files" 
+                type: {
+                  type: "string",
+                  enum: ["avatars", "posts", "banners"],
+                  description: "Upload type for organizing files"
                 },
               },
               required: ["file", "type"],
@@ -68,9 +68,9 @@ export class UploadsController {
     const { file, type } = body;
 
     // Validate upload type
-    if (!["avatars", "posts"].includes(type)) {
+    if (!["avatars", "posts", "banners"].includes(type)) {
       set.status = 400;
-      return { error: "Invalid upload type. Must be 'avatars' or 'posts'" };
+      return { error: "Invalid upload type. Must be 'avatars', 'posts', or 'banners'" };
     }
 
     // Validate file exists

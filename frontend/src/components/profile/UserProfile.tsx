@@ -43,6 +43,9 @@ interface UserProfileData {
     displayName: string;
     username: string;
     avatar?: string;
+    banner?: string;
+    bannerGradientStart?: string;
+    bannerGradientEnd?: string;
     bio?: string;
     location?: string;
     website?: string;
@@ -373,7 +376,26 @@ export function UserProfile() {
                     {/* Profile Card */}
                     <div className="bg-card border border-border rounded-lg overflow-hidden mb-6">
                         {/* Banner */}
-                        <div className="h-24 md:h-32 bg-gradient-to-r from-green-600 to-green-400" />
+                        {profile.banner ? (
+                            <div
+                                className="h-24 md:h-32"
+                                style={{
+                                    backgroundImage: `url(${profile.banner})`,
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center',
+                                    backgroundRepeat: 'no-repeat'
+                                }}
+                            />
+                        ) : profile.bannerGradientStart && profile.bannerGradientEnd ? (
+                            <div
+                                className="h-24 md:h-32"
+                                style={{
+                                    background: `linear-gradient(to right, ${profile.bannerGradientStart}, ${profile.bannerGradientEnd})`,
+                                }}
+                            />
+                        ) : (
+                            <div className="h-24 md:h-32 bg-gradient-to-r from-green-600 to-green-400" />
+                        )}
 
                         {/* Profile Info */}
                         <div className="px-4 md:px-6 pb-6">
