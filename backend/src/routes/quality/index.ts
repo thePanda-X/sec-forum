@@ -3,6 +3,7 @@ import { Controller, Get } from "elysia-decorators";
 import { readdir, readFile } from "fs/promises";
 import { join } from "path";
 import { logger } from "../../utils/logger";
+import type { Context } from "elysia";
 
 const MAX_LINE_LENGTH = 120;
 const LARGE_FILE_LINE_COUNT = 400;
@@ -32,18 +33,22 @@ interface QualityReport {
 
 @Controller("/quality")
 export class QualityController {
-  @Get("/report", {
-    detail: {
-      tags: ["Code Quality"],
-      summary: "Backend code quality report",
-      description: "Analyze backend source code and return a quality score with feedback",
-      responses: {
-        200: { description: "Code quality report" },
-        500: { description: "Failed to analyze backend code" },
+  @Get(
+    "/report",
+    {
+      detail: {
+        tags: ["Code Quality"],
+        summary: "Backend code quality report",
+        description: "Analyze backend source code and return a quality score with feedback",
+        responses: {
+          200: { description: "Code quality report" },
+          500: { description: "Failed to analyze backend code" },
+        },
       },
-    },
-  } as any)
-  async report({ set }: any): Promise<QualityReport | { error: string }> {
+      config: { allowMeta: true },
+    } as any
+  )
+  async report({ set }: Context): Promise<QualityReport | { error: string }> {
     try {
       return await this.buildReport();
     } catch (error) {
@@ -195,7 +200,9 @@ export class QualityController {
     }
 
     if (metrics.longLineCount > 0) {
-      feedback.push("Wrap long lines (120+ chars) to keep code readable and review-friendly.");
+      feedback.push(
+        `Wrap long lines (${MAX_LINE_LENGTH}+ chars) to keep code readable and review-friendly.`
+      );
     }
 
     if (metrics.consoleCount > 0) {
