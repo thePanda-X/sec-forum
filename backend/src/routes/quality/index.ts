@@ -131,7 +131,7 @@ export class QualityController {
 
     const anyTypeRegex = /\bany\b/g;
     const todoRegex = /\bTODO\b|\bFIXME\b/g;
-    const consoleRegex = /\bconsole\.(log|debug|info|warn|error)\b/g;
+    const consoleRegex = /\bconsole\.\w+\b/g;
 
     for (const file of sourceFiles) {
       const contents = await readFile(file, "utf8");
@@ -190,14 +190,141 @@ export class QualityController {
   }
 
   private stripCommentsAndStrings(content: string): string {
-    const withoutStrings = content
-      .replace(/`(?:\\.|[^`\\])*`/g, "")
-      .replace(/"(?:\\.|[^"\\])*"/g, "")
-      .replace(/'(?:\\.|[^'\\])*'/g, "");
+    let result = "";
+    let inSingleQuote = false;
+    let inDoubleQuote = false;
+    let inTemplateLiteral = false;
+    let inLineComment = false;
+    let inBlockComment = false;
+    let inRegexLiteral = false;
+    let escapeNext = false;
+    let templateExpressionDepth = 0;
+    let previousNonWhitespace = "";
 
-    return withoutStrings
-      .replace(/\/\/.*$/gm, "")
-      .replace(/\/\*[\s\S]*?\*\//g, "");
+    const isRegexStart = (value: string) =>
+      value === "" || /[=({[!,:;?+\-*%&|^~<>]/.test(value);
+
+    for (let index = 0; index < content.length; index += 1) {
+      const char = content[index];
+      const nextChar = content[index + 1];
+
+      if (inLineComment) {
+        if (char === "\n") {
+          inLineComment = false;
+          result += "\n";
+        }
+        continue;
+      }
+
+      if (inBlockComment) {
+        if (char === "*" && nextChar === "/") {
+          inBlockComment = false;
+          index += 1;
+        }
+        continue;
+      }
+
+      if (inSingleQuote) {
+        if (escapeNext) {
+          escapeNext = false;
+        } else if (char === "\\") {
+          escapeNext = true;
+        } else if (char === "'") {
+          inSingleQuote = false;
+        }
+        continue;
+      }
+
+      if (inDoubleQuote) {
+        if (escapeNext) {
+          escapeNext = false;
+        } else if (char === "\\") {
+          escapeNext = true;
+        } else if (char === "\"") {
+          inDoubleQuote = false;
+        }
+        continue;
+      }
+
+      if (inRegexLiteral) {
+        result += char;
+        if (escapeNext) {
+          escapeNext = false;
+        } else if (char === "\\") {
+          escapeNext = true;
+        } else if (char === "/") {
+          inRegexLiteral = false;
+        }
+        if (!/\s/.test(char)) {
+          previousNonWhitespace = char;
+        }
+        continue;
+      }
+
+      if (inTemplateLiteral && templateExpressionDepth === 0) {
+        if (char === "`") {
+          inTemplateLiteral = false;
+        } else if (char === "$" && nextChar === "{") {
+          templateExpressionDepth = 1;
+          index += 1;
+        } else if (char === "\\") {
+          index += 1;
+        }
+        continue;
+      }
+
+      if (char === "/" && nextChar === "/") {
+        inLineComment = true;
+        index += 1;
+        continue;
+      }
+
+      if (char === "/" && nextChar === "*") {
+        inBlockComment = true;
+        index += 1;
+        continue;
+      }
+
+      if (char === "'" && templateExpressionDepth === 0) {
+        inSingleQuote = true;
+        continue;
+      }
+
+      if (char === "\"" && templateExpressionDepth === 0) {
+        inDoubleQuote = true;
+        continue;
+      }
+
+      if (char === "`") {
+        inTemplateLiteral = true;
+        continue;
+      }
+
+      if (char === "/" && isRegexStart(previousNonWhitespace)) {
+        inRegexLiteral = true;
+        result += char;
+        previousNonWhitespace = char;
+        continue;
+      }
+
+      if (templateExpressionDepth > 0) {
+        if (char === "{") {
+          templateExpressionDepth += 1;
+        } else if (char === "}") {
+          templateExpressionDepth -= 1;
+          if (templateExpressionDepth === 0) {
+            continue;
+          }
+        }
+      }
+
+      result += char;
+      if (!/\s/.test(char)) {
+        previousNonWhitespace = char;
+      }
+    }
+
+    return result;
   }
 
   private buildFeedback(metrics: QualityMetrics): string[] {
