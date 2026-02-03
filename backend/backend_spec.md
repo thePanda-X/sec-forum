@@ -62,3 +62,6 @@
 
 ### Reports
  - POST /api/v1/reports - Create report (for user to report content)
+
+### Code Quality
+ - GET /api/v1/quality/report - Backend code quality report
