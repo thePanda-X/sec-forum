@@ -8,6 +8,10 @@ import type { Context } from "elysia";
 const MAX_LINE_LENGTH = 120;
 const LARGE_FILE_LINE_COUNT = 400;
 const SKIP_DIRECTORIES = new Set(["node_modules", "dist", "build", ".git", ".bun"]);
+const ANY_TYPE_REGEX = /(:\s*any\b|<\s*any\s*>|\bany\s*(?=\[)|\bas\s+any\b)/g;
+const TODO_REGEX = /\bTODO\b|\bFIXME\b/g;
+const CONSOLE_REGEX = /\bconsole\.\w+\b/g;
+const TEST_FILE_REGEX = /(\.test\.|\.spec\.|__tests__)/i;
 
 interface QualityMetrics {
   totalFiles: number;
@@ -128,10 +132,6 @@ export class QualityController {
     let consoleCount = 0;
     let largeFileCount = 0;
 
-    const anyTypeRegex = /(:\s*any\b|<\s*any\s*>|\bany\s*(?=\[)|\bas\s+any\b)/g;
-    const todoRegex = /\bTODO\b|\bFIXME\b/g;
-    const consoleRegex = /\bconsole\.\w+\b/g;
-
     for (const file of sourceFiles) {
       const contents = await readFile(file, "utf8");
       const sanitizedContents = this.stripCommentsAndStrings(contents);
@@ -148,13 +148,12 @@ export class QualityController {
         }
       }
 
-      anyTypeCount += (sanitizedContents.match(anyTypeRegex) || []).length;
-      todoCount += (contents.match(todoRegex) || []).length;
-      consoleCount += (sanitizedContents.match(consoleRegex) || []).length;
+      anyTypeCount += (sanitizedContents.match(ANY_TYPE_REGEX) || []).length;
+      todoCount += (contents.match(TODO_REGEX) || []).length;
+      consoleCount += (sanitizedContents.match(CONSOLE_REGEX) || []).length;
     }
 
-    const testFileRegex = /(\.test\.|\.spec\.|__tests__)/i;
-    const hasTests = allFiles.some((file) => testFileRegex.test(file));
+    const hasTests = allFiles.some((file) => TEST_FILE_REGEX.test(file));
 
     return {
       totalFiles: sourceFiles.length,
@@ -200,12 +199,12 @@ export class QualityController {
     let templateExpressionDepth = 0;
     let previousNonWhitespace = "";
 
-    const isRegexStart = (previousChar: string) =>
+    const canStartRegexAfterChar = (previousChar: string) =>
       previousChar === "" || /[=({!\[,:;?+\-*%&|^~<>]/.test(previousChar);
 
-    for (let charIndex = 0; charIndex < content.length; charIndex++) {
-      const char = content[charIndex];
-      const nextChar = content[charIndex + 1];
+    for (let currentIndex = 0; currentIndex < content.length; currentIndex++) {
+      const char = content[currentIndex];
+      const nextChar = content[currentIndex + 1];
 
       if (inLineComment) {
         if (char === "\n") {
@@ -218,7 +217,7 @@ export class QualityController {
       if (inBlockComment) {
         if (char === "*" && nextChar === "/") {
           inBlockComment = false;
-          charIndex += 1;
+          currentIndex += 1;
         }
         continue;
       }
@@ -265,10 +264,10 @@ export class QualityController {
           inTemplateLiteral = false;
         } else if (char === "$" && nextChar === "{") {
           templateExpressionDepth = 1;
-          charIndex += 1;
+          currentIndex += 1;
         } else if (char === "\\") {
-          if (charIndex + 1 < content.length) {
-            charIndex += 1;
+          if (currentIndex + 1 < content.length) {
+            currentIndex += 1;
           }
         }
         continue;
@@ -276,13 +275,13 @@ export class QualityController {
 
       if (char === "/" && nextChar === "/") {
         inLineComment = true;
-        charIndex += 1;
+        currentIndex += 1;
         continue;
       }
 
       if (char === "/" && nextChar === "*") {
         inBlockComment = true;
-        charIndex += 1;
+        currentIndex += 1;
         continue;
       }
 
@@ -301,7 +300,7 @@ export class QualityController {
         continue;
       }
 
-      if (char === "/" && isRegexStart(previousNonWhitespace)) {
+      if (char === "/" && canStartRegexAfterChar(previousNonWhitespace)) {
         inRegexLiteral = true;
         result += char;
         previousNonWhitespace = char;
