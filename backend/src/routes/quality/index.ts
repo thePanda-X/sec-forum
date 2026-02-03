@@ -128,7 +128,7 @@ export class QualityController {
     let consoleCount = 0;
     let largeFileCount = 0;
 
-    const anyTypeRegex = /(:\s*any\b|<\s*any\s*>|\bany\s*\[|\bas\s+any\b)/g;
+    const anyTypeRegex = /(:\s*any\b|<\s*any\s*>|\bany\s*(?=\[)|\bas\s+any\b)/g;
     const todoRegex = /\bTODO\b|\bFIXME\b/g;
     const consoleRegex = /\bconsole\.\w+\b/g;
 
@@ -200,12 +200,12 @@ export class QualityController {
     let templateExpressionDepth = 0;
     let previousNonWhitespace = "";
 
-    const isRegexStart = (value: string) =>
-      value === "" || /[=({!\[,:;?+\-*%&|^~<>]/.test(value);
+    const isRegexStart = (previousChar: string) =>
+      previousChar === "" || /[=({!\[,:;?+\-*%&|^~<>]/.test(previousChar);
 
-    for (let index = 0; index < content.length; index++) {
-      const char = content[index];
-      const nextChar = content[index + 1];
+    for (let charIndex = 0; charIndex < content.length; charIndex++) {
+      const char = content[charIndex];
+      const nextChar = content[charIndex + 1];
 
       if (inLineComment) {
         if (char === "\n") {
@@ -218,7 +218,7 @@ export class QualityController {
       if (inBlockComment) {
         if (char === "*" && nextChar === "/") {
           inBlockComment = false;
-          index += 1;
+          charIndex += 1;
         }
         continue;
       }
@@ -265,10 +265,10 @@ export class QualityController {
           inTemplateLiteral = false;
         } else if (char === "$" && nextChar === "{") {
           templateExpressionDepth = 1;
-          index += 1;
+          charIndex += 1;
         } else if (char === "\\") {
-          if (index + 1 < content.length) {
-            index += 1;
+          if (charIndex + 1 < content.length) {
+            charIndex += 1;
           }
         }
         continue;
@@ -276,13 +276,13 @@ export class QualityController {
 
       if (char === "/" && nextChar === "/") {
         inLineComment = true;
-        index += 1;
+        charIndex += 1;
         continue;
       }
 
       if (char === "/" && nextChar === "*") {
         inBlockComment = true;
-        index += 1;
+        charIndex += 1;
         continue;
       }
 
