@@ -128,7 +128,7 @@ export class QualityController {
     let consoleCount = 0;
     let largeFileCount = 0;
 
-    const anyTypeRegex = /(:\s*any\b|<\s*any\s*>|\bany\s*\[\s*]|\bas\s+any\b)/g;
+    const anyTypeRegex = /(:\s*any\b|<\s*any\s*>|\bany\s*\[|\bas\s+any\b)/g;
     const todoRegex = /\bTODO\b|\bFIXME\b/g;
     const consoleRegex = /\bconsole\.\w+\b/g;
 
@@ -201,7 +201,7 @@ export class QualityController {
     let previousNonWhitespace = "";
 
     const isRegexStart = (value: string) =>
-      value === "" || /[=({[!,:;?+\-*%&|^~<>]/.test(value);
+      value === "" || /[=({!\[,:;?+\-*%&|^~<>]/.test(value);
 
     for (let index = 0; index < content.length; index++) {
       const char = content[index];
