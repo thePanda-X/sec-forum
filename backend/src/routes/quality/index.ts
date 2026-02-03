@@ -31,23 +31,22 @@ interface QualityReport {
   feedback: string[];
 }
 
+const reportRouteOptions = {
+  detail: {
+    tags: ["Code Quality"],
+    summary: "Backend code quality report",
+    description: "Analyze backend source code and return a quality score with feedback",
+    responses: {
+      200: { description: "Code quality report" },
+      500: { description: "Failed to analyze backend code" },
+    },
+  },
+  config: { allowMeta: true },
+};
+
 @Controller("/quality")
 export class QualityController {
-  @Get(
-    "/report",
-    {
-      detail: {
-        tags: ["Code Quality"],
-        summary: "Backend code quality report",
-        description: "Analyze backend source code and return a quality score with feedback",
-        responses: {
-          200: { description: "Code quality report" },
-          500: { description: "Failed to analyze backend code" },
-        },
-      },
-      config: { allowMeta: true },
-    } as any
-  )
+  @Get("/report", reportRouteOptions as any)
   async report({ set }: Context): Promise<QualityReport | { error: string }> {
     try {
       return await this.buildReport();
@@ -129,7 +128,7 @@ export class QualityController {
     let consoleCount = 0;
     let largeFileCount = 0;
 
-    const anyTypeRegex = /\bany\b/g;
+    const anyTypeRegex = /(:\s*any\b|<\s*any\s*>|\bany\s*\[\s*]|\bas\s+any\b|\bany\s*>)/g;
     const todoRegex = /\bTODO\b|\bFIXME\b/g;
     const consoleRegex = /\bconsole\.\w+\b/g;
 
@@ -268,7 +267,9 @@ export class QualityController {
           templateExpressionDepth = 1;
           index += 1;
         } else if (char === "\\") {
-          index += 1;
+          if (index + 1 < content.length) {
+            index += 1;
+          }
         }
         continue;
       }
@@ -285,12 +286,12 @@ export class QualityController {
         continue;
       }
 
-      if (char === "'" && templateExpressionDepth === 0) {
+      if (char === "'") {
         inSingleQuote = true;
         continue;
       }
 
-      if (char === "\"" && templateExpressionDepth === 0) {
+      if (char === "\"") {
         inDoubleQuote = true;
         continue;
       }
