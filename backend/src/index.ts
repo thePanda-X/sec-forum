@@ -34,6 +34,7 @@ import { AdminController } from "./routes/admin";
 import { CategoriesController, StatsController } from "./routes/categories";
 import { UsersController as ProfileController } from "./routes/users/profile";
 import { UploadsController } from "./routes/uploads";
+import { QualityController } from "./routes/quality";
 import { authPlugin } from "./middleware/auth";
 import { loggingPlugin } from "./middleware/logging";
 import { logger } from "./utils/logger";
@@ -61,6 +62,7 @@ const app = new Elysia({ prefix: "/api/v1" })
                 StatsController,
                 ProfileController,
                 UploadsController,
+                QualityController,
             ],
         })
     )
