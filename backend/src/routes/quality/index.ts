@@ -199,12 +199,12 @@ export class QualityController {
     let templateExpressionDepth = 0;
     let previousNonWhitespace = "";
 
-    const canStartRegexAfterChar = (previousChar: string) =>
+    const canStartRegexLiteralAfter = (previousChar: string) =>
       previousChar === "" || /[=({!\[,:;?+\-*%&|^~<>]/.test(previousChar);
 
-    for (let currentIndex = 0; currentIndex < content.length; currentIndex++) {
-      const char = content[currentIndex];
-      const nextChar = content[currentIndex + 1];
+    for (let i = 0; i < content.length; i++) {
+      const char = content[i];
+      const nextChar = content[i + 1];
 
       if (inLineComment) {
         if (char === "\n") {
@@ -217,7 +217,7 @@ export class QualityController {
       if (inBlockComment) {
         if (char === "*" && nextChar === "/") {
           inBlockComment = false;
-          currentIndex += 1;
+          i += 1;
         }
         continue;
       }
@@ -264,10 +264,10 @@ export class QualityController {
           inTemplateLiteral = false;
         } else if (char === "$" && nextChar === "{") {
           templateExpressionDepth = 1;
-          currentIndex += 1;
+          i += 1;
         } else if (char === "\\") {
-          if (currentIndex + 1 < content.length) {
-            currentIndex += 1;
+          if (i + 1 < content.length) {
+            i += 1;
           }
         }
         continue;
@@ -275,13 +275,13 @@ export class QualityController {
 
       if (char === "/" && nextChar === "/") {
         inLineComment = true;
-        currentIndex += 1;
+        i += 1;
         continue;
       }
 
       if (char === "/" && nextChar === "*") {
         inBlockComment = true;
-        currentIndex += 1;
+        i += 1;
         continue;
       }
 
@@ -300,7 +300,7 @@ export class QualityController {
         continue;
       }
 
-      if (char === "/" && canStartRegexAfterChar(previousNonWhitespace)) {
+      if (char === "/" && canStartRegexLiteralAfter(previousNonWhitespace)) {
         inRegexLiteral = true;
         result += char;
         previousNonWhitespace = char;
