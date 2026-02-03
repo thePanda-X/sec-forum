@@ -8,7 +8,7 @@ import type { Context } from "elysia";
 const MAX_LINE_LENGTH = 120;
 const LARGE_FILE_LINE_COUNT = 400;
 const SKIP_DIRECTORIES = new Set(["node_modules", "dist", "build", ".git", ".bun"]);
-const ANY_TYPE_REGEX = /(:\s*any\b|<\s*any\s*>|\bany\s*(?=\[)|\bas\s+any\b)/g;
+const ANY_TYPE_REGEX = /(:\s*any\b|<\s*any\s*>|\bany\b\s*(?=\[)|\bas\s+any\b)/g;
 const TODO_REGEX = /\bTODO\b|\bFIXME\b/g;
 const CONSOLE_REGEX = /\bconsole\.\w+\b/g;
 const TEST_FILE_REGEX = /(\.test\.|\.spec\.|__tests__)/i;
@@ -50,7 +50,7 @@ const reportRouteOptions = {
 
 @Controller("/quality")
 export class QualityController {
-  @Get("/report", reportRouteOptions as any)
+  @Get("/report", reportRouteOptions)
   async report({ set }: Context): Promise<QualityReport | { error: string }> {
     try {
       return await this.buildReport();
@@ -252,6 +252,13 @@ export class QualityController {
           escapeNext = true;
         } else if (char === "/") {
           inRegexLiteral = false;
+          let flagIndex = i + 1;
+          while (flagIndex < content.length && /[dgimsuy]/.test(content[flagIndex])) {
+            flagIndex += 1;
+          }
+          if (flagIndex > i + 1) {
+            i = flagIndex - 1;
+          }
         }
         if (!/\s/.test(char)) {
           previousNonWhitespace = char;
@@ -267,6 +274,9 @@ export class QualityController {
           i += 1;
         } else if (char === "\\") {
           if (i + 1 < content.length) {
+            if (content[i + 1] === "\n") {
+              result += "\n";
+            }
             i += 1;
           }
         }
