@@ -129,12 +129,13 @@ export class QualityController {
     let consoleCount = 0;
     let largeFileCount = 0;
 
-    const anyTypeRegex = /(:\s*any\b|\bas\s+any\b)/g;
+    const anyTypeRegex = /\bany\b/g;
     const todoRegex = /\bTODO\b|\bFIXME\b/g;
-    const consoleRegex = /console\.(log|debug|info|warn|error)\b/g;
+    const consoleRegex = /\bconsole\.(log|debug|info|warn|error)\b/g;
 
     for (const file of sourceFiles) {
       const contents = await readFile(file, "utf8");
+      const sanitizedContents = this.stripCommentsAndStrings(contents);
       const lines = contents.split(/\r?\n/);
       totalLines += lines.length;
 
@@ -148,9 +149,9 @@ export class QualityController {
         }
       }
 
-      anyTypeCount += (contents.match(anyTypeRegex) || []).length;
+      anyTypeCount += (sanitizedContents.match(anyTypeRegex) || []).length;
       todoCount += (contents.match(todoRegex) || []).length;
-      consoleCount += (contents.match(consoleRegex) || []).length;
+      consoleCount += (sanitizedContents.match(consoleRegex) || []).length;
     }
 
     const testFileRegex = /(\.test\.|\.spec\.|__tests__)/i;
@@ -186,6 +187,17 @@ export class QualityController {
     }
 
     return Math.max(0, Math.min(100, score));
+  }
+
+  private stripCommentsAndStrings(content: string): string {
+    const withoutStrings = content
+      .replace(/`(?:\\.|[^`\\])*`/g, "")
+      .replace(/"(?:\\.|[^"\\])*"/g, "")
+      .replace(/'(?:\\.|[^'\\])*'/g, "");
+
+    return withoutStrings
+      .replace(/\/\/.*$/gm, "")
+      .replace(/\/\*[\s\S]*?\*\//g, "");
   }
 
   private buildFeedback(metrics: QualityMetrics): string[] {
