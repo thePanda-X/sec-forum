@@ -5,6 +5,7 @@ import { userSettings, users, profiles } from "../../db/schema";
 import { verifyPassword, hashPassword } from "../../utils/auth";
 import { eq } from "drizzle-orm";
 import { I18N_KEYS } from "../../i18n/keys";
+import { deleteFile, extractKeyFromUrl } from "../../services/s3";
 
 @Controller("/settings")
 export class SettingsController {
@@ -52,6 +53,9 @@ export class SettingsController {
           displayName: profile?.displayName,
           username: profile?.username,
           avatar: profile?.avatar,
+          banner: profile?.banner,
+          bannerGradientStart: profile?.bannerGradientStart,
+          bannerGradientEnd: profile?.bannerGradientEnd,
           bio: profile?.bio,
           location: profile?.location,
           website: profile?.website,
@@ -75,6 +79,9 @@ export class SettingsController {
         displayName: profile?.displayName,
         username: profile?.username,
         avatar: profile?.avatar,
+        banner: profile?.banner,
+        bannerGradientStart: profile?.bannerGradientStart,
+        bannerGradientEnd: profile?.bannerGradientEnd,
         bio: profile?.bio,
         location: profile?.location,
         website: profile?.website,
@@ -124,6 +131,9 @@ export class SettingsController {
       displayName: profile.displayName,
       username: profile.username,
       avatar: profile.avatar,
+      banner: profile.banner,
+      bannerGradientStart: profile.bannerGradientStart,
+      bannerGradientEnd: profile.bannerGradientEnd,
       bio: profile.bio,
       location: profile.location,
       website: profile.website,
@@ -240,6 +250,84 @@ export class SettingsController {
       .where(eq(profiles.id, profile.id));
 
     return { message: "Avatar updated successfully" };
+  }
+
+  @Put("/banner", {
+    detail: {
+      tags: ["Settings"],
+      summary: "Update banner",
+      description: "Update the authenticated user's banner (image or gradient)",
+      requestBody: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                banner: { type: "string", nullable: true },
+                bannerGradientStart: { type: "string", nullable: true },
+                bannerGradientEnd: { type: "string", nullable: true },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        200: { description: "Banner updated" },
+        401: { description: "Unauthorized" },
+        400: { description: "Invalid request" },
+      },
+    },
+  } as any)
+  async updateBanner({ body, user, set }: any) {
+    const currentUser = await user;
+    if (!currentUser) {
+      set.status = 401;
+      return { error: "Unauthorized" };
+    }
+
+    const profile = await db.query.profiles.findFirst({
+      where: eq(profiles.userId, currentUser.id),
+    });
+
+    if (!profile) {
+      set.status = 404;
+      return { error: "Profile not found" };
+    }
+
+    // Validate: Either banner image OR both gradient colors, but not both
+    const hasBannerImage = body.banner !== null && body.banner !== undefined && body.banner !== "";
+    const hasGradientColors = body.bannerGradientStart && body.bannerGradientEnd;
+
+    if (hasBannerImage && hasGradientColors) {
+      set.status = 400;
+      return { error: "Cannot set both banner image and gradient colors" };
+    }
+
+    // Delete old banner image if setting gradient or removing banner
+    if (hasGradientColors || !hasBannerImage) {
+      if (profile.banner) {
+        const oldKey = extractKeyFromUrl(profile.banner);
+        if (oldKey) {
+          try {
+            await deleteFile(oldKey);
+          } catch (error) {
+            console.error("Failed to delete old banner:", error);
+          }
+        }
+      }
+    }
+
+    // Update banner fields
+    await db
+      .update(profiles)
+      .set({
+        banner: body.banner || null,
+        bannerGradientStart: body.bannerGradientStart || null,
+        bannerGradientEnd: body.bannerGradientEnd || null,
+      })
+      .where(eq(profiles.id, profile.id));
+
+    return { message: "Banner updated successfully" };
   }
 
   @Get("/appearance", {

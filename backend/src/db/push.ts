@@ -3,8 +3,26 @@ import { join } from "path";
 
 config({ path: join(process.cwd(), "../.env") });
 
-import { Database } from "bun:sqlite";
+import { db, closeDb } from "./index";
 
-const sqlite = new Database(process.env.DATABASE_URL || "./forum.db");
-sqlite.run("PRAGMA journal_mode = WAL");
-console.log("Database schema pushed!");
+async function push() {
+  try {
+    // Test the connection
+    console.log("🔗 Testing database connection...");
+    
+    // Run a simple query to verify connection
+    const result = await db.execute("SELECT 1 as test");
+    
+    if (result) {
+      console.log("✅ Database connection successful!");
+      console.log("💡 To apply schema changes, run: bunx drizzle-kit push");
+    }
+  } catch (error) {
+    console.error("❌ Database connection failed:", error);
+    process.exit(1);
+  } finally {
+    await closeDb();
+  }
+}
+
+push();

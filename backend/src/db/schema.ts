@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, primaryKey } from "drizzle-orm/sqlite-core";
+import { pgTable, text, integer, serial, boolean, timestamp, primaryKey } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 export const UserRole = {
@@ -9,27 +9,30 @@ export const UserRole = {
 
 export type UserRoleType = typeof UserRole[keyof typeof UserRole];
 
-export const users = sqliteTable("users", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   role: text("role", { enum: ["ADMIN", "MODERATOR", "USER"] })
     .notNull()
     .default("USER"),
-  isBanned: integer("is_banned", { mode: "boolean" }).notNull().default(false),
-  lastSeen: integer("last_seen", { mode: "timestamp" }),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  isBanned: boolean("is_banned").notNull().default(false),
+  lastSeen: timestamp("last_seen"),
+  createdAt: timestamp("created_at")
     .$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+  updatedAt: timestamp("updated_at")
     .$defaultFn(() => new Date()),
 });
 
-export const profiles = sqliteTable("profiles", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const profiles = pgTable("profiles", {
+  id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().unique().references(() => users.id, { onDelete: "cascade" }),
   displayName: text("display_name").notNull(),
   username: text("username").notNull().unique(),
   avatar: text("avatar"),
+  banner: text("banner"),
+  bannerGradientStart: text("banner_gradient_start"),
+  bannerGradientEnd: text("banner_gradient_end"),
   bio: text("bio"),
   location: text("location"),
   website: text("website"),
@@ -38,8 +41,8 @@ export const profiles = sqliteTable("profiles", {
   skills: text("skills"),
 });
 
-export const posts = sqliteTable("posts", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const posts = pgTable("posts", {
+  id: serial("id").primaryKey(),
   authorId: integer("author_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -47,17 +50,17 @@ export const posts = sqliteTable("posts", {
     .references(() => categories.id, { onDelete: "set null" }),
   title: text("title").notNull(),
   body: text("body").notNull(),
-  pinned: integer("pinned", { mode: "boolean" }).notNull().default(false),
-  locked: integer("locked", { mode: "boolean" }).notNull().default(false),
+  pinned: boolean("pinned").notNull().default(false),
+  locked: boolean("locked").notNull().default(false),
   views: integer("views").notNull().default(0),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: timestamp("created_at")
     .$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+  updatedAt: timestamp("updated_at")
     .$defaultFn(() => new Date()),
 });
 
-export const comments = sqliteTable("comments", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const comments = pgTable("comments", {
+  id: serial("id").primaryKey(),
   postId: integer("post_id")
     .notNull()
     .references(() => posts.id, { onDelete: "cascade" }),
@@ -66,18 +69,18 @@ export const comments = sqliteTable("comments", {
     .references(() => users.id, { onDelete: "cascade" }),
   parentId: integer("parent_id"),
   body: text("body").notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: timestamp("created_at")
     .$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+  updatedAt: timestamp("updated_at")
     .$defaultFn(() => new Date()),
 });
 
-export const tags = sqliteTable("tags", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const tags = pgTable("tags", {
+  id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
 });
 
-export const postTags = sqliteTable(
+export const postTags = pgTable(
   "post_tags",
   {
     postId: integer("post_id")
@@ -92,7 +95,7 @@ export const postTags = sqliteTable(
   })
 );
 
-export const postVotes = sqliteTable(
+export const postVotes = pgTable(
   "post_votes",
   {
     postId: integer("post_id")
@@ -102,7 +105,7 @@ export const postVotes = sqliteTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     value: integer("value").notNull(),
-    createdAt: integer("created_at", { mode: "timestamp" })
+    createdAt: timestamp("created_at")
       .$defaultFn(() => new Date()),
   },
   (table) => ({
@@ -110,7 +113,7 @@ export const postVotes = sqliteTable(
   })
 );
 
-export const postViews = sqliteTable(
+export const postViews = pgTable(
   "post_views",
   {
     postId: integer("post_id")
@@ -119,7 +122,7 @@ export const postViews = sqliteTable(
     userId: integer("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    viewedAt: integer("viewed_at", { mode: "timestamp" })
+    viewedAt: timestamp("viewed_at")
       .$defaultFn(() => new Date()),
   },
   (table) => ({
@@ -127,8 +130,8 @@ export const postViews = sqliteTable(
   })
 );
 
-export const notifications = sqliteTable("notifications", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
   userId: integer("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -137,21 +140,21 @@ export const notifications = sqliteTable("notifications", {
   body: text("body").notNull(),
   postId: integer("post_id").references(() => posts.id, { onDelete: "cascade" }),
   actorUserId: integer("actor_user_id").references(() => users.id, { onDelete: "cascade" }),
-  read: integer("read", { mode: "boolean" }).notNull().default(false),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  read: boolean("read").notNull().default(false),
+  createdAt: timestamp("created_at")
     .$defaultFn(() => new Date()),
 });
 
-export const userSettings = sqliteTable("user_settings", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const userSettings = pgTable("user_settings", {
+  id: serial("id").primaryKey(),
   userId: integer("user_id")
     .notNull()
     .unique()
     .references(() => users.id, { onDelete: "cascade" }),
-  emailNotifications: integer("email_notifications", { mode: "boolean" })
+  emailNotifications: boolean("email_notifications")
     .notNull()
     .default(true),
-  pushNotifications: integer("push_notifications", { mode: "boolean" })
+  pushNotifications: boolean("push_notifications")
     .notNull()
     .default(true),
   theme: text("theme", { enum: ["light", "dark"] })
@@ -160,7 +163,7 @@ export const userSettings = sqliteTable("user_settings", {
   fontSize: text("font_size", { enum: ["small", "medium", "large"] })
     .notNull()
     .default("medium"),
-  compactMode: integer("compact_mode", { mode: "boolean" })
+  compactMode: boolean("compact_mode")
     .notNull()
     .default(false),
   language: text("language", { enum: ["en", "es"] })
@@ -168,8 +171,8 @@ export const userSettings = sqliteTable("user_settings", {
     .default("en"),
 });
 
-export const reports = sqliteTable("reports", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const reports = pgTable("reports", {
+  id: serial("id").primaryKey(),
   reporterId: integer("reporter_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -179,26 +182,26 @@ export const reports = sqliteTable("reports", {
   status: text("status", { enum: ["PENDING", "REVIEWED", "RESOLVED", "DISMISSED"] })
     .notNull()
     .default("PENDING"),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: timestamp("created_at")
     .$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+  updatedAt: timestamp("updated_at")
     .$defaultFn(() => new Date()),
 });
 
-export const categories = sqliteTable("categories", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const categories = pgTable("categories", {
+  id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
   slug: text("slug").notNull().unique(),
   description: text("description"),
   color: text("color").notNull().default("#10b981"),
   icon: text("icon").notNull().default("FolderTree"),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: timestamp("created_at")
     .$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+  updatedAt: timestamp("updated_at")
     .$defaultFn(() => new Date()),
 });
 
-export const followers = sqliteTable(
+export const followers = pgTable(
   "followers",
   {
     followerId: integer("follower_id")
@@ -207,7 +210,7 @@ export const followers = sqliteTable(
     followingId: integer("following_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    createdAt: integer("created_at", { mode: "timestamp" })
+    createdAt: timestamp("created_at")
       .$defaultFn(() => new Date()),
   },
   (table) => ({
@@ -215,8 +218,8 @@ export const followers = sqliteTable(
   })
 );
 
-export const auditLogs = sqliteTable("audit_logs", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
   userId: integer("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -224,7 +227,7 @@ export const auditLogs = sqliteTable("audit_logs", {
   entityType: text("entity_type").notNull(),
   entityId: integer("entity_id").notNull(),
   details: text("details"),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: timestamp("created_at")
     .$defaultFn(() => new Date()),
 });
 
